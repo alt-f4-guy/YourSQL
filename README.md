@@ -91,41 +91,4 @@ npm ci
 npm start
 ```
 
-## 검사·빌드·배포
-
-```sh
-# 핵심 기능과 현재 운영체제의 업데이트 보조 프로그램을 검사합니다.
-npm test
-
-# 실제 앱의 학습 화면과 업데이트 설정을 임시 데이터로 검사합니다.
-npm run test:ui
-npm run test:updates
-
-# Mac arm64와 Windows x64 앱을 함께 빌드합니다.
-npm run package
-
-# Mac에서 두 앱을 새로 빌드하고 배포 ZIP 두 개를 다시 생성합니다.
-npm run release
-```
-
-개별 빌드는 `npm run package:mac`, `npm run package:windows`입니다. 두 운영체제의 ZIP을 함께 만드는 `npm run release`는 Mac에서 실행합니다.
-
-```sh
-# 현재 운영체제의 빌드 결과와 엔진 복구를 검사합니다.
-npm run test:packaged
-npm run test:engine
-
-# 배포 앱 복사본으로 다운로드·교체·재시작을 검사합니다.
-node tests/updates-packaged.cjs
-```
-
-새 버전을 배포할 때는 다음 순서를 따릅니다.
-
-1. `package.json`·`package-lock.json`·화면 버전·문서를 같은 버전으로 갱신합니다.
-2. 검사를 통과한 뒤 Mac에서 `npm run release`를 실행합니다.
-3. GitHub Releases에서 `v0.0.2`처럼 앱 버전과 일치하는 태그로 정식 릴리스를 만듭니다.
-4. `dist/YourSQL-Mac-arm64.zip`과 `dist/YourSQL-Windows-x64.zip`을 **그 이름 그대로** 첨부하고 공개합니다.
-
-ZIP의 최상위 배포 폴더와 자동 생성된 `update.json`을 유지하세요. 앱 내부 업데이트에는 GitHub가 계산한 SHA-256 정보가 필요합니다. 초안과 사전 릴리스는 업데이트 대상으로 삼지 않습니다. Windows 배포 전에는 해당 기기에서 핵심·배포본·엔진·업데이트 검사를 실행하세요.
-
 [문제팩 형식](docs/interfaces.md) · [테마 안내](theme/README.md) · [출처 안내](NOTICE.md)
