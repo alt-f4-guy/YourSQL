@@ -35,7 +35,7 @@ document.addEventListener('DOMContentLoaded',async()=>{
   save.addEventListener('click',async()=>{
     try {
       render(await window.practice.saveUpdateRepository(repository.value));
-      repository.value=state.repository;
+      repository.value=state.repository?`https://github.com/${state.repository}`:'';
       if (state.repository) await checkVersion();
     } catch(error) {report(error);}
   });
@@ -51,7 +51,7 @@ document.addEventListener('DOMContentLoaded',async()=>{
   popup.addEventListener('cancel',event=>{if(later.disabled) event.preventDefault();});
   window.practice.onUpdateChanged(render);
   try {
-    render(await window.practice.updateState());repository.value=state.repository;
+    render(await window.practice.updateState());repository.value=state.repository?`https://github.com/${state.repository}`:'';
     if (state.repository) await checkVersion(true);
   } catch(error) {report(error);}
 });

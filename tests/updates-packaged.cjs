@@ -15,6 +15,7 @@ async function main() {
   const zip=path.join(root,'dist',platform==='darwin'?'YourSQL-Mac-arm64.zip':'YourSQL-Windows-x64.zip');
   const bytes=fs.readFileSync(zip),version=require('../package.json').version;
   const data=path.join(temporary,'data');fs.mkdirSync(data);
+  fs.writeFileSync(path.join(data,'updates.json'),JSON.stringify({repository:''}));
   const marker=path.join(data,'my-study-record.txt');fs.writeFileSync(marker,'개인 기록 유지');
   fs.writeFileSync(path.join(installed,'theme','custom-marker.txt'),'내 테마 유지');
   const app=await electron.launch({executablePath:executable,args:[],env:{...process.env,SQL_PRACTICE_DATA_DIR:data}});

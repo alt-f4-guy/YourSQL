@@ -6,6 +6,7 @@ const path=require('node:path');
 const root=path.resolve(__dirname,'..');
 const data=fs.mkdtempSync(path.join(require('node:os').tmpdir(),'yoursql-updates-ui-'));
 fs.cpSync(path.join(root,'theme'),path.join(data,'theme'),{recursive:true});
+fs.writeFileSync(path.join(data,'updates.json'),JSON.stringify({repository:''}));
 async function main() {
   const app=await electron.launch({args:[root],env:{...process.env,SQL_PRACTICE_DATA_DIR:data}});
   try {

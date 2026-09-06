@@ -64,3 +64,17 @@ test('미설정·릴리스 없음·네트워크 실패를 사용자 상태로 �
     assert.ok(result.message);
   }
 });
+// 기본 저장소를 제공하되 사용자가 저장한 주소와 자동 확인 해제는 보존한다.
+test('첫 실행은 공식 저장소를 사용하고 기존 설정을 덮어쓰지 않는다',()=>{
+  const fs=require('node:fs'),path=require('node:path'),os=require('node:os');
+  const {Updater}=require('../lib/updates.cjs');
+  const directory=fs.mkdtempSync(path.join(os.tmpdir(),'yoursql-update-default-'));
+  const app={getPath:()=>directory,getVersion:()=> '0.0.1'};
+  try {
+    assert.equal(new Updater(app,()=>{}).state.repository,'alt-f4-guy/YourSQL');
+    for(const repository of ['me/custom','']) {
+      fs.writeFileSync(path.join(directory,'updates.json'),JSON.stringify({repository}));
+      assert.equal(new Updater(app,()=>{}).state.repository,repository);
+    }
+  } finally {fs.rmSync(directory,{recursive:true,force:true});}
+});

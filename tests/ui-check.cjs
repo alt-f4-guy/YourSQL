@@ -5,6 +5,7 @@ const fs=require('node:fs');
 const path=require('node:path');
 const root=path.resolve(__dirname,'..'),data=fs.mkdtempSync(path.join(root,'.0.0.1-ui-runtime-'));
 fs.cpSync(path.join(root,'theme'),path.join(data,'theme'),{recursive:true});
+fs.writeFileSync(path.join(data,'updates.json'),JSON.stringify({repository:''}));
 const rootCopy=process.argv.includes('--root-copy');
 const packaged=rootCopy||process.argv.includes('--packaged');
 // 각 운영체제에서 동일한 화면·채점 검사를 실행한다.
