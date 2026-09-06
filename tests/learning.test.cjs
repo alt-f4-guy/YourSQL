@@ -117,3 +117,60 @@ test('이전 저장 파일을 읽고 새 이름으로 저장하며 재시작한�
     assert.deepEqual(new Learning(dir).data,data);
   } finally {fs.rmSync(dir,{recursive:true,force:true});}
 });
+
+// 같은 날 다음 배정을 반복해도 완료 기록과 다음 날의 순서를 보존한다.
+test('추가 3+1 사이클은 순서대로 배정하고 일별 누적과 재시작을 보존한다',()=>{
+  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'sql-extra-'));
+  try{
+    let now=new Date(2026,8,7),store=new Learning(dir,()=>now);
+    assert.equal(typeof store.startExtra,'function');
+    const first=structuredClone(store.snapshot().today);
+    assert.deepEqual(store.startExtra().today,first);
+    const finish=()=>{const t=store.snapshot().today;for(const id of t.blanks)store.answer({id,answer:store.card(id).answer});store.queryResult(t.query,{status:'correct'});};
+    finish();
+    const second=store.startExtra();
+    assert.deepEqual(second.today.blanks,['unit1_variant1','unit1_variant2','unit1_variant3']);
+    assert.notEqual(second.today.query,first.query);
+    assert.equal(second.history['2026-09-07'].total,4);
+    assert.equal(second.history['2026-09-07'].complete,true);
+    assert.equal(second.completedDays,1);
+    assert.deepEqual(store.startExtra().today,second.today);
+    const id=second.today.blanks[0];
+    store.answer({id,answer:'오답'});assert.equal(store.snapshot().history['2026-09-07'].total,4);
+    store.answer({id,answer:store.card(id).answer});store.answer({id,answer:store.card(id).answer});
+    store=new Learning(dir,()=>now);
+    assert.deepEqual(store.snapshot().today.done,[id]);
+    assert.equal(store.snapshot().history['2026-09-07'].total,5);
+    finish();
+    store.queryResult(second.today.query,{status:'correct'});
+    assert.equal(store.snapshot().history['2026-09-07'].total,8);
+    assert.equal(store.snapshot().history['2026-09-07'].queryCount,2);
+    const third=store.startExtra();assert.deepEqual(third.today.blanks,['blank4','blank5','blank6']);
+    finish();assert.equal(store.snapshot().history['2026-09-07'].total,12);
+    now=new Date(2026,8,8);
+    const next=store.snapshot();
+    assert.deepEqual(next.today.blanks,['unit2_variant1','unit2_variant2','unit2_variant3']);
+    assert.equal(next.history['2026-09-08'].total,0);
+    assert.equal(next.history['2026-09-07'].total,12);
+    assert.equal(next.completedDays,1);
+  }finally{fs.rmSync(dir,{recursive:true,force:true});}
+});
+
+// 전체 과정을 하루에 끝내도 중복 배정 없이 종료되고 기존 일일 기록을 읽는다.
+test('하루 80사이클 종료 후 추가 배정을 멈춘다',()=>{
+  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'sql-extra-course-'));
+  try{
+    const store=new Learning(dir,()=>new Date(2026,8,7)),seen=new Set();
+    assert.equal(typeof store.startExtra,'function');
+    for(let cycle=0;cycle<80;cycle++){
+      const t=store.snapshot().today;
+      for(const id of t.blanks){assert.ok(!seen.has(id));seen.add(id);store.answer({id,answer:store.card(id).answer});}
+      store.queryResult(t.query,{status:'correct'});
+      if(cycle<79)store.startExtra();
+    }
+    const final=store.snapshot();assert.equal(final.history['2026-09-07'].total,320);
+    assert.equal(final.hasMore,false);assert.equal(final.completedDays,1);
+    assert.deepEqual(store.startExtra().today,final.today);
+    assert.equal(new Learning(dir,()=>new Date(2026,8,7)).snapshot().history['2026-09-07'].total,320);
+  }finally{fs.rmSync(dir,{recursive:true,force:true});}
+});

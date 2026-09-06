@@ -12,7 +12,7 @@
 </head>
 <body data-mode="today">
   <header class="topbar">
-    <div class="brand" aria-label="YourSQL"><span>YourSQL</span><strong><small>0.0.1</small></strong></div>
+    <div class="brand" aria-label="YourSQL"><span>YourSQL</span><strong><small>0.0.2</small></strong></div>
     <div class="engine"><span id="engine-dot" class="status-dot"></span><span id="engine-text">엔진 확인 중</span><button id="retry-engine" class="link-button" type="button">재연결</button></div>
     <div class="top-actions"><button id="open-settings" class="button ghost" type="button">설정</button><span id="save-status" aria-live="polite">초안 불러오는 중</span><button id="import-pack" class="button ghost" type="button">문제팩 가져오기</button><button id="open-study" class="button ghost" type="button">연속 학습일수</button><button id="open-history" class="button ghost" type="button">오답 기록</button></div>
   </header>
@@ -29,8 +29,8 @@
     <section id="today-screen">
       <div class="learning-heading"><div><p class="eyebrow" id="today-date">오늘의 루틴</p><h1>작은 연습이 실력이 되는 시간</h1><p>빈칸으로 익히고, 한 쿼리로 완성하세요.</p></div><span class="learning-pill" id="completed-days">기록 불러오는 중</span></div>
       <article class="daily-hero">
-        <div><span class="learning-pill">하루 4문제</span><h2 id="daily-title">오늘 배울 개념을 준비하고 있어요.</h2><p id="daily-copy">빈칸 3문제 + 쿼리 작성 1문제</p><button id="start-daily" class="learn-primary" disabled>오늘의 학습 시작</button></div>
-        <div class="daily-progress"><strong id="daily-count">0<span>/ 4</span></strong><p>오늘의 목표</p><progress id="daily-progress" max="4" value="0" aria-label="오늘의 학습 완료 수"></progress><span id="daily-detail">빈칸 0/3 · 쿼리 0/1</span></div>
+        <div><span id="daily-cycle" class="learning-pill">1번째 사이클 · 빈칸 3 + 쿼리 1</span><h2 id="daily-title">오늘 배울 개념을 준비하고 있어요.</h2><p id="daily-copy">빈칸 3문제 + 쿼리 작성 1문제</p><div class="daily-actions"><button id="start-daily" class="learn-primary" disabled>오늘의 학습 시작</button><button id="start-extra" class="learn-primary" type="button" hidden>추가 학습하기</button></div></div>
+        <div class="daily-progress"><strong id="daily-count">0<span>/ 4</span></strong><p>현재 사이클</p><progress id="daily-progress" max="4" value="0" aria-label="현재 사이클 완료 문제 수"></progress><span id="daily-detail">빈칸 0/3 · 쿼리 0/1</span></div>
       </article>
       <section class="learning-calendar" aria-label="하루 목표 달성 달력">
         <div class="section-heading"><h2>학습 달력</h2><div class="calendar-controls"><button id="calendar-prev" class="link-button" aria-label="이전 달">←</button><strong id="calendar-month"></strong><button id="calendar-next" class="link-button" aria-label="다음 달">→</button><button id="calendar-today" class="link-button">이번 달</button></div></div>

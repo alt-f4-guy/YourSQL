@@ -16,13 +16,16 @@
   function render(){
     const t=data.today,total=t.done.length+Number(t.queryDone),due=reviews();
     $('today-date').textContent=`${t.date.replaceAll('-','.')} · 오늘의 루틴`;
+    $('daily-cycle').textContent=`${(t.completedCycles?.length||0)+1}번째 사이클 · 빈칸 3 + 쿼리 1`;
     $('completed-days').textContent=`하루 목표 달성 ${data.completedDays}일`;
     $('daily-title').textContent=total===4?'오늘의 학습을 모두 마쳤어요!':data.units.find(u=>u.id===t.unit||u.queries.includes(t.query))?.title||'오늘의 SQL 연습';
-    $('daily-copy').textContent=total===4?'잘했어요. 복습할 문제가 있다면 한 번 더 떠올려 보세요.':'개념 세 번, 실전 한 번. 오늘도 차근차근 쌓아가요.';
+    $('daily-copy').textContent=total===4?data.hasMore?'잘했어요. 복습하거나 다음 3+1 문제를 이어서 학습해 보세요.':'모든 개념 과정을 마쳤어요. 복습으로 기억을 다져 보세요.':'개념 세 번, 실전 한 번. 오늘도 차근차근 쌓아가요.';
     $('daily-count').replaceChildren(node('span',String(total)),node('span','/ 4'));
     $('daily-count').firstChild.style.fontSize='58px';$('daily-count').firstChild.style.color='var(--learn-accent)';
-    $('daily-progress').value=total;$('daily-detail').textContent=`빈칸 ${t.done.length}/3 · 쿼리 ${Number(t.queryDone)}/1`;
+    $('daily-progress').value=total;$('daily-detail').textContent=`빈칸 ${t.done.length}/3 · 쿼리 ${Number(t.queryDone)}/1 · 오늘 총 ${data.history[t.date].total}문제 완료`;
     $('start-daily').disabled=!workspace;$('start-daily').textContent=total===4?'오늘의 복습 확인':total?'이어서 학습하기':'오늘의 학습 시작';
+    $('start-extra').hidden=total!==4;$('start-extra').disabled=!workspace||!data.hasMore;
+    $('start-extra').textContent=data.hasMore?'추가 학습하기':'전체 과정 완료';
     $('concept-count').textContent=`오늘 ${t.done.length}/3 완료 →`;
     $('daily-query-title').textContent=`${t.queryDone?'완료 · ':''}${title(t.query)} →`;
     $('review-count').textContent=due.length?`${due.length}문제 복습하기 →`:'지금은 복습할 문제가 없어요 →';$('review-badge').textContent=due.length;
@@ -58,12 +61,12 @@
       const b=node('button',undefined,'calendar-day');b.type='button';b.dataset.date=d.date;b.dataset.status=d.status;
       b.disabled=d.status==='future';b.setAttribute('aria-pressed',String(d.date===selectedDate));
       if(d.date===today)b.setAttribute('aria-current','date');
-      b.setAttribute('aria-label',`${d.date} · ${d.status==='complete'?'목표 달성':d.status==='future'?'예정':d.recorded?`${d.total}/4 완료`:'기록 없음'}`);
-      b.append(node('span',String(Number(d.date.slice(-2)))),node('small',d.status==='complete'?'✓':d.total?`${d.total}/4`:'·'));
+      b.setAttribute('aria-label',`${d.date} · ${d.status==='future'?'예정':`${d.total}문제 완료${d.status==='complete'?' · 목표 달성':''}`}`);
+      b.append(node('span',String(Number(d.date.slice(-2)))),node('small',d.total?`${d.total}${d.status==='complete'?' ✓':''}`:'·'));
       b.addEventListener('click',()=>{selectedDate=d.date;renderCalendar();});$('calendar-days').append(b);
     }
     const selected=month.days.find(d=>d.date===selectedDate)||month.days[0];
-    $('calendar-detail').replaceChildren(node('p',`${selected.date.replaceAll('-','.')}의 기록`,'eyebrow'),node('h3',selected.status==='complete'?'하루 목표 달성!':selected.status==='future'?'아직 오지 않은 날':selected.recorded?'조금씩 쌓는 중':'저장된 학습 기록이 없어요'),node('strong',`${selected.total} / 4 문제`),node('p',`빈칸 ${selected.blankCount}/3 · 쿼리 ${Number(selected.queryDone)}/1`),node('p',`이번 달 목표 달성 ${month.completed}일`));
+    $('calendar-detail').replaceChildren(node('p',`${selected.date.replaceAll('-','.')}의 기록`,'eyebrow'),node('h3',selected.status==='complete'?'하루 목표 달성!':selected.status==='future'?'아직 오지 않은 날':selected.recorded?'조금씩 쌓는 중':'저장된 학습 기록이 없어요'),node('strong',`${selected.total}문제 완료`),node('p',`빈칸 ${selected.blankCount}개 · 쿼리 ${selected.queryCount}개 · 하루 목표 4문제`),node('p',`이번 달 목표 달성 ${month.completed}일`));
   }
   for(const [id,offset] of [['calendar-prev',-1],['calendar-next',1]])$(id).addEventListener('click',()=>{calendarDate=new Date(calendarDate.getFullYear(),calendarDate.getMonth()+offset,1);selectedDate=null;renderCalendar();});
   $('calendar-today').addEventListener('click',()=>{calendarDate=null;selectedDate=null;renderCalendar();});
@@ -157,6 +160,13 @@
   $('next-blank').addEventListener('click',safely(next));
   $('leave-lesson').addEventListener('click',safely(()=>show(sessionKind==='review'?'review':'concept')));
   $('start-daily').addEventListener('click',safely(daily));
+  $('start-extra').addEventListener('click',safely(async()=>{
+    if(working||!workspace||workspace.busy())return;
+    if(!await workspace.saveDraft())return;
+    working=true;$('start-extra').disabled=true;
+    try{data=await api.startExtra();render();}finally{working=false;}
+    await daily();
+  }));
   $('start-blanks').addEventListener('click',safely(async()=>{await refresh();const ids=data.today.blanks.filter(id=>!data.today.done.includes(id));await startSession(ids.length?ids:data.today.blanks,'daily');}));
   $('start-review').addEventListener('click',safely(async()=>{const items=reviews(),ids=items.filter(r=>r.kind==='blank').map(r=>r.id);if(ids.length)await startSession(ids,'review');else if(items.length)await openQuery(items[0].id,true);}));
   $('query-search').addEventListener('input',()=>{querySearch=$('query-search').value;catalogScroll=0;renderCatalog();});

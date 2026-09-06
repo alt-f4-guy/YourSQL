@@ -60,6 +60,7 @@ else {
     handle('run',value=>service.run(value));
     handle('submit',async value=>{const result=await service.submit(value);learning.queryResult(value.id,result);return result;});
     handle('learning',()=>learning.snapshot());
+    handle('startExtra',()=>learning.startExtra());
     handle('blankAnswer',value=>learning.answer(value));
     handle('blankReveal',id=>learning.reveal(id));
     handle('learningAssist',id=>{service.entry(id);learning.assist(id);});
