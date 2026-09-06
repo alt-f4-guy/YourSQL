@@ -1,0 +1,28 @@
+{
+  "id": "highbury-0506",
+  "name": "Highbury Dark",
+  "scheme": "dark",
+  "colors": {
+    "bg": "#1C1015",
+    "text": "#F6EEDF",
+    "muted": "#CBB8AF",
+    "panel": "#28161D",
+    "sidebar-bg": "#321821",
+    "toolbar": "#381B25",
+    "line": "#65414A",
+    "hover": "#482532",
+    "control": "#3B202B",
+    "selected": "#4A2634",
+    "accent": "#D8B66A",
+    "accent-hover": "#E8CB88",
+    "success": "#ACCE9A",
+    "red": "#FFA0A7",
+    "secondary": "#BD9B77",
+    "on-accent": "#26151B",
+    "sql-keyword": "#E1BE72",
+    "sql-string": "#B9D3A0",
+    "sql-number": "#EEA8B3",
+    "sql-comment": "#BDAAA4",
+    "sql-function": "#EAD9AE"
+  }
+}

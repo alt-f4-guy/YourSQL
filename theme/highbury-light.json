@@ -1,0 +1,28 @@
+{
+  "id": "highbury-light",
+  "name": "Highbury Light",
+  "scheme": "light",
+  "colors": {
+    "bg": "#FFFFFF",
+    "text": "#30252A",
+    "muted": "#655B5C",
+    "panel": "#FAF8F4",
+    "sidebar-bg": "#F4F0E9",
+    "toolbar": "#F8F5EF",
+    "line": "#D8CDBB",
+    "hover": "#EBE4D9",
+    "control": "#EEE8DF",
+    "selected": "#F0E3DF",
+    "accent": "#62263B",
+    "accent-hover": "#4D1D2E",
+    "success": "#366044",
+    "red": "#A12D3D",
+    "secondary": "#B39153",
+    "on-accent": "#FFFFFF",
+    "sql-keyword": "#62263B",
+    "sql-string": "#366044",
+    "sql-number": "#80502D",
+    "sql-comment": "#736A69",
+    "sql-function": "#80631F"
+  }
+}

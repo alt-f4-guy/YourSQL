@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "id": "my_first_pack",
+  "title": "추가 문제 예제",
+  "tables": [{"name":"books","description":"책 목록","columns":[{"name":"book_id","type":"INT","description":"책 번호"},{"name":"title","type":"VARCHAR(100)","description":"책 제목"},{"name":"price","type":"INT","description":"판매가"}]}],
+  "datasets": [
+    {"name":"공개 예제","rows":{"books":[[1,"첫 SQL",12000],[2,"데이터 노트",8000],[3,"분석의 시작",15000]]}},
+    {"name":"경계값","rows":{"books":[[10,"경계",10000],[11,"아래",9999],[12,"위",10001]]}},
+    {"name":"빈 결과","rows":{"books":[[20,"작은 책",5000]]}}
+  ],
+  "problems": [{"id":"extra_books_01","level":1,"title":"만 원 이상인 책","topic":"조건 조회","description":"price가 10000 이상인 책의 book_id, title을 조회하세요. book_id 오름차순으로 정렬하세요.","tables":["books"],"columns":["book_id","title"],"ordered":true,"solution":"SELECT book_id, title FROM books WHERE price >= 10000 ORDER BY book_id","explanation":"WHERE에서 10000을 포함하도록 >=를 사용한 뒤 책 번호로 정렬합니다.","starter":"-- 만 원 이상인 책을 조회하세요.\nSELECT \nFROM books;"}]
+}

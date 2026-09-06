@@ -1,0 +1,26 @@
+node_modules/
+dist/
+*.app/
+.*runtime*/
+.yoursql-update-*/
+artifacts/
+.DS_Store
+
+# 로컬 작업 지침과 내부 기록
+/AGENTS.md
+/docs/superpowers/
+/docs/security-review.md
+/docs/0.0.1.md
+
+# 개인 환경 설정과 서명키
+.env
+.env.*
+!.env.example
+*.key
+*.p12
+*.pfx
+
+# 실행 로그와 Windows 탐색기 파일
+*.log
+Thumbs.db
+Desktop.ini

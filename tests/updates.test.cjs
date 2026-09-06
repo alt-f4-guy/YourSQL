@@ -1,0 +1,66 @@
+// GitHub 응답을 고정해 버전 비교와 외부 주소의 신뢰 경계를 검증한다.
+const test=require('node:test');
+const assert=require('node:assert/strict');
+const {normalizeRepository,checkUpdate,selectAsset,downloadAsset,validatePackage}=require('../lib/updates.cjs');
+test('공개 GitHub 저장소 주소만 허용한다',()=>{
+  assert.equal(normalizeRepository(' https://github.com/me/YourSQL/ '),'me/YourSQL');
+  assert.equal(normalizeRepository('me/YourSQL'),'me/YourSQL');
+  assert.equal(normalizeRepository(''),'');
+  for(const value of ['https://evil.test/me/app','me/..','me/app?token=abc',null,{},'https://github.com@evil.test/me/app']) assert.throws(()=>normalizeRepository(value));
+});
+test('운영체제에 맞는 검증 가능한 ZIP만 선택한다',()=>{
+  const asset={name:'YourSQL-Windows-x64.zip',size:100,digest:`sha256:${'a'.repeat(64)}`,browser_download_url:'https://github.com/me/app/releases/download/v0.0.2/YourSQL-Windows-x64.zip'};
+  const release={tag_name:'v0.0.2',assets:[asset]};
+  assert.equal(selectAsset(release,'me/app','win32','x64').name,asset.name);
+  assert.equal(selectAsset(release,'ME/APP','win32','x64').name,asset.name);
+  assert.throws(()=>selectAsset(release,'me/app','darwin','arm64'));
+  assert.throws(()=>selectAsset({...release,assets:[{...asset,digest:null}]},'me/app','win32','x64'));
+  assert.throws(()=>selectAsset({...release,assets:[{...asset,browser_download_url:'https://evil.test/app.zip'}]},'me/app','win32','x64'));
+});
+test('다운로드 해시가 다르면 교체용 파일을 승인하지 않는다',async()=>{
+  const fs=require('node:fs'),path=require('node:path'),os=require('node:os');
+  const directory=fs.mkdtempSync(path.join(os.tmpdir(),'yoursql-download-'));
+  const bytes=Buffer.from('검증할 앱');
+  const asset={size:bytes.length,digest:`sha256:${require('node:crypto').createHash('sha256').update(bytes).digest('hex')}`,browser_download_url:'https://github.com/me/app/releases/download/v0.0.2/app.zip'};
+  const fetcher=async()=>new Response(bytes);
+  try {
+    await downloadAsset(asset,path.join(directory,'ok.zip'),()=>{},fetcher);
+    assert.deepEqual(fs.readFileSync(path.join(directory,'ok.zip')),bytes);
+    await assert.rejects(downloadAsset({...asset,digest:`sha256:${'0'.repeat(64)}`},path.join(directory,'bad.zip'),()=>{},fetcher),/검증/);
+    await assert.rejects(downloadAsset(asset,path.join(directory,'redirect.zip'),()=>{},async()=>new Response(null,{status:302,headers:{location:'http://evil.test/app.zip'}})),/주소/);
+  } finally {fs.rmSync(directory,{recursive:true,force:true});}
+});
+test('압축 안의 앱 버전과 배포 대상이 일치해야 한다',()=>{
+  const fs=require('node:fs'),path=require('node:path'),os=require('node:os');
+  const directory=fs.mkdtempSync(path.join(os.tmpdir(),'yoursql-payload-'));
+  const root=path.join(directory,'YourSQL-win32-x64');
+  fs.mkdirSync(path.join(root,'resources','app.asar'),{recursive:true});
+  fs.writeFileSync(path.join(root,'YourSQL.exe'),'실행 파일');
+  fs.writeFileSync(path.join(root,'resources','app.asar','package.json'),JSON.stringify({name:'yoursql',version:'0.0.2'}));
+  fs.writeFileSync(path.join(root,'update.json'),JSON.stringify({product:'YourSQL',version:'0.0.2',platform:'win32',arch:'x64'}));
+  try {
+    assert.equal(validatePackage(directory,'0.0.2','win32','x64'),root);
+    assert.throws(()=>validatePackage(directory,'0.0.3','win32','x64'),/버전/);
+    fs.writeFileSync(path.join(root,'resources','app.asar','package.json'),JSON.stringify({name:'other',version:'0.0.2'}));
+    assert.throws(()=>validatePackage(directory,'0.0.2','win32','x64'),/앱/);
+  } finally {fs.rmSync(directory,{recursive:true,force:true});}
+});
+test('숫자로 버전을 비교하고 정식 새 버전만 알린다',async()=>{
+  for(const [tag,available] of [['v0.0.2',true],['0.0.10',true],['v0.0.1',false],['v0.0.0',false],['v0.0.2-beta.1',false]]) {
+    const result=await checkUpdate('me/app','0.0.1',async(url,options)=>{
+      assert.equal(url,'https://api.github.com/repos/me/app/releases/latest');
+      assert.ok(options.signal);
+      return {ok:true,json:async()=>({tag_name:tag})};
+    });
+    assert.equal(result.available,available,tag);
+  }
+  assert.equal((await checkUpdate('me/app','0.9.0',async()=>({ok:true,json:async()=>({tag_name:'v0.10.0'})}))).available,true);
+});
+test('미설정·릴리스 없음·네트워크 실패를 사용자 상태로 반환한다',async()=>{
+  assert.equal((await checkUpdate('','0.0.1',()=>assert.fail('요청하면 안 됨'))).available,false);
+  for(const fetcher of [async()=>({ok:false,status:404}),async()=>({ok:false,status:403}),async()=>{throw new Error('offline');},async()=>({ok:true,json:async()=>null})]) {
+    const result=await checkUpdate('me/app','0.0.1',fetcher);
+    assert.equal(result.available,false);
+    assert.ok(result.message);
+  }
+});

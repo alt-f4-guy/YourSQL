@@ -1,0 +1,28 @@
+{
+  "id": "macos-light",
+  "name": "macOS 라이트",
+  "scheme": "light",
+  "colors": {
+    "bg": "#ffffff",
+    "text": "#242424",
+    "muted": "#707070",
+    "panel": "#f5f5f5",
+    "sidebar-bg": "#f0f0f0",
+    "toolbar": "#f7f7f7",
+    "line": "#d8d8dc",
+    "hover": "#e5e5e7",
+    "control": "#e3e3e5",
+    "selected": "#dceafa",
+    "accent": "#007aff",
+    "accent-hover": "#0068dc",
+    "success": "#248a3d",
+    "red": "#d70015",
+    "secondary": "#8e8e93",
+    "on-accent": "#ffffff",
+    "sql-keyword": "#8A2599",
+    "sql-string": "#286128",
+    "sql-number": "#174EAD",
+    "sql-comment": "#66666D",
+    "sql-function": "#855000"
+  }
+}

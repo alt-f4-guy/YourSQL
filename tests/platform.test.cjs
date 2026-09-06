@@ -1,0 +1,61 @@
+// 운영체제별 배포 위치와 전용 연결 경로를 검증한다.
+const test=require('node:test');
+const assert=require('node:assert/strict');
+const {themeDirectory,mysqlCandidates,validSocket}=require('../lib/platform.cjs');
+test('Mac과 Windows는 실행 앱 옆의 테마를 사용한다',()=>{
+  assert.equal(themeDirectory('/apps/YourSQL.app/Contents/MacOS/YourSQL','darwin'),'/apps/theme');
+  assert.equal(themeDirectory('C:\\apps\\YourSQL\\YourSQL.exe','win32'),'C:\\apps\\YourSQL\\theme');
+});
+test('Windows MySQL 설치 위치와 지정 경로를 탐색한다',()=>{
+  const candidates=mysqlCandidates('win32',{ProgramFiles:'C:\\Program Files',PATH:'C:\\tools\\mysql\\bin',YOURSQL_MYSQLD:'D:\\mysql\\bin\\mysqld.exe'});
+  assert.equal(candidates[0],'D:\\mysql\\bin\\mysqld.exe');
+  assert.ok(candidates.includes('C:\\Program Files\\MySQL\\MySQL Server 8.4\\bin\\mysqld.exe'));
+  assert.ok(candidates.includes('C:\\tools\\mysql\\bin\\mysqld.exe'));
+  assert.ok(mysqlCandidates('darwin',{}).includes('/usr/local/mysql/bin/mysqld'));
+});
+test('복구는 로컬 전용 소켓이나 앱 전용 파이프만 허용한다',()=>{
+  assert.equal(validSocket('/tmp/aura-sql-Ab1234/mysql.sock','darwin'),true);
+  assert.equal(validSocket('\\\\.\\pipe\\yoursql-0123456789abcdef0123456789abcdef','win32'),true);
+  for(const value of ['\\\\server\\pipe\\mysql','\\\\.\\pipe\\MySQL','/tmp/other/mysql.sock','/tmp/aura-sql-../mysql.sock']) {
+    assert.equal(validSocket(value,'win32'),false);
+    assert.equal(validSocket(value,'darwin'),false);
+  }
+});
+// Mac에서도 Windows 분기의 서버 실행 인자와 복구 흐름을 검증한다.
+test('Windows 엔진은 TCP 없이 같은 파이프로 시작하고 복구한다',async()=>{
+  const fs=require('node:fs');
+  const path=require('node:path');
+  const vm=require('node:vm');
+  const {EventEmitter}=require('node:events');
+  const directory=fs.mkdtempSync(path.join(require('node:os').tmpdir(),'yoursql-win-test-'));
+  const binary=path.join(directory,'mysqld.exe');
+  fs.writeFileSync(binary,'');
+  fs.mkdirSync(path.join(directory,'mysql-data'));
+  let launches=0,args,options;
+  const child=new EventEmitter();child.exitCode=null;child.signalCode=null;
+  child.kill=()=>{child.exitCode=0;child.emit('exit',0);};
+  const connection={query:async sql=>sql.startsWith('SELECT VERSION')?[[{version:'8.4.0'}]]:[[]],destroy(){}};
+  const module={exports:{}};
+  const platform=require('../lib/platform.cjs');
+  vm.runInNewContext(fs.readFileSync(path.join(__dirname,'../lib/engine.cjs'),'utf8'),{
+    module,process:{platform:'win32'},Buffer,setTimeout,clearTimeout,
+    require:name=>name==='node:child_process'?{...require(name),spawn:(_binary,values,opts)=>{launches++;args=values;options=opts;return child;}}:
+      name==='./platform.cjs'?{mysqlCandidates:()=>[binary],validSocket:value=>platform.validSocket(value,'win32')}:require(name)
+  });
+  const {Engine}=module.exports;
+  const first=new Engine(directory),second=new Engine(directory);
+  // 실제 Windows 서버는 Windows 실기 검사에서 연결하며 여기서는 전송 경계만 대체한다.
+  first.connectAdmin=second.connectAdmin=async socket=>{assert.equal(platform.validSocket(socket,'win32'),true);return connection;};
+  try {
+    await first.start();
+    assert.ok(args.includes('--enable-named-pipe'));
+    assert.ok(args.includes('--skip-networking'));
+    assert.ok(args.includes(`--socket=${first.socketPath.slice('\\\\.\\pipe\\'.length)}`));
+    assert.equal(options.windowsHide,true);
+    await second.start();
+    assert.equal(launches,1);
+    assert.equal(first.socketPath,second.socketPath);
+    assert.equal(first.socketDirectory,undefined);
+    assert.equal(second.socketDirectory,null);
+  } finally {await first.stop();await second.stop();fs.rmSync(directory,{recursive:true,force:true});}
+});

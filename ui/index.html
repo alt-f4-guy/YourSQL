@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'">
+  <title>YourSQL</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="learning.css">
+  <script src="themes.js"></script>
+  <script src="updates.js"></script>
+</head>
+<body data-mode="today">
+  <header class="topbar">
+    <div class="brand" aria-label="YourSQL"><span>YourSQL</span><strong><small>0.0.1</small></strong></div>
+    <div class="engine"><span id="engine-dot" class="status-dot"></span><span id="engine-text">엔진 확인 중</span><button id="retry-engine" class="link-button" type="button">재연결</button></div>
+    <div class="top-actions"><button id="open-settings" class="button ghost" type="button">설정</button><span id="save-status" aria-live="polite">초안 불러오는 중</span><button id="import-pack" class="button ghost" type="button">문제팩 가져오기</button><button id="open-study" class="button ghost" type="button">연속 학습일수</button><button id="open-history" class="button ghost" type="button">오답 기록</button></div>
+  </header>
+
+  <nav class="learning-nav" aria-label="학습 모드">
+    <button data-mode="today" aria-current="page">오늘의 학습</button>
+    <button data-mode="concept">개념 학습</button>
+    <button data-mode="query">쿼리 작성</button>
+    <button data-mode="review">복습 <span id="review-badge">0</span></button>
+    <span>매일 조금씩, 스스로 쓰는 SQL</span>
+  </nav>
+  <p id="learning-error" role="alert" hidden></p>
+  <main id="learning-screen" tabindex="-1">
+    <section id="today-screen">
+      <div class="learning-heading"><div><p class="eyebrow" id="today-date">오늘의 루틴</p><h1>작은 연습이 실력이 되는 시간</h1><p>빈칸으로 익히고, 한 쿼리로 완성하세요.</p></div><span class="learning-pill" id="completed-days">기록 불러오는 중</span></div>
+      <article class="daily-hero">
+        <div><span class="learning-pill">하루 4문제</span><h2 id="daily-title">오늘 배울 개념을 준비하고 있어요.</h2><p id="daily-copy">빈칸 3문제 + 쿼리 작성 1문제</p><button id="start-daily" class="learn-primary" disabled>오늘의 학습 시작</button></div>
+        <div class="daily-progress"><strong id="daily-count">0<span>/ 4</span></strong><p>오늘의 목표</p><progress id="daily-progress" max="4" value="0" aria-label="오늘의 학습 완료 수"></progress><span id="daily-detail">빈칸 0/3 · 쿼리 0/1</span></div>
+      </article>
+      <section class="learning-calendar" aria-label="하루 목표 달성 달력">
+        <div class="section-heading"><h2>학습 달력</h2><div class="calendar-controls"><button id="calendar-prev" class="link-button" aria-label="이전 달">←</button><strong id="calendar-month"></strong><button id="calendar-next" class="link-button" aria-label="다음 달">→</button><button id="calendar-today" class="link-button">이번 달</button></div></div>
+        <div class="calendar-layout"><div><div class="calendar-week" aria-hidden="true"><span>일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span></div><div id="calendar-days" class="calendar-days" role="group" aria-label="날짜별 학습 기록"></div><p class="calendar-legend">숫자: 완료 문제 수 · ✓: 하루 목표 달성</p></div><aside id="calendar-detail" aria-live="polite"></aside></div>
+      </section>
+      <div class="mode-cards">
+        <button class="mode-card" data-open="concept"><span class="mode-icon">[ &nbsp; ]</span><small>개념 학습</small><h2>빈칸으로 떠올리기</h2><p>짧은 SQL 안에서 필요한 개념을 직접 꺼내 보세요.</p><strong id="concept-count">오늘 3문제 →</strong></button>
+        <button class="mode-card" data-open="query"><span class="mode-icon">&gt;_</span><small>쿼리 작성</small><h2>처음부터 완성하기</h2><p>배운 개념을 실제 데이터와 전체 쿼리에 적용하세요.</p><strong id="daily-query-title">오늘 1문제 →</strong></button>
+        <button class="mode-card" data-open="review"><span class="mode-icon">↻</span><small>복습</small><h2>기억을 다시 단단하게</h2><p>틀렸던 문제와 복습할 때가 된 문제를 다시 풀어요.</p><strong id="review-count">복습 확인 →</strong></button>
+      </div>
+      <div class="section-heading"><h2>나의 개념 여정</h2><span>한 번의 정답보다, 다시 떠올리는 힘</span></div><div id="home-units" class="unit-grid"></div>
+    </section>
+    <section id="concept-screen" hidden>
+      <div class="learning-heading"><div><p class="eyebrow">개념 학습</p><h1>읽고, 떠올리고, 채워 보세요</h1><p>오늘의 세 문제를 이어 풀거나, 원하는 단원을 연습하세요.</p></div><button id="start-blanks" class="learn-primary">오늘의 빈칸 이어하기</button></div><p>5단계 · 40단원 · 빈칸 240문제 — 단원마다 기본 3문제와 변형 3문제</p><div id="concept-units" class="unit-grid"></div>
+    </section>
+    <section id="catalog-screen" hidden>
+      <div class="learning-heading"><div><p class="eyebrow">쿼리 작성</p><h1>내 단계에 맞는 문제부터</h1><p>문제를 선택하면 설명·편집기·실행 결과가 있는 풀이 화면으로 이동합니다.</p></div><button id="open-daily-query" class="learn-primary">오늘의 쿼리 풀기</button></div>
+      <div id="query-levels" class="query-levels" role="group" aria-label="쿼리 난이도"></div>
+      <div class="catalog-tools"><label for="query-search">문제 검색<input id="query-search" type="search" placeholder="문제 제목·주제 검색" autocomplete="off"></label><span id="catalog-count" role="status"></span></div>
+      <div class="catalog-table-wrap"><table class="catalog-table"><caption class="sr-only">난이도별 SQL 문제 목록</caption><thead><tr><th scope="col">풀이 상태</th><th scope="col">문제 제목</th><th scope="col">난이도</th><th scope="col">주제</th></tr></thead><tbody id="catalog-rows"></tbody></table></div>
+    </section>
+    <section id="review-screen" hidden>
+      <div class="learning-heading"><div><p class="eyebrow">간격 복습</p><h1>잊기 전에, 한 번 더</h1><p>오답과 도움을 받은 문제는 짧게, 혼자 푼 문제는 간격을 늘려 복습해요.</p></div><button id="start-review" class="learn-primary">복습 시작</button></div><div id="review-list" class="review-items"></div><h2 class="upcoming-heading">다음 복습 예정</h2><div id="upcoming-list" class="review-items"></div>
+    </section>
+    <section id="lesson-screen" hidden>
+      <div class="session-top"><button id="leave-lesson" class="link-button">← 학습 목록</button><span id="session-position"></span></div><progress id="session-progress" max="3" value="0" aria-label="현재 세션 진행률"></progress>
+      <article class="lesson-card"><p class="eyebrow" id="lesson-unit"></p><h1 id="lesson-title"></h1><p id="lesson-prompt"></p><details id="concept-note"><summary>개념 다시 보기</summary><p id="lesson-concept"></p></details><form id="blank-form"><pre id="blank-code"></pre><div class="lesson-actions"><button id="blank-reveal" class="link-button" type="button">모르겠어요 · 해설 보기</button><button id="blank-check" class="learn-primary" type="submit">정답 확인</button></div></form><div id="blank-feedback" role="status" hidden></div><button id="next-blank" class="learn-primary" hidden>다음 문제</button></article>
+    </section>
+  </main>
+  <div id="query-learning-bar" hidden><button id="query-back" class="link-button">← 문제 목록</button><span id="query-mission"></span><button id="query-return" class="link-button">오늘의 학습으로 돌아가기 →</button></div>
+  <main id="workspace" class="workspace" hidden>
+    <aside id="sidebar" class="sidebar" aria-label="문제 목록" hidden>
+      <div class="sidebar-head">
+        <div><p class="eyebrow">문제 탐색</p><h1><span id="problem-count">0</span>개 문제</h1></div>
+        <span id="solved-count" class="counter">0 완료</span>
+      </div>
+      <label class="search"><span class="sr-only">문제 검색</span><input id="search" type="search" placeholder="제목·주제 검색" autocomplete="off"><kbd>⌘K</kbd></label>
+      <div id="level-filters" class="level-filters" role="group" aria-label="단계 필터">
+        <button class="level-chip active" type="button" data-level="all" aria-pressed="true">전체 단계</button>
+      </div>
+      <div id="level-guide" class="level-guide"><strong id="level-guide-title">5단계 학습 과정</strong><p id="level-guide-copy">기초 조회부터 복합 분석까지 순서대로 연습하세요.</p></div>
+      <button id="review-filter" class="button ghost review-filter" type="button" aria-pressed="false">오답 다시 풀기</button>
+      <p id="list-summary" class="list-summary" aria-live="polite"></p>
+      <p class="list-summary">이전 문제 ⌘⇧← · 다음 문제 ⌘⇧→</p>
+      <div id="problem-list" class="problem-list" role="listbox" aria-label="문제"></div>
+    </aside>
+    <div id="sidebar-resizer" hidden class="resizer vertical" role="separator" aria-label="문제 목록 너비 조절" tabindex="0"></div>
+
+    <section class="main-stage">
+      <div id="split" class="split">
+        <article id="brief-panel" class="brief-panel" aria-label="문제 설명">
+          <div id="empty-state" class="empty-state"><strong>문제를 선택하세요</strong><span>왼쪽 목록에서 연습할 문제를 고르세요.</span></div>
+          <div id="problem-view" hidden>
+            <div class="problem-heading"><div><div class="problem-meta"><span id="problem-level"></span><span id="problem-topic"></span></div><h2 id="problem-title"></h2></div><span id="problem-state" class="state-pill"></span></div>
+            <p id="problem-description" class="description"></p>
+            <section><div class="section-title"><h3>스키마</h3><span>MySQL 8.0</span></div><div id="schema-list" class="schema-list"></div></section>
+            <section><div class="section-title"><h3>예제 데이터</h3><span>공개 데이터셋</span></div><div id="sample-tables"></div></section>
+          </div>
+        </article>
+        <div id="main-resizer" class="resizer vertical" role="separator" aria-label="설명과 편집기 너비 조절" tabindex="0"></div>
+        <section id="work-panel" class="work-panel" aria-label="SQL 작업 공간">
+          <div class="editor-toolbar"><div><span class="file-dot"></span><strong>query.sql</strong><span id="editor-problem-label">문제를 선택하세요</span></div><div><button id="reset-sql" class="link-button" type="button" title="현재 SQL을 문제의 시작 코드로 되돌립니다" disabled>원본으로 리셋</button><button id="hint" class="link-button" type="button" disabled>힌트 보기</button><button id="solution" class="link-button" type="button" disabled>해설 보기</button><button id="run" class="button ghost" type="button" disabled>실행 <kbd>⌘↵</kbd></button><button id="submit" class="button primary" type="button" disabled>제출 <kbd>⌘⇧↵</kbd></button></div></div>
+          <div id="review-banner" class="review-banner" hidden>복습 중 · 기존 초안은 보존됩니다.<button id="end-review" class="link-button" type="button">기존 초안으로 돌아가기</button></div>
+          <div class="editor-wrap"><pre id="line-numbers" aria-hidden="true">1</pre><div class="editor-code"><pre id="sql-highlight" aria-hidden="true"></pre><textarea id="editor" aria-label="SQL 편집기" spellcheck="false" autocomplete="off" autocapitalize="off" wrap="off" disabled placeholder="-- 이곳에 SQL을 작성하세요."></textarea></div></div>
+          <div id="horizontal-resizer" class="resizer horizontal" role="separator" aria-label="편집기와 결과 높이 조절" tabindex="0"></div>
+          <section id="output" class="output" aria-label="실행 결과">
+            <div class="tabs" role="tablist"><button id="result-tab" class="tab active" type="button" role="tab" aria-selected="true">실행 결과</button><button id="grade-tab" class="tab" type="button" role="tab" aria-selected="false">채점</button><span id="output-summary"></span></div>
+            <div id="result-panel" class="tab-panel" role="tabpanel"><div class="output-empty">쿼리를 실행하면 결과가 여기에 표시됩니다.</div></div>
+            <div id="grade-panel" class="tab-panel" role="tabpanel" hidden><div class="output-empty">SQL을 제출하면 채점 결과가 여기에 표시됩니다.</div></div>
+          </section>
+        </section>
+      </div>
+    </section>
+  </main>
+
+  <dialog id="history-dialog"><div class="dialog-head"><div><p class="eyebrow">학습 기록</p><h2>오답 기록</h2></div><button class="icon-button" data-close-dialog type="button" aria-label="닫기">×</button></div><p class="dialog-copy">틀렸거나 실행 중 오류가 난 제출을 자동으로 저장합니다.</p><div id="history-list" class="history-list"></div></dialog>
+  <dialog id="hint-dialog"><div class="dialog-head"><div><p class="eyebrow">스스로 풀기</p><h2 id="hint-title">단계별 힌트</h2></div><button class="icon-button" data-close-dialog type="button" aria-label="닫기">×</button></div><div id="hint-list" aria-live="polite"></div><button id="next-hint" class="button primary next-hint" type="button">다음 힌트</button></dialog>
+  <dialog id="study-dialog"><div class="dialog-head"><div><p class="eyebrow">학습 기록</p><h2>연속 학습일수</h2></div><button class="icon-button" data-close-dialog type="button" aria-label="닫기">×</button></div><p class="dialog-copy">이 기능 추가 이후, 정답 여부와 관계없이 제출한 날을 맥의 현지 날짜로 셉니다. 실행만 한 날은 제외합니다.</p><div id="study-summary" class="study-summary" aria-live="polite"></div><p id="study-today" class="dialog-copy"></p><details class="study-dates"><summary>학습한 날짜 보기</summary><p id="study-dates"></p></details></dialog>
+  <dialog id="solution-dialog"><div class="dialog-head"><div><p class="eyebrow">정답과 해설</p><h2 id="solution-title">해설</h2></div><button class="icon-button" data-close-dialog type="button" aria-label="닫기">×</button></div><p id="solution-explanation" class="dialog-copy"></p><pre id="solution-sql" class="solution-code"></pre></dialog>
+  <dialog id="settings-dialog"><div class="dialog-head"><div><p class="eyebrow">환경 설정</p><h2>화면 테마</h2></div><button class="icon-button" data-close-dialog type="button" aria-label="설정 닫기">×</button></div><p class="dialog-copy">테마를 선택하고 관리합니다. 선택은 자동으로 저장됩니다.</p><div class="settings-controls"><select id="theme-select" class="theme-select" aria-label="테마"></select><button id="delete-theme" class="button ghost" type="button" disabled>테마 삭제</button><button id="open-theme-folder" class="button ghost" type="button">테마 폴더</button></div><div id="theme-status" class="theme-error" role="status" hidden></div>
+    <section class="update-settings" aria-labelledby="update-heading"><h2 id="update-heading">앱 업데이트</h2><p id="update-version"></p><label for="update-repository">공개 GitHub 저장소</label><div class="update-controls"><input id="update-repository" type="text" placeholder="https://github.com/계정/저장소" autocomplete="off" spellcheck="false" maxlength="300"><button id="save-update-repository" class="button ghost" type="button">저장</button></div><p class="update-copy">저장한 저장소를 앱 실행 시 확인합니다. 주소를 비워 저장하면 자동 확인을 끕니다.</p><p id="update-status" role="status" aria-live="polite"></p><div class="update-controls"><button id="check-updates" class="button ghost" type="button">업데이트 확인</button><button id="install-update" class="button primary" type="button" hidden>업데이트하고 재시작</button></div><p class="update-copy">업데이트하면 앱이 종료된 뒤 다시 실행됩니다. 학습 기록과 사용자 테마는 유지됩니다.</p></section>
+  </dialog>
+  <dialog id="update-dialog" aria-labelledby="update-dialog-title"><div class="dialog-head"><div><p class="eyebrow">YourSQL 업데이트</p><h2 id="update-dialog-title">업데이트가 있습니다</h2></div></div><p id="update-dialog-version" class="dialog-copy"></p><p id="update-dialog-status" class="dialog-copy" role="status" aria-live="polite"></p><p class="dialog-copy">새 버전을 내려받고 앱을 재시작합니다. 학습 기록과 사용자 테마는 유지됩니다.</p><div class="update-actions"><button id="update-later" class="button ghost" type="button">나중에</button><button id="update-now" class="button primary" type="button">업데이트하고 재시작</button></div></dialog>
+  <div id="toast-region" class="toast-region" aria-live="polite"></div>
+  <script src="sql-highlight.js"></script>
+  <script src="calendar.js"></script>
+  <script src="learning.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

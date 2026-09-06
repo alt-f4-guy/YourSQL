@@ -1,0 +1,32 @@
+{
+  "name": "yoursql",
+  "productName": "YourSQL",
+  "version": "0.0.1",
+  "description": "매일 익히는 SQL 학습장",
+  "private": true,
+  "main": "main.cjs",
+  "scripts": {
+    "start": "electron .",
+    "test": "node --test tests/core.test.cjs tests/themes.test.cjs tests/sql-highlight.test.cjs tests/learning.test.cjs tests/calendar.test.cjs tests/platform.test.cjs tests/updates.test.cjs tests/update-helper.test.cjs",
+    "test:mysql": "node tests/mysql-check.cjs",
+    "test:engine": "node tests/engine-recovery.cjs",
+    "test:ui": "node tests/ui-check.cjs",
+    "test:app": "node tests/ui-check.cjs --root-copy",
+    "package": "node scripts/package.cjs",
+    "icon": "python3 scripts/icon.py",
+    "package:mac": "node scripts/package.cjs mac",
+    "package:windows": "node scripts/package.cjs windows",
+    "test:packaged": "node tests/ui-check.cjs --packaged",
+    "test:updates": "node tests/updates-ui.cjs",
+    "release": "node scripts/release.cjs"
+  },
+  "dependencies": {
+    "mysql2": "3.24.3",
+    "@electron-internal/extract-zip": "1.0.5"
+  },
+  "devDependencies": {
+    "@electron/packager": "20.3.0",
+    "@playwright/test": "1.63.0",
+    "electron": "44.2.0"
+  }
+}

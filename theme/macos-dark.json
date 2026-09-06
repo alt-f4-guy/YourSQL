@@ -1,0 +1,28 @@
+{
+  "id": "macos-dark",
+  "name": "macOS 다크",
+  "scheme": "dark",
+  "colors": {
+    "bg": "#1E1E1E",
+    "text": "#F5F5F7",
+    "muted": "#B0B0B5",
+    "panel": "#252525",
+    "sidebar-bg": "#232323",
+    "toolbar": "#2C2C2C",
+    "line": "#48484A",
+    "hover": "#38383A",
+    "control": "#343436",
+    "selected": "#203A54",
+    "accent": "#64B5FF",
+    "accent-hover": "#8AC7FF",
+    "success": "#32D74B",
+    "red": "#FF827A",
+    "secondary": "#98989D",
+    "on-accent": "#000000",
+    "sql-keyword": "#FC91C6",
+    "sql-string": "#B5D58A",
+    "sql-number": "#D9BBFF",
+    "sql-comment": "#A8ADB7",
+    "sql-function": "#7AD8EB"
+  }
+}
