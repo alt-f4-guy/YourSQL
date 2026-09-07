@@ -5,6 +5,14 @@ $work = Split-Path -Parent $env:YOURSQL_UPDATE_TRANSACTION
 $newProcess = $null
 $backedUp = $false
 function Write-Result($value) { [IO.File]::WriteAllText($transaction.result, $value) }
+# 실행과 복구 모두 대괄호를 포함한 경로를 와일드카드로 해석하지 않는다.
+function Start-App {
+    $startInfo = New-Object Diagnostics.ProcessStartInfo
+    $startInfo.FileName = Join-Path $transaction.target 'YourSQL.exe'
+    $startInfo.WorkingDirectory = $transaction.target
+    $startInfo.UseShellExecute = $false
+    return [Diagnostics.Process]::Start($startInfo)
+}
 function Move-App($source, $destination) {
     # 종료 직후 남은 파일 핸들이 해제될 시간을 교체와 복구 모두에 준다.
     for ($attempt = 0; $attempt -lt 20; $attempt++) {
@@ -26,7 +34,7 @@ try {
     $backedUp = $true
     Move-App $transaction.candidate $transaction.target
     $env:YOURSQL_UPDATE_WORK = $work
-    $newProcess = Start-Process -FilePath (Join-Path $transaction.target 'YourSQL.exe') -WorkingDirectory $transaction.target -PassThru
+    $newProcess = Start-App
     $deadline = [DateTime]::UtcNow.AddSeconds(90)
     while (-not (Test-Path -LiteralPath $transaction.ready)) {
         if ($newProcess.HasExited -or [DateTime]::UtcNow -gt $deadline) { throw '새 앱 시작을 확인하지 못했습니다.' }
@@ -42,7 +50,7 @@ try {
             Move-App $transaction.backup $transaction.target
             Write-Result 'rollback'
             Remove-Item Env:YOURSQL_UPDATE_WORK -ErrorAction SilentlyContinue
-            Start-Process -FilePath (Join-Path $transaction.target 'YourSQL.exe') -WorkingDirectory $transaction.target
+            Start-App | Out-Null
         } else { Write-Result 'failed' }
     } catch { Write-Result 'failed' }
     exit 1
