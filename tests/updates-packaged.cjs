@@ -71,15 +71,18 @@ async function main() {
     }
     if(!done) {
       console.error('업데이트 작업 폴더:',temporary);
+      for(const name of ['update-error.txt','update-helper-output.txt']){const file=path.join(data,name);if(fs.existsSync(file))console.error(name,fs.readFileSync(file,'utf8'));}
+      for(const entry of fs.readdirSync(temporary).filter(name=>name.startsWith('.yoursql-update-'))){const folder=path.join(temporary,entry);console.error(entry,fs.readdirSync(folder));const file=path.join(folder,'error.txt');if(fs.existsSync(file))console.error(fs.readFileSync(file,'utf8'));}
       throw new Error('실제 업데이트 완료 대기 시간 초과');
     }
+    console.log('업데이트 결과:',fs.readFileSync(outcome,'utf8').trim());
     assert.equal(fs.readFileSync(outcome,'utf8').trim(),'success');
-    await appClosed;
+    await Promise.race([appClosed,new Promise((_,reject)=>setTimeout(()=>reject(new Error('기존 앱 종료 확인 시간 초과')),15000))]);
     assert.equal(fs.readFileSync(marker,'utf8'),'개인 기록 유지');
     assert.equal(fs.readFileSync(path.join(installed,'theme','custom-marker.txt'),'utf8'),'내 테마 유지');
     console.log('실제 배포 ZIP 다운로드·검증·압축 해제·앱 교체·재시작·기록 보존 검사 통과');
   } finally {
-    await app.close().catch(()=>{});
+    await Promise.race([app.close().catch(()=>{}),new Promise(resolve=>setTimeout(resolve,5000))]);
     // 재실행된 테스트 앱은 정확한 임시 실행 경로로만 식별해 종료한다.
     const {execFileSync}=require('node:child_process');
     if(process.platform==='darwin') {
