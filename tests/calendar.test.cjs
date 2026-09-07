@@ -21,3 +21,14 @@ test('캘린더는 여러 사이클의 누적 문제 수를 표시한다',()=>{
   assert.equal(month.days[6].total,5);assert.equal(month.days[6].status,'complete');
   assert.equal(month.completed,2);
 });
+// 연간 히트맵은 기존 월별 기록 해석과 윤년 처리를 재사용한다.
+test('연간 히트맵은 윤년과 연말, 누적 완료 수를 보존한다',()=>{
+  const {calendarYear}=require('../ui/calendar.js');
+  const year=calendarYear(2024,'2024-03-01',{'2024-02-29':{blankCount:6,queryCount:2,complete:true}});
+  assert.equal(year.days.length,366);
+  assert.equal(year.days[59].date,'2024-02-29');
+  assert.equal(year.days[59].total,8);
+  assert.equal(year.days.at(-1).status,'future');
+  assert.equal(year.completed,1);
+  assert.equal(calendarYear(2025,'2025-12-31',{}).days.length,365);
+});

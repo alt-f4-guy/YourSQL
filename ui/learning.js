@@ -12,35 +12,37 @@
   const problem=id=>workspace?.problems.find(p=>p.id===id);
   const title=id=>allCards().find(c=>c.id===id)?.title||problem(id)?.title||id;
   const reviews=()=>Object.entries(data.records).filter(([,r])=>r.kind&&(r.due<=data.today.date||r.lastStatus==='wrong')).map(([id,r])=>({id,...r}));
+  // 당일 복습 없음과 학습 기록 없음을 구분한다.
+  const reviewEmpty=()=>{const next=Object.values(data.records).filter(r=>r.kind&&r.due>data.today.date).map(r=>r.due).sort()[0];return next?`오늘 복습할 문제는 없어요. 다음 복습: ${next.replaceAll('-','.')}`:'예정된 복습이 없어요. 문제를 학습하면 복습 일정이 표시됩니다.';};
   async function refresh(){data=await api.learning();render();}
   function render(){
-    const t=data.today,total=t.done.length+Number(t.queryDone),due=reviews();
+    const t=data.today,total=t.done.length+t.queriesDone.length,due=reviews();
     $('today-date').textContent=`${t.date.replaceAll('-','.')} · 오늘의 루틴`;
-    $('daily-cycle').textContent=`${(t.completedCycles?.length||0)+1}번째 사이클 · 빈칸 3 + 쿼리 1`;
+    $('daily-cycle').textContent=`${(t.completedCycles?.length||0)+1}번째 사이클 · 빈칸 6 + 쿼리 2`;
     $('completed-days').textContent=`하루 목표 달성 ${data.completedDays}일`;
-    $('daily-title').textContent=total===4?'오늘의 학습을 모두 마쳤어요!':data.units.find(u=>u.id===t.unit||u.queries.includes(t.query))?.title||'오늘의 SQL 연습';
-    $('daily-copy').textContent=total===4?data.hasMore?'잘했어요. 복습하거나 다음 3+1 문제를 이어서 학습해 보세요.':'모든 개념 과정을 마쳤어요. 복습으로 기억을 다져 보세요.':'개념 세 번, 실전 한 번. 오늘도 차근차근 쌓아가요.';
-    $('daily-count').replaceChildren(node('span',String(total)),node('span','/ 4'));
-    $('daily-count').firstChild.style.fontSize='58px';$('daily-count').firstChild.style.color='var(--learn-accent)';
-    $('daily-progress').value=total;$('daily-detail').textContent=`빈칸 ${t.done.length}/3 · 쿼리 ${Number(t.queryDone)}/1 · 오늘 총 ${data.history[t.date].total}문제 완료`;
-    $('start-daily').disabled=!workspace;$('start-daily').textContent=total===4?'오늘의 복습 확인':total?'이어서 학습하기':'오늘의 학습 시작';
-    $('start-extra').hidden=total!==4;$('start-extra').disabled=!workspace||!data.hasMore;
+    $('daily-title').textContent=total===8?'오늘의 학습을 모두 마쳤어요!':data.units.find(u=>u.id===t.unit||u.queries.includes(t.queries[0]))?.title||'오늘의 SQL 연습';
+    $('daily-copy').textContent=total===8?data.hasMore?'잘했어요. 복습하거나 다음 6+2 문제를 이어서 학습해 보세요.':'모든 개념 과정을 마쳤어요. 복습으로 기억을 다져 보세요.':'빈칸 여섯 문제, 쿼리 두 문제. 오늘도 차근차근 쌓아가요.';
+    $('daily-count').replaceChildren(node('span',String(total)),node('span','/ 8'));
+    $('daily-progress').value=total;$('daily-detail').textContent=`빈칸 ${t.done.length}/6 · 쿼리 ${t.queriesDone.length}/2 · 오늘 총 ${data.history[t.date].total}문제 완료`;
+    $('start-daily').disabled=!workspace;$('start-daily').hidden=total===8&&!due.length&&data.hasMore;$('start-daily').textContent=total===8?due.length?'복습 시작':'개념 목록 보기':total?'오늘 학습 이어하기':'오늘의 학습 시작';
+    $('start-extra').hidden=total!==8||!data.hasMore;$('start-extra').disabled=!workspace||!data.hasMore;
+    $('start-extra').classList.toggle('secondary',due.length>0);
+    if(total===8)$('daily-copy').textContent=due.length?`오늘 복습할 문제 ${due.length}개가 있어요.`:reviewEmpty();
     $('start-extra').textContent=data.hasMore?'추가 학습하기':'전체 과정 완료';
-    $('concept-count').textContent=`오늘 ${t.done.length}/3 완료 →`;
-    $('daily-query-title').textContent=`${t.queryDone?'완료 · ':''}${title(t.query)} →`;
-    $('review-count').textContent=due.length?`${due.length}문제 복습하기 →`:'지금은 복습할 문제가 없어요 →';$('review-badge').textContent=due.length;
+    $('review-badge').textContent=due.length;
+    renderHome(t,due);
     renderQueryMission();
     renderCalendar();
     renderCatalog();
-    for(const target of ['home-units','concept-units']){
+    for(const target of ['concept-units']){
       $(target).replaceChildren();
-      const currentUnit=data.units.find(u=>u.cards.some(c=>!data.records[c.id]?.passed))||data.units.at(-1);
       data.units.forEach((unit,index)=>{
-        if(target==='home-units'&&unit.level!==currentUnit.level)return;
         if(index===0||data.units[index-1].level!==unit.level){const heading=node('h3',`${unit.level}단계 · ${workspace?.levels[unit.level-1]?.name||'개념 과정'}`,'curriculum-heading');$(target).append(heading);}
         const count=unit.cards.filter(c=>data.records[c.id]?.passed).length;
         const b=node('button',undefined,'unit-card');b.type='button';b.append(node('span',String(index+1).padStart(2,'0'),'unit-number'));
-        const copy=node('span');copy.append(node('strong',unit.title),node('small',`빈칸 ${count}/${unit.cards.length} · 기본 + 변형`));b.append(copy,node('span',count===unit.cards.length?'복습으로 굳히기':'개념 익히기','unit-state'));
+        const needsReview=due.some(item=>unit.cards.some(c=>c.id===item.id));
+        const state=count===unit.cards.length?'완료':count?'진행 중':'시작 전';
+        const copy=node('span');copy.append(node('strong',unit.title),node('small',`빈칸 ${count}/${unit.cards.length} · ${state}${needsReview?' · 복습 필요':''} · 기본 + 변형`));b.append(copy,node('span','단원 열기 →','unit-state'));
         b.addEventListener('click',safely(()=>startSession(unit.cards.map(c=>c.id),'practice')));$(target).append(b);
       });
     }
@@ -48,32 +50,61 @@
     renderReview($('upcoming-list'),Object.entries(data.records).filter(([,r])=>r.kind&&r.due>t.date&&r.lastStatus!=='wrong').map(([id,r])=>({id,...r})).sort((a,b)=>a.due.localeCompare(b.due)),false);
     $('start-review').disabled=!due.length||!workspace;
   }
+  function renderHome(today,due){
+    const review=$('home-review');review.replaceChildren();
+    const items=[...due].sort((a,b)=>Number(b.lastStatus==='wrong')-Number(a.lastStatus==='wrong')||(a.due||'').localeCompare(b.due||'')).slice(0,5);
+    $('home-review-summary').textContent=due.length?`${due.length}문제 대기`:'지금은 없음';
+    if(!items.length) review.append(node('p',reviewEmpty(),'home-empty'));
+    for(const item of items){
+      const row=node('button',undefined,'home-row');row.type='button';
+      const copy=node('span');copy.append(node('strong',title(item.id)),node('small',`${item.kind==='blank'?'개념':'쿼리'} · ${item.lastStatus==='wrong'?'최근 오답':`복습 ${item.due}`} `));
+      row.append(copy,node('span','열기 →','home-row-action'));row.addEventListener('click',safely(()=>item.kind==='blank'?startSession([item.id],'review'):openQuery(item.id,true)));review.append(row);
+    }
+    const progress=$('home-progress');progress.replaceChildren();
+    const levels=[...new Set(data.units.map(unit=>unit.level))];
+    levels.forEach(level=>{
+      const levelUnits=data.units.filter(unit=>unit.level===level),total=levelUnits.reduce((sum,unit)=>sum+unit.cards.length,0),done=levelUnits.reduce((sum,unit)=>sum+unit.cards.filter(card=>data.records[card.id]?.passed).length,0);
+      const row=node('div',undefined,'home-row'),copy=node('span');copy.append(node('strong',`${level}단계 · ${workspace?.levels[level-1]?.name||'개념 과정'}`),node('small',done===total?'완료':done?'진행 중':'시작 전'));row.append(copy,node('span',`${done} / ${total}`,'home-row-meta'));progress.append(row);
+    });
+    const activity=$('home-activity');activity.replaceChildren();
+    const days=Object.entries(data.history).filter(([,entry])=>entry.total>0).sort(([a],[b])=>b.localeCompare(a)).slice(0,5);
+    if(!days.length) activity.append(node('p','아직 저장된 학습 기록이 없습니다.','home-empty'));
+    days.forEach(([date,entry])=>{const row=node('div',undefined,'home-row'),status=entry.complete?'목표 달성':`${entry.total}문제`;row.append(node('span',date.replaceAll('-','.'),'home-date'),node('span',status,'home-row-meta'));activity.append(row);});
+  }
   function renderCalendar(){
     const today=data.today.date;
     if(!calendarDate)calendarDate=new Date(`${today}T12:00:00`);
-    if(!selectedDate)selectedDate=calendarDate.getFullYear()===Number(today.slice(0,4))&&calendarDate.getMonth()===Number(today.slice(5,7))-1?today:`${calendarDate.getFullYear()}-${String(calendarDate.getMonth()+1).padStart(2,'0')}-01`;
-    const month=calendarMonth(calendarDate.getFullYear(),calendarDate.getMonth(),today,data.history);
-    $('calendar-month').textContent=`${month.year}년 ${month.month+1}월`;
-    $('calendar-next').disabled=new Date(month.year,month.month+1,1)>new Date(`${today}T12:00:00`);
+    if(!selectedDate)selectedDate=calendarDate.getFullYear()===Number(today.slice(0,4))?today:`${calendarDate.getFullYear()}-01-01`;
+    const month=calendarYear(calendarDate.getFullYear(),today,data.history);
+    $('calendar-month').textContent=`${month.year}년`;
+    $('calendar-next').disabled=month.year>=Number(today.slice(0,4));
+    $('activity-summary').textContent=`${month.days.filter(d=>d.total>0&&d.status!=='future').length}일 학습 · ${month.days.filter(d=>d.status!=='future').reduce((sum,d)=>sum+d.total,0)}문제 완료 · 목표 달성 ${month.completed}일`;
     $('calendar-days').replaceChildren();
     for(let i=0;i<month.offset;i++)$('calendar-days').append(node('span'));
     for(const d of month.days){
       const b=node('button',undefined,'calendar-day');b.type='button';b.dataset.date=d.date;b.dataset.status=d.status;
+      b.dataset.intensity=d.total>=16?'4':d.total>=8?'3':d.total>=4?'2':d.total?'1':'0';
+      b.tabIndex=d.date===selectedDate?0:-1;
       b.disabled=d.status==='future';b.setAttribute('aria-pressed',String(d.date===selectedDate));
       if(d.date===today)b.setAttribute('aria-current','date');
       b.setAttribute('aria-label',`${d.date} · ${d.status==='future'?'예정':`${d.total}문제 완료${d.status==='complete'?' · 목표 달성':''}`}`);
-      b.append(node('span',String(Number(d.date.slice(-2)))),node('small',d.total?`${d.total}${d.status==='complete'?' ✓':''}`:'·'));
-      b.addEventListener('click',()=>{selectedDate=d.date;renderCalendar();});$('calendar-days').append(b);
+      b.title=b.getAttribute('aria-label');
+      b.append(node('small',d.total?`${d.total}${d.status==='complete'?' ✓':''}`:'·','sr-only'));
+      b.addEventListener('click',()=>{selectedDate=d.date;renderCalendar();$('calendar-days').querySelector(`[data-date="${selectedDate}"]`).focus({preventScroll:true});});$('calendar-days').append(b);
     }
     const selected=month.days.find(d=>d.date===selectedDate)||month.days[0];
-    $('calendar-detail').replaceChildren(node('p',`${selected.date.replaceAll('-','.')}의 기록`,'eyebrow'),node('h3',selected.status==='complete'?'하루 목표 달성!':selected.status==='future'?'아직 오지 않은 날':selected.recorded?'조금씩 쌓는 중':'저장된 학습 기록이 없어요'),node('strong',`${selected.total}문제 완료`),node('p',`빈칸 ${selected.blankCount}개 · 쿼리 ${selected.queryCount}개 · 하루 목표 4문제`),node('p',`이번 달 목표 달성 ${month.completed}일`));
+    $('calendar-detail').replaceChildren(node('h2',`${selected.date.replaceAll('-','.')}의 기록`),node('p',selected.status==='complete'?'하루 목표 달성!':selected.recorded?'조금씩 쌓는 중':'저장된 학습 기록이 없어요'),node('strong',`${selected.total}문제 완료`),node('p',`빈칸 ${selected.blankCount}개 · 쿼리 ${selected.queryCount}개`));
   }
-  for(const [id,offset] of [['calendar-prev',-1],['calendar-next',1]])$(id).addEventListener('click',()=>{calendarDate=new Date(calendarDate.getFullYear(),calendarDate.getMonth()+offset,1);selectedDate=null;renderCalendar();});
+  for(const [id,offset] of [['calendar-prev',-1],['calendar-next',1]])$(id).addEventListener('click',()=>{calendarDate=new Date(calendarDate.getFullYear()+offset,0,1);selectedDate=null;renderCalendar();});
+  // 한 번의 탭으로 진입하고 방향키로 일·주 단위 이동한다.
+  $('calendar-days').addEventListener('keydown',e=>{const offset={ArrowUp:-1,ArrowDown:1,ArrowLeft:-7,ArrowRight:7}[e.key];if(!offset||!e.target.dataset.date)return;e.preventDefault();const days=[...$('calendar-days').querySelectorAll('button')],next=days[days.indexOf(e.target)+offset];if(next&&!next.disabled)next.click();});
   $('calendar-today').addEventListener('click',()=>{calendarDate=null;selectedDate=null;renderCalendar();});
   // 기존 문제·단계·풀이 상태를 재사용하고 목록 화면에서만 탐색한다.
   function renderQueryMission(){
     const current=workspace?.current(),t=data.today;
-    $('query-mission').textContent=current===t.query?`오늘의 쿼리 · ${title(t.query)} · ${t.queryDone?'완료':'정답 제출 시 하루 목표에 반영'}`:current?`${problem(current)?.level}단계 · ${title(current)}`:'문제를 선택하세요';
+    const index=t.queries.indexOf(current);
+    $('query-mission').textContent=index>=0?`오늘의 쿼리 ${index+1} / ${t.queries.length} · ${title(current)} · ${t.queriesDone.includes(current)?'완료':'정답 제출 시 하루 목표에 반영'}`:current?`${problem(current)?.level}단계 · ${title(current)}`:'문제를 선택하세요';
+    $('next-daily-query').hidden=index<0||!t.queriesDone.includes(current)||t.queryDone;
   }
   function renderCatalog(){
     const problems=workspace?.problems||[],levels=workspace?.levels||[];
@@ -96,7 +127,7 @@
   }
   function renderReview(target,items,available){
     target.replaceChildren();
-    if(!items.length){target.append(node('p',available?'지금 복습할 문제가 없어요. 오늘의 학습을 마치면 다음 복습이 예약됩니다.':'학습한 문제가 생기면 다음 복습일이 여기에 표시됩니다.','review-empty'));return;}
+    if(!items.length){target.append(node('p',available?reviewEmpty():'예정된 복습이 없습니다.','review-empty'));return;}
     for(const item of items){
       const row=node('article',undefined,'review-item'),copy=node('div');copy.append(node('strong',title(item.id)),node('p',`${item.kind==='blank'?'빈칸':'쿼리 작성'} · ${item.lastStatus==='wrong'?'다시 풀어볼 문제':`복습일 ${item.due}`}`));row.append(copy);
       if(available){const b=node('button','다시 풀기','button');b.addEventListener('click',safely(()=>item.kind==='blank'?startSession([item.id],'review'):openQuery(item.id,true)));row.append(b);}target.append(row);
@@ -109,12 +140,12 @@
     if(mode==='catalog')catalogScroll=$('learning-screen').scrollTop;
     mode=next;document.body.dataset.mode=next;
     $('workspace').hidden=next!=='query';$('query-learning-bar').hidden=next!=='query';$('learning-screen').hidden=next==='query';
-    for(const name of ['today','concept','review','lesson','catalog'])$(`${name}-screen`).hidden=name!==next;
+    for(const name of ['today','concept','review','lesson','catalog','activity'])$(`${name}-screen`).hidden=name!==next;
     document.querySelectorAll('.learning-nav [data-mode]').forEach(b=>{if(b.dataset.mode===next||(next==='catalog'&&b.dataset.mode==='query')||(next==='lesson'&&b.dataset.mode===(sessionKind==='review'?'review':'concept')))b.setAttribute('aria-current','page');else b.removeAttribute('aria-current');});
     if(next!=='query'){$('learning-screen').scrollTop=next==='catalog'?catalogScroll:0;$('learning-screen').focus();}
     return true;
   }
-  async function openQuery(id=data.today.query,review=false){
+  async function openQuery(id=data.today.queries.find(id=>!data.today.queriesDone.includes(id))||data.today.queries[0],review=false){
     if(!workspace)return;
     if(!await show('query'))return;
     await workspace.selectProblem(id,review);
@@ -137,7 +168,8 @@
     $('blank-code').replaceChildren(document.createTextNode(before),input,document.createTextNode(after));
     $('blank-feedback').hidden=true;$('next-blank').hidden=true;$('blank-check').disabled=false;$('blank-reveal').disabled=false;input.focus();
   }
-  async function daily(){await refresh();const ids=data.today.blanks.filter(id=>!data.today.done.includes(id));if(ids.length)await startSession(ids,'daily');else if(!data.today.queryDone)await openQuery();else await show('review');}
+  async function daily(){await refresh();const ids=data.today.blanks.filter(id=>!data.today.done.includes(id));if(ids.length)await startSession(ids,'daily');else if(!data.today.queryDone)await openQuery();else if(reviews().length)await startReview();else await show('concept');}
+  async function startReview(){const items=reviews(),ids=items.filter(r=>r.kind==='blank').map(r=>r.id);if(ids.length)await startSession(ids,'review');else if(items.length)await openQuery(items[0].id,true);}
   async function next(){
     drafts.delete(card.id);
     if(++sessionIndex<session.length){renderCard();return;}
@@ -168,9 +200,10 @@
     await daily();
   }));
   $('start-blanks').addEventListener('click',safely(async()=>{await refresh();const ids=data.today.blanks.filter(id=>!data.today.done.includes(id));await startSession(ids.length?ids:data.today.blanks,'daily');}));
-  $('start-review').addEventListener('click',safely(async()=>{const items=reviews(),ids=items.filter(r=>r.kind==='blank').map(r=>r.id);if(ids.length)await startSession(ids,'review');else if(items.length)await openQuery(items[0].id,true);}));
+  $('start-review').addEventListener('click',safely(startReview));
   $('query-search').addEventListener('input',()=>{querySearch=$('query-search').value;catalogScroll=0;renderCatalog();});
   $('query-back').addEventListener('click',safely(async()=>{await refresh();await show('catalog');}));
+  $('next-daily-query').addEventListener('click',safely(()=>openQuery()));
   $('open-daily-query').addEventListener('click',safely(()=>openQuery()));
   $('query-return').addEventListener('click',safely(async()=>{await refresh();await show('today');}));
   document.querySelectorAll('.learning-nav [data-mode], [data-open]').forEach(b=>b.addEventListener('click',safely(async()=>{await refresh();const next=b.dataset.mode||b.dataset.open;await show(next==='query'?'catalog':next);}))); 

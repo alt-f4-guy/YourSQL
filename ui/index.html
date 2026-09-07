@@ -12,7 +12,7 @@
 </head>
 <body data-mode="today">
   <header class="topbar">
-    <div class="brand" aria-label="YourSQL"><span>YourSQL</span><strong><small>0.0.2</small></strong></div>
+    <div class="brand" aria-label="YourSQL"><span>YourSQL</span><strong><small>0.0.3</small></strong></div>
     <div class="engine"><span id="engine-dot" class="status-dot"></span><span id="engine-text">엔진 확인 중</span><button id="retry-engine" class="link-button" type="button">재연결</button></div>
     <div class="top-actions"><button id="open-settings" class="button ghost" type="button">설정</button><span id="save-status" aria-live="polite">초안 불러오는 중</span><button id="import-pack" class="button ghost" type="button">문제팩 가져오기</button><button id="open-study" class="button ghost" type="button">연속 학습일수</button><button id="open-history" class="button ghost" type="button">오답 기록</button></div>
   </header>
@@ -22,29 +22,32 @@
     <button data-mode="concept">개념 학습</button>
     <button data-mode="query">쿼리 작성</button>
     <button data-mode="review">복습 <span id="review-badge">0</span></button>
+    <button data-mode="activity">학습 기록</button>
     <span>매일 조금씩, 스스로 쓰는 SQL</span>
   </nav>
   <p id="learning-error" role="alert" hidden></p>
   <main id="learning-screen" tabindex="-1">
     <section id="today-screen">
-      <div class="learning-heading"><div><p class="eyebrow" id="today-date">오늘의 루틴</p><h1>작은 연습이 실력이 되는 시간</h1><p>빈칸으로 익히고, 한 쿼리로 완성하세요.</p></div><span class="learning-pill" id="completed-days">기록 불러오는 중</span></div>
+      <div class="learning-heading"><div><h1>오늘의 학습</h1><p id="today-date">오늘의 루틴</p></div><span class="learning-pill" id="completed-days">기록 불러오는 중</span></div>
       <article class="daily-hero">
-        <div><span id="daily-cycle" class="learning-pill">1번째 사이클 · 빈칸 3 + 쿼리 1</span><h2 id="daily-title">오늘 배울 개념을 준비하고 있어요.</h2><p id="daily-copy">빈칸 3문제 + 쿼리 작성 1문제</p><div class="daily-actions"><button id="start-daily" class="learn-primary" disabled>오늘의 학습 시작</button><button id="start-extra" class="learn-primary" type="button" hidden>추가 학습하기</button></div></div>
-        <div class="daily-progress"><strong id="daily-count">0<span>/ 4</span></strong><p>현재 사이클</p><progress id="daily-progress" max="4" value="0" aria-label="현재 사이클 완료 문제 수"></progress><span id="daily-detail">빈칸 0/3 · 쿼리 0/1</span></div>
+        <div><span id="daily-cycle" class="learning-pill">1번째 사이클 · 빈칸 6 + 쿼리 2</span><h2 id="daily-title">오늘 배울 개념을 준비하고 있어요.</h2><p id="daily-copy">빈칸 6문제 + 쿼리 작성 2문제</p><div class="daily-actions"><button id="start-daily" class="learn-primary" disabled>오늘의 학습 시작</button><button id="start-extra" class="learn-primary" type="button" hidden>추가 학습하기</button></div></div>
+        <div class="daily-progress"><strong id="daily-count">0<span>/ 8</span></strong><p>현재 사이클</p><progress id="daily-progress" max="8" value="0" aria-label="현재 사이클 완료 문제 수"></progress><span id="daily-detail">빈칸 0/6 · 쿼리 0/2</span></div>
       </article>
-      <section class="learning-calendar" aria-label="하루 목표 달성 달력">
-        <div class="section-heading"><h2>학습 달력</h2><div class="calendar-controls"><button id="calendar-prev" class="link-button" aria-label="이전 달">←</button><strong id="calendar-month"></strong><button id="calendar-next" class="link-button" aria-label="다음 달">→</button><button id="calendar-today" class="link-button">이번 달</button></div></div>
-        <div class="calendar-layout"><div><div class="calendar-week" aria-hidden="true"><span>일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span></div><div id="calendar-days" class="calendar-days" role="group" aria-label="날짜별 학습 기록"></div><p class="calendar-legend">숫자: 완료 문제 수 · ✓: 하루 목표 달성</p></div><aside id="calendar-detail" aria-live="polite"></aside></div>
-      </section>
-      <div class="mode-cards">
-        <button class="mode-card" data-open="concept"><span class="mode-icon">[ &nbsp; ]</span><small>개념 학습</small><h2>빈칸으로 떠올리기</h2><p>짧은 SQL 안에서 필요한 개념을 직접 꺼내 보세요.</p><strong id="concept-count">오늘 3문제 →</strong></button>
-        <button class="mode-card" data-open="query"><span class="mode-icon">&gt;_</span><small>쿼리 작성</small><h2>처음부터 완성하기</h2><p>배운 개념을 실제 데이터와 전체 쿼리에 적용하세요.</p><strong id="daily-query-title">오늘 1문제 →</strong></button>
-        <button class="mode-card" data-open="review"><span class="mode-icon">↻</span><small>복습</small><h2>기억을 다시 단단하게</h2><p>틀렸던 문제와 복습할 때가 된 문제를 다시 풀어요.</p><strong id="review-count">복습 확인 →</strong></button>
-      </div>
-      <div class="section-heading"><h2>나의 개념 여정</h2><span>한 번의 정답보다, 다시 떠올리는 힘</span></div><div id="home-units" class="unit-grid"></div>
+      <section class="home-section" aria-labelledby="home-review-heading"><div class="section-heading"><h2 id="home-review-heading">복습이 필요한 문제</h2><span id="home-review-summary"></span></div><div id="home-review" class="home-list"></div></section>
+      <section class="home-section" aria-labelledby="home-progress-heading"><div class="section-heading"><h2 id="home-progress-heading">학습 현황</h2><button class="link-button" data-open="concept">개념 목록 보기 →</button></div><p class="home-empty">개념 문제 완료 수 기준</p><div id="home-progress" class="home-list"></div></section>
+      <section class="home-section" aria-labelledby="home-activity-heading"><div class="section-heading"><h2 id="home-activity-heading">최근 학습 기록</h2><span>학습한 최근 5일</span></div><div id="home-activity" class="home-list"></div></section>
+      <button class="link-button" data-open="activity">전체 학습 기록 보기 →</button>
+    </section>
+    <section id="activity-screen" hidden>
+      <div class="learning-heading"><div><h1>학습 기록</h1><p>하루씩 쌓아 온 SQL 연습을 돌아보세요.</p></div><div class="calendar-controls"><button id="calendar-prev" class="link-button" aria-label="이전 연도">←</button><strong id="calendar-month"></strong><button id="calendar-next" class="link-button" aria-label="다음 연도">→</button><button id="calendar-today" class="link-button">올해</button></div></div>
+      <p id="activity-summary"></p>
+      <div class="heatmap-scroll"><div class="heatmap-months" aria-hidden="true"><span>1월</span><span>2월</span><span>3월</span><span>4월</span><span>5월</span><span>6월</span><span>7월</span><span>8월</span><span>9월</span><span>10월</span><span>11월</span><span>12월</span></div><div class="heatmap-layout"><div class="heatmap-week" aria-hidden="true"><span>일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span></div><div id="calendar-days" role="group" aria-label="날짜별 완료 문제 수, 방향키로 날짜 이동"></div></div></div>
+      <p class="heatmap-legend">완료 문제 수 <span data-intensity="0">0</span><span data-intensity="1">1–3</span><span data-intensity="2">4–7</span><span data-intensity="3">8–15</span><span data-intensity="4">16+</span> · 점선은 미래 날짜</p>
+      <p class="calendar-legend">날짜를 선택하면 아래에 기록이 표시됩니다. 방향키로 날짜를 이동할 수 있습니다.</p>
+      <aside id="calendar-detail" aria-live="polite"></aside>
     </section>
     <section id="concept-screen" hidden>
-      <div class="learning-heading"><div><p class="eyebrow">개념 학습</p><h1>읽고, 떠올리고, 채워 보세요</h1><p>오늘의 세 문제를 이어 풀거나, 원하는 단원을 연습하세요.</p></div><button id="start-blanks" class="learn-primary">오늘의 빈칸 이어하기</button></div><p>5단계 · 40단원 · 빈칸 240문제 — 단원마다 기본 3문제와 변형 3문제</p><div id="concept-units" class="unit-grid"></div>
+      <div class="learning-heading"><div><p class="eyebrow">개념 학습</p><h1>읽고, 떠올리고, 채워 보세요</h1><p>오늘의 여섯 문제를 이어 풀거나, 원하는 단원을 연습하세요.</p></div><button id="start-blanks" class="learn-primary">오늘의 빈칸 이어하기</button></div><p>5단계 · 40단원 · 빈칸 240문제 — 단원마다 기본 3문제와 변형 3문제</p><div id="concept-units" class="unit-grid"></div>
     </section>
     <section id="catalog-screen" hidden>
       <div class="learning-heading"><div><p class="eyebrow">쿼리 작성</p><h1>내 단계에 맞는 문제부터</h1><p>문제를 선택하면 설명·편집기·실행 결과가 있는 풀이 화면으로 이동합니다.</p></div><button id="open-daily-query" class="learn-primary">오늘의 쿼리 풀기</button></div>
@@ -60,7 +63,7 @@
       <article class="lesson-card"><p class="eyebrow" id="lesson-unit"></p><h1 id="lesson-title"></h1><p id="lesson-prompt"></p><details id="concept-note"><summary>개념 다시 보기</summary><p id="lesson-concept"></p></details><form id="blank-form"><pre id="blank-code"></pre><div class="lesson-actions"><button id="blank-reveal" class="link-button" type="button">모르겠어요 · 해설 보기</button><button id="blank-check" class="learn-primary" type="submit">정답 확인</button></div></form><div id="blank-feedback" role="status" hidden></div><button id="next-blank" class="learn-primary" hidden>다음 문제</button></article>
     </section>
   </main>
-  <div id="query-learning-bar" hidden><button id="query-back" class="link-button">← 문제 목록</button><span id="query-mission"></span><button id="query-return" class="link-button">오늘의 학습으로 돌아가기 →</button></div>
+  <div id="query-learning-bar" hidden><button id="query-back" class="link-button">← 문제 목록</button><span id="query-mission"></span><button id="next-daily-query" class="link-button" hidden>다음 쿼리 풀기 →</button><button id="query-return" class="link-button">오늘의 학습으로 돌아가기 →</button></div>
   <main id="workspace" class="workspace" hidden>
     <aside id="sidebar" class="sidebar" aria-label="문제 목록" hidden>
       <div class="sidebar-head">

@@ -8,4 +8,9 @@ function calendarMonth(year,month,today,history){
   });
   return {year,month,offset:first.getDay(),days,completed:days.filter(d=>d.status==='complete').length};
 }
-if(typeof module!=='undefined')module.exports={calendarMonth};
+// 월별 집계를 재사용해 윤년과 이전 기록의 완료 기준을 그대로 유지한다.
+function calendarYear(year,today,history){
+  const days=Array.from({length:12},(_,month)=>calendarMonth(year,month,today,history).days).flat();
+  return {year,offset:new Date(year,0,1).getDay(),days,completed:days.filter(d=>d.status==='complete').length};
+}
+if(typeof module!=='undefined')module.exports={calendarMonth,calendarYear};
