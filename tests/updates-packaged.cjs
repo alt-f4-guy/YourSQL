@@ -20,6 +20,7 @@ async function main() {
   const marker=path.join(data,'my-study-record.txt');fs.writeFileSync(marker,'개인 기록 유지');
   fs.writeFileSync(path.join(installed,'theme','custom-marker.txt'),'내 테마 유지');
   const app=await electron.launch({executablePath:executable,args:[],env:{...process.env,SQL_PRACTICE_DATA_DIR:data}});
+  const originalPid=app.process().pid;
   let relaunchedPid;
   try {
     const page=await app.firstWindow();
@@ -58,6 +59,13 @@ async function main() {
     }
     // 보조 프로그램은 기존 앱 종료를 기다리므로, 앱이 먼저 종료되지 않으면 교착이다.
     await Promise.race([appClosed,new Promise((_,reject)=>setTimeout(()=>reject(new Error('기존 앱 종료 확인 시간 초과')),15000))]);
+    let exited=false;
+    for(let attempt=0;attempt<150;attempt++) {
+      try {process.kill(originalPid,0);}
+      catch {exited=true;break;}
+      await new Promise(resolve=>setTimeout(resolve,100));
+    }
+    assert.equal(exited,true,'기존 앱 프로세스 종료 확인 시간 초과');
     const outcome=path.join(data,'update-result.txt');
     let done=false;
     for(let attempt=0;attempt<180;attempt++) {
