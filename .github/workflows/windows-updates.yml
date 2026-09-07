@@ -1,0 +1,30 @@
+# 실제 Windows에서 배포 ZIP의 설치·실패 복구 경로를 검증한다.
+name: Windows 업데이트 검사
+on:
+  push:
+    branches: [fix/windows-update]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  update:
+    runs-on: windows-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - run: npm test
+      - run: npm run package:windows
+      - name: 공개된 Windows ZIP 준비
+        shell: pwsh
+        run: |
+          curl.exe --fail --location --output dist/YourSQL-Windows-x64.zip https://github.com/alt-f4-guy/YourSQL/releases/download/v0.0.4/YourSQL-Windows-x64.zip
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: 보조 프로그램 시작 실패 처리
+        run: node tests/updates-packaged.cjs --helper-failure
+      - name: 실제 앱 교체와 재시작
+        run: node tests/updates-packaged.cjs

@@ -8,6 +8,7 @@ const root=path.resolve(__dirname,'..');
 const temporary=fs.mkdtempSync(path.join(require('node:os').tmpdir(),'yoursql-update-packaged-'));
 async function main() {
   const platform=process.platform,arch=process.arch;
+  const helperFailure=process.argv.includes('--helper-failure');
   const source=path.join(root,'dist',`YourSQL-${platform}-${arch}`);
   const installed=path.join(temporary,'installed');
   fs.cpSync(source,installed,{recursive:true,verbatimSymlinks:true});
@@ -26,21 +27,41 @@ async function main() {
     await app.evaluate(({app},fixture)=>{
       const fs=process.getBuiltinModule('node:fs');
       app.getVersion=()=> '0.0.0';
+      // 보조 프로그램 시작 실패 시 앱을 유지하고 stderr 원인을 사용자에게 전달한다.
+      if(fixture.helperFailure){
+        const copy=fs.copyFileSync;
+        fs.copyFileSync=(source,target,...args)=>{
+          copy(source,target,...args);
+          if(/helper\.(sh|ps1)$/.test(target))fs.writeFileSync(target,process.platform==='win32'?"[Console]::Error.WriteLine('helper-startup-test'); exit 42":"#!/bin/sh\nprintf 'helper-startup-test' >&2\nexit 42\n");
+        };
+      }
       global.fetch=async url=>url.includes('api.github.com')?new Response(JSON.stringify({tag_name:`v${fixture.version}`,assets:[{name:fixture.name,size:fixture.size,digest:fixture.digest,browser_download_url:`https://github.com/me/YourSQL/releases/download/v${fixture.version}/${fixture.name}`}]})):new Response(fs.readFileSync(fixture.zip));
-    },{zip,version,name:path.basename(zip),size:bytes.length,digest:`sha256:${createHash('sha256').update(bytes).digest('hex')}`});
+    },{zip,version,helperFailure,name:path.basename(zip),size:bytes.length,digest:`sha256:${createHash('sha256').update(bytes).digest('hex')}`});
     await page.locator('#open-settings').click();
     await page.locator('#update-repository').fill('me/YourSQL');
     await page.locator('#save-update-repository').click();
     await page.waitForFunction(()=>!document.getElementById('install-update').disabled);
-    const appClosed=app.waitForEvent('close');
+    const appClosed=helperFailure?null:app.waitForEvent('close');
     await page.locator('#install-update').click();
+    if(helperFailure){
+      await page.waitForFunction(()=>document.getElementById('update-status').textContent.includes('실패'),null,{timeout:30000});
+      assert.match(await page.locator('#update-status').textContent(),/helper-startup-test/);
+      assert.match(fs.readFileSync(path.join(data,'update-error.txt'),'utf8'),/helper-startup-test/);
+      assert.equal(fs.readFileSync(marker,'utf8'),'개인 기록 유지');
+      assert.ok(fs.existsSync(executable));
+      console.log('보조 프로그램 시작 오류 전달·앱 및 기록 보존 검사 통과');
+      return;
+    }
     const outcome=path.join(data,'update-result.txt');
     let done=false;
     for(let attempt=0;attempt<180;attempt++) {
       if(fs.existsSync(outcome)) {done=true;break;}
       if(!page.isClosed()) {
         const status=await page.locator('#update-status').textContent().catch(()=> '');
-        if(status.includes('실패')) throw new Error(status);
+        if(status.includes('실패')) {
+          for(const name of ['update-error.txt','update-helper-output.txt']){const file=path.join(data,name);if(fs.existsSync(file))console.error(fs.readFileSync(file,'utf8'));}
+          throw new Error(status);
+        }
       }
       await new Promise(resolve=>setTimeout(resolve,1000));
     }

@@ -78,3 +78,26 @@ test('첫 실행은 공식 저장소를 사용하고 기존 설정을 덮어쓰�
     }
   } finally {fs.rmSync(directory,{recursive:true,force:true});}
 });
+
+// 임시 폴더가 잠겨 있어도 실제 설치 실패 사유를 권한 오류로 덮어쓰지 않는다.
+test('업데이트 정리 실패는 원래 설치 오류를 보존하고 진단 파일에 남긴다',async t=>{
+  const fs=require('node:fs'),path=require('node:path'),os=require('node:os');
+  const {Updater}=require('../lib/updates.cjs');
+  const directory=fs.mkdtempSync(path.join(os.tmpdir(),'yoursql-update-error-'));
+  const work=path.join(directory,'work');fs.mkdirSync(work);
+  const updater=new Updater({getPath:()=>directory,getVersion:()=> '0.0.4',quit:()=>assert.fail('실패한 업데이트는 앱을 종료하면 안 됩니다.')},()=>{});
+  updater.state.installable=true;updater.release={tag_name:'v0.0.5',assets:[]};
+  const locked=Object.assign(new Error('임시 폴더 사용 중'),{code:'EPERM'});
+  t.mock.method(fs,'mkdtempSync',()=>work);
+  t.mock.method(fs,'rmSync',()=>{throw locked;});
+  t.mock.method(fs.promises,'rm',async()=>{throw locked;});
+  try{
+    await assert.rejects(updater.install(),/업데이트 ZIP이 아직 등록되지/);
+    assert.equal(updater.busy,false);
+    assert.equal(updater.state.phase,'idle');
+    const diagnostic=fs.readFileSync(path.join(directory,'update-error.txt'),'utf8');
+    assert.match(diagnostic,/업데이트 ZIP이 아직 등록되지/);
+    assert.match(diagnostic,/EPERM/);
+    assert.ok(diagnostic.includes(work));
+  }finally{t.mock.restoreAll();fs.rmSync(directory,{recursive:true,force:true});}
+});
