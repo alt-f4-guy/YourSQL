@@ -48,6 +48,7 @@ async function main() {
     await page.locator('#install-update').click();
     if(helperFailure){
       await page.waitForFunction(()=>document.getElementById('update-status').textContent.includes('실패'),null,{timeout:30000});
+      for(const name of ['update-error.txt','update-helper-output.txt']){const file=path.join(data,name);if(fs.existsSync(file))console.error(name,fs.readFileSync(file,'utf8'));}
       assert.match(await page.locator('#update-status').textContent(),/helper-startup-test/);
       assert.match(fs.readFileSync(path.join(data,'update-error.txt'),'utf8'),/helper-startup-test/);
       assert.equal(fs.readFileSync(marker,'utf8'),'개인 기록 유지');
