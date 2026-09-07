@@ -5,7 +5,7 @@ const fs=require('node:fs');
 const path=require('node:path');
 const {createHash}=require('node:crypto');
 const root=path.resolve(__dirname,'..');
-const temporary=fs.mkdtempSync(path.join(fs.realpathSync(require('node:os').tmpdir()),'yoursql-update-packaged-'));
+const temporary=fs.mkdtempSync(path.join(process.env.RUNNER_TEMP||require('node:os').tmpdir(),'yoursql-update-packaged-'));
 async function main() {
   const platform=process.platform,arch=process.arch;
   const helperFailure=process.argv.includes('--helper-failure');
