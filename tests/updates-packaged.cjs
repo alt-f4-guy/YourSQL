@@ -4,6 +4,7 @@ const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const path=require('node:path');
 const {createHash}=require('node:crypto');
+const {execFileSync}=require('node:child_process');
 const root=path.resolve(__dirname,'..');
 const temporary=fs.mkdtempSync(path.join(process.env.RUNNER_TEMP||require('node:os').tmpdir(),'yoursql-update-packaged-'));
 async function main() {
@@ -59,13 +60,11 @@ async function main() {
     }
     // 보조 프로그램은 기존 앱 종료를 기다리므로, 앱이 먼저 종료되지 않으면 교착이다.
     await Promise.race([appClosed,new Promise((_,reject)=>setTimeout(()=>reject(new Error('기존 앱 종료 확인 시간 초과')),15000))]);
-    let exited=false;
-    for(let attempt=0;attempt<150;attempt++) {
-      try {process.kill(originalPid,0);}
-      catch {exited=true;break;}
-      await new Promise(resolve=>setTimeout(resolve,100));
+    if(platform==='win32') {
+      const code = '$process = Get-Process -Id $env:YOURSQL_TEST_PID -ErrorAction SilentlyContinue; if ($process -and -not $process.WaitForExit(15000)) { exit 1 }';
+      try {execFileSync('powershell.exe',['-NoProfile','-NonInteractive','-EncodedCommand',Buffer.from(code,'utf16le').toString('base64')],{env:{...process.env,YOURSQL_TEST_PID:String(originalPid)}});}
+      catch {throw new Error('기존 앱 프로세스 종료 확인 시간 초과');}
     }
-    assert.equal(exited,true,'기존 앱 프로세스 종료 확인 시간 초과');
     const outcome=path.join(data,'update-result.txt');
     let done=false;
     for(let attempt=0;attempt<180;attempt++) {
@@ -93,7 +92,6 @@ async function main() {
   } finally {
     await Promise.race([app.close().catch(()=>{}),new Promise(resolve=>setTimeout(resolve,5000))]);
     // 재실행된 테스트 앱은 정확한 임시 실행 경로로만 식별해 종료한다.
-    const {execFileSync}=require('node:child_process');
     if(process.platform==='darwin') {
       const lines=execFileSync('/bin/ps',['-axo','pid=,command='],{encoding:'utf8'}).split('\n');
       for(const line of lines) {
