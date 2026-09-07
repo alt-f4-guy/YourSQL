@@ -17,6 +17,8 @@ jobs:
           node-version: 24
           cache: npm
       - run: npm ci --no-audit --no-fund
+      - name: 실제 MySQL 학습 계정 연결과 복구
+        run: npm run test:engine
       - run: npm run package:windows
       - name: 공개된 Windows ZIP 준비
         shell: pwsh

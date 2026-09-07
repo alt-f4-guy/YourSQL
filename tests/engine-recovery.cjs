@@ -9,10 +9,11 @@ async function main(){
   let recovering,timer;
   try{
     await original.start();
+    assert.deepEqual((await original.query('SELECT 1 AS value')).rows,[[1]]);
     recovering=recovered.start();
     await Promise.race([recovering,new Promise((_,reject)=>{timer=setTimeout(()=>reject(new Error('기존 서버 복구가 5초 안에 끝나지 않았습니다.')),5000);})]);
     assert.equal(recovered.ready,true);
-    assert.deepEqual((await recovered.admin.query('SELECT 1 AS value'))[0].map(row=>row.value),[1]);
+    assert.deepEqual((await recovered.query('SELECT 1 AS value')).rows,[[1]]);
     assert.equal(recovered.socketPath,original.socketPath);
     console.log('남아 있는 전용 서버 재사용 및 쿼리 실행 확인');
   }finally{

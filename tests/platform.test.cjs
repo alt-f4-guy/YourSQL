@@ -31,7 +31,8 @@ test('Windows 엔진은 TCP 없이 같은 파이프로 시작하고 복구한다
   const binary=path.join(directory,'mysqld.exe');
   fs.writeFileSync(binary,'');
   fs.mkdirSync(path.join(directory,'mysql-data'));
-  let launches=0,args,options;
+  let launches=0,args,options,learnerOptions;
+  const mysql=require('mysql2');
   const child=new EventEmitter();child.exitCode=null;child.signalCode=null;
   child.kill=()=>{child.exitCode=0;child.emit('exit',0);};
   const connection={query:async sql=>sql.startsWith('SELECT VERSION')?[[{version:'8.4.0'}]]:[[]],destroy(){}};
@@ -39,7 +40,7 @@ test('Windows 엔진은 TCP 없이 같은 파이프로 시작하고 복구한다
   const platform=require('../lib/platform.cjs');
   vm.runInNewContext(fs.readFileSync(path.join(__dirname,'../lib/engine.cjs'),'utf8'),{
     module,process:{platform:'win32'},Buffer,setTimeout,clearTimeout,
-    require:name=>name==='node:child_process'?{...require(name),spawn:(_binary,values,opts)=>{launches++;args=values;options=opts;return child;}}:
+    require:name=>name==='mysql2'?{...mysql,createConnection:config=>{learnerOptions=config;throw new Error('인증 설정 검사');}}:name==='node:child_process'?{...require(name),spawn:(_binary,values,opts)=>{launches++;args=values;options=opts;return child;}}:
       name==='./platform.cjs'?{mysqlCandidates:()=>[binary],validSocket:value=>platform.validSocket(value,'win32')}:require(name)
   });
   const {Engine}=module.exports;
@@ -57,5 +58,10 @@ test('Windows 엔진은 TCP 없이 같은 파이프로 시작하고 복구한다
     assert.equal(first.socketPath,second.socketPath);
     assert.equal(first.socketDirectory,undefined);
     assert.equal(second.socketDirectory,null);
+    await assert.rejects(second.query('SELECT 1'),/인증 설정 검사/);
+    // 전체 인증 요청에 평문 비밀번호 대신 RSA 공개키 요청을 반환해야 한다.
+    const authenticate=(learnerOptions.authPlugins?.caching_sha2_password||mysql.authPlugins.caching_sha2_password())({connection:{config:learnerOptions}});
+    authenticate(Buffer.alloc(20,1));
+    assert.deepEqual(authenticate(Buffer.from([4])),Buffer.from([2]));
   } finally {await first.stop();await second.stop();fs.rmSync(directory,{recursive:true,force:true});}
 });
