@@ -34,6 +34,10 @@
     renderQueryMission();
     renderCalendar();
     renderCatalog();
+    const cards=allCards(),passed=cards.filter(c=>data.records[c.id]?.passed).length,finished=data.units.filter(u=>u.cards.every(c=>data.records[c.id]?.passed)).length;
+    $('concept-progress-summary').textContent=`전체 진도 ${Math.round(passed/cards.length*100)}%`;
+    $('concept-progress-bar').max=cards.length;$('concept-progress-bar').value=passed;
+    $('concept-progress-detail').textContent=`${cards.length}문제 중 ${passed}문제 완료 · ${data.units.length}단원 중 ${finished}단원 완료`;
     for(const target of ['concept-units']){
       $(target).replaceChildren();
       data.units.forEach((unit,index)=>{
@@ -42,7 +46,7 @@
         const b=node('button',undefined,'unit-card');b.type='button';b.append(node('span',String(index+1).padStart(2,'0'),'unit-number'));
         const needsReview=due.some(item=>unit.cards.some(c=>c.id===item.id));
         const state=count===unit.cards.length?'완료':count?'진행 중':'시작 전';
-        const copy=node('span');copy.append(node('strong',unit.title),node('small',`빈칸 ${count}/${unit.cards.length} · ${state}${needsReview?' · 복습 필요':''} · 기본 + 변형`));b.append(copy,node('span','단원 열기 →','unit-state'));
+        const copy=node('span');copy.append(node('strong',unit.title),node('small',`${unit.cards.length}문제 중 ${count}문제 완료 · ${Math.round(count/unit.cards.length*100)}% · ${state}${needsReview?' · 복습 필요':''} · 기본 + 변형`));const bar=node('progress');bar.max=unit.cards.length;bar.value=count;bar.setAttribute('aria-label',`${unit.title} 완료율`);copy.className='unit-copy';copy.append(bar);b.append(copy,node('span',count===unit.cards.length?'✓ 완료 · 다시 풀기':'단원 열기 →','unit-state'));
         b.addEventListener('click',safely(()=>startSession(unit.cards.map(c=>c.id),'practice')));$(target).append(b);
       });
     }
@@ -64,7 +68,7 @@
     const levels=[...new Set(data.units.map(unit=>unit.level))];
     levels.forEach(level=>{
       const levelUnits=data.units.filter(unit=>unit.level===level),total=levelUnits.reduce((sum,unit)=>sum+unit.cards.length,0),done=levelUnits.reduce((sum,unit)=>sum+unit.cards.filter(card=>data.records[card.id]?.passed).length,0);
-      const row=node('div',undefined,'home-row'),copy=node('span');copy.append(node('strong',`${level}단계 · ${workspace?.levels[level-1]?.name||'개념 과정'}`),node('small',done===total?'완료':done?'진행 중':'시작 전'));row.append(copy,node('span',`${done} / ${total}`,'home-row-meta'));progress.append(row);
+      const row=node('div',undefined,'home-row'),copy=node('span');copy.append(node('strong',`${level}단계 · ${workspace?.levels[level-1]?.name||'개념 과정'}`),node('small',done===total?'완료':done?'진행 중':'시작 전'));row.append(copy,node('span',`${total}문제 중 ${done}문제 완료 · ${Math.round(done/total*100)}%`,'home-row-meta'));progress.append(row);
     });
     const activity=$('home-activity');activity.replaceChildren();
     const days=Object.entries(data.history).filter(([,entry])=>entry.total>0).sort(([a],[b])=>b.localeCompare(a)).slice(0,5);
@@ -162,6 +166,7 @@
     $('session-position').textContent=`${sessionKind==='review'?'복습':sessionKind==='daily'?'오늘의 빈칸':'단원 연습'} · ${sessionIndex+1} / ${session.length}`;
     $('session-progress').max=session.length;$('session-progress').value=sessionIndex;
     $('lesson-unit').textContent=unit.title;$('lesson-title').textContent=card.title;$('lesson-prompt').textContent=card.prompt;
+    workspace?.renderTables(card.tables,$('lesson-schema'),$('lesson-samples'));
     $('lesson-concept').textContent=unit.concept;$('concept-note').open=false;
     const [before,after]=card.sql.split('___'),input=node('input');input.id='blank-input';input.setAttribute('aria-label','SQL 빈칸 정답');input.autocomplete='off';input.spellcheck=false;input.maxLength=200;input.value=drafts.get(card.id)||'';
     input.addEventListener('input',()=>drafts.set(card.id,input.value));

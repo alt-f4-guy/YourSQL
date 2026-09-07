@@ -51,7 +51,10 @@ async function main(){
     await page.locator('.learning-nav [data-mode="concept"]').click();
     assert.equal(await page.locator('#concept-units .unit-card').count(),40);
     assert.equal(await page.locator('#concept-units .curriculum-heading').count(),5);
+    assert.match(await page.locator('#concept-units .unit-card').first().textContent(),/6문제 중 0문제 완료 · 0%/);
     await page.locator('#concept-units .unit-card').last().click();
+    assert.ok(await page.locator('#lesson-tables .schema-column').count()>0);
+    assert.ok(await page.locator('#lesson-tables table').count()>0);
     assert.match(await page.locator('#session-position').textContent(),/1 \/ 6/);
     await page.screenshot({path:path.join(root,'artifacts','0.0.2-advanced-concept.png')});
     await page.locator('.learning-nav [data-mode="today"]').click();
@@ -181,6 +184,19 @@ async function main(){
     await page.screenshot({path:path.join(root,'artifacts','extra-calendar-24.png')});
     await app.close();app=await launch();page=await app.firstWindow();
     await page.waitForFunction(()=>document.getElementById('calendar-detail').textContent.includes('24문제 완료'));
+    // 개념 목록에서 직접 푼 문제도 진도 막대와 일별 누적에 즉시 반영한다.
+    await page.locator('.learning-nav [data-mode="concept"]').click();
+    assert.equal(await page.locator('#concept-progress-bar').getAttribute('value'),'18');
+    await page.locator('#concept-units .unit-card').last().click();
+    const freeCard=require('../content/lessons.cjs').at(-1).cards[0];
+    await page.locator('#blank-input').fill(freeCard.answer);
+    await page.locator('#blank-check').click();
+    await page.locator('#next-blank').waitFor({state:'visible'});
+    await page.locator('#leave-lesson').click();
+    assert.equal(await page.locator('#concept-progress-bar').getAttribute('value'),'19');
+    assert.equal(await page.locator('#concept-units .unit-card').last().locator('progress').getAttribute('value'),'1');
+    assert.match(await page.locator('#calendar-detail').textContent(),/25문제 완료/);
+    await page.screenshot({path:path.join(root,'artifacts','concept-progress.png')});
     assert.deepEqual(errors,[]);
     console.log(`버전 ${require('../package.json').version} 화면·설정창·6+2 학습·복습·MySQL 채점·재시작 검사 통과`);
   }finally{await app.close();}

@@ -1,7 +1,7 @@
 {
   "name": "yoursql",
   "productName": "YourSQL",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "매일 익히는 SQL 학습장",
   "private": true,
   "main": "main.cjs",

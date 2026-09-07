@@ -18,7 +18,7 @@ async function main() {
       // 인증서 없이 내부 코드부터 임시 서명한다. 실패한 앱은 배포하지 않는다.
       ...(platform==='darwin'?{osxSign:{identity:'-',identityValidation:false,preAutoEntitlements:false,preEmbedProvisioningProfile:false,continueOnError:false,optionsForFile:()=>({hardenedRuntime:false,timestamp:'none'})}}:{}),
       icon:path.join(root,'assets',icon),
-      ignore:[/^\/[^/]+\.app(\/|$)/,/^\/(dist|artifacts|tests|scripts|docs|examples|theme)(\/|$)/,/^\/assets\/icon\.iconset/,/^\/\..*runtime/,/^\/\.yoursql-update-/,/^\/content\/(build-content\.cjs|extra-[a-z]+\.cjs|hints\.cjs|mutants\.cjs|checks\.json)$/],
+      ignore:[/^\/\.impeccable(\/|$)/,/^\/yoursql-(design-improvement-report|redesign-spec)\.md$/,/^\/[^/]+\.app(\/|$)/,/^\/(dist|artifacts|tests|scripts|docs|examples|theme)(\/|$)/,/^\/assets\/icon\.iconset/,/^\/\..*runtime/,/^\/\.yoursql-update-/,/^\/content\/(build-content\.cjs|extra-[a-z]+\.cjs|hints\.cjs|mutants\.cjs|checks\.json)$/],
       extendInfo:{NSHumanReadableCopyright:'로컬 SQL 코딩 테스트 연습장'}}));
     }
     // 배포 폴더는 공개용 테마만 구성한다. 루트의 개인 테마는 건드리지 않는다.

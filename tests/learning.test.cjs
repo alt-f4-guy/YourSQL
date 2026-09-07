@@ -199,3 +199,35 @@ test('기존 3+1 배정의 정답과 완료 이력을 유지하며 오늘을 6+2
     assert.deepEqual(new Learning(dir,()=>new Date(2026,8,6)).snapshot().today,snapshot.today);
   }finally{fs.rmSync(dir,{recursive:true,force:true});}
 });
+
+// 공백은 SQL 토큰 사이에서만 무시하고 문자열 값과 잘못된 키워드는 구분한다.
+test('빈칸 SQL의 연산자와 구두점 주변 공백을 허용한다',()=>{
+  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'sql-blank-spacing-'));
+  try{
+    const store=new Learning(dir),cards=require('../content/lessons.cjs').flatMap(u=>u.cards);
+    for(const [expected,answer] of [['required=1','required = 1'],['score>=80','score >= 80'],['category,price','category, price'],['COUNT(score)','COUNT ( score )']]){
+      assert.equal(store.answer({id:cards.find(c=>c.answer===expected).id,answer}).correct,true);
+    }
+    assert.equal(store.answer({id:'blank1',answer:'SEL ECT'}).correct,false);
+  }finally{fs.rmSync(dir,{recursive:true,force:true});}
+});
+
+// 자유 단원 학습도 날짜별로 저장하며 일일 배정과 중복 합산하지 않는다.
+test('배정 밖 정답은 일별 누적에 반영하고 재시작과 다음날에도 보존한다',()=>{
+  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'sql-free-learning-'));
+  try{
+    let now=new Date(2026,8,7),store=new Learning(dir,()=>now);
+    const today=store.snapshot().today,id=require('../content/lessons.cjs')[1].cards[0].id;
+    store.answer({id,answer:store.card(id).answer});
+    store.answer({id,answer:store.card(id).answer});
+    assert.equal(store.snapshot().history[today.date].total,1);
+    assert.equal(store.snapshot().today.done.length,0);
+    store=new Learning(dir,()=>now);
+    assert.equal(store.snapshot().history[today.date].total,1);
+    const assigned=today.blanks[0];store.answer({id:assigned,answer:store.card(assigned).answer});
+    assert.equal(store.snapshot().history[today.date].total,2);
+    now=new Date(2026,8,8);store.answer({id,answer:store.card(id).answer});
+    assert.equal(store.snapshot().history[today.date].total,2);
+    assert.equal(store.snapshot().history['2026-09-08'].total,1);
+  }finally{fs.rmSync(dir,{recursive:true,force:true});}
+});

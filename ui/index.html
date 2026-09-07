@@ -12,7 +12,7 @@
 </head>
 <body data-mode="today">
   <header class="topbar">
-    <div class="brand" aria-label="YourSQL"><span>YourSQL</span><strong><small>0.0.3</small></strong></div>
+    <div class="brand" aria-label="YourSQL"><span>YourSQL</span><strong><small>0.0.4</small></strong></div>
     <div class="engine"><span id="engine-dot" class="status-dot"></span><span id="engine-text">엔진 확인 중</span><button id="retry-engine" class="link-button" type="button">재연결</button></div>
     <div class="top-actions"><button id="open-settings" class="button ghost" type="button">설정</button><span id="save-status" aria-live="polite">초안 불러오는 중</span><button id="import-pack" class="button ghost" type="button">문제팩 가져오기</button><button id="open-study" class="button ghost" type="button">연속 학습일수</button><button id="open-history" class="button ghost" type="button">오답 기록</button></div>
   </header>
@@ -47,7 +47,7 @@
       <aside id="calendar-detail" aria-live="polite"></aside>
     </section>
     <section id="concept-screen" hidden>
-      <div class="learning-heading"><div><p class="eyebrow">개념 학습</p><h1>읽고, 떠올리고, 채워 보세요</h1><p>오늘의 여섯 문제를 이어 풀거나, 원하는 단원을 연습하세요.</p></div><button id="start-blanks" class="learn-primary">오늘의 빈칸 이어하기</button></div><p>5단계 · 40단원 · 빈칸 240문제 — 단원마다 기본 3문제와 변형 3문제</p><div id="concept-units" class="unit-grid"></div>
+      <div class="learning-heading"><div><p class="eyebrow">개념 학습</p><h1>읽고, 떠올리고, 채워 보세요</h1><p>오늘의 여섯 문제를 이어 풀거나, 원하는 단원을 연습하세요.</p></div><button id="start-blanks" class="learn-primary">오늘의 빈칸 이어하기</button></div><p>5단계 · 40단원 · 빈칸 240문제 — 단원마다 기본 3문제와 변형 3문제</p><section class="concept-progress" aria-label="전체 개념 학습 진도"><strong id="concept-progress-summary"></strong><progress id="concept-progress-bar" aria-label="전체 개념 문제 완료율"></progress><p id="concept-progress-detail"></p></section><div id="concept-units" class="unit-grid"></div>
     </section>
     <section id="catalog-screen" hidden>
       <div class="learning-heading"><div><p class="eyebrow">쿼리 작성</p><h1>내 단계에 맞는 문제부터</h1><p>문제를 선택하면 설명·편집기·실행 결과가 있는 풀이 화면으로 이동합니다.</p></div><button id="open-daily-query" class="learn-primary">오늘의 쿼리 풀기</button></div>
@@ -60,7 +60,7 @@
     </section>
     <section id="lesson-screen" hidden>
       <div class="session-top"><button id="leave-lesson" class="link-button">← 학습 목록</button><span id="session-position"></span></div><progress id="session-progress" max="3" value="0" aria-label="현재 세션 진행률"></progress>
-      <article class="lesson-card"><p class="eyebrow" id="lesson-unit"></p><h1 id="lesson-title"></h1><p id="lesson-prompt"></p><details id="concept-note"><summary>개념 다시 보기</summary><p id="lesson-concept"></p></details><form id="blank-form"><pre id="blank-code"></pre><div class="lesson-actions"><button id="blank-reveal" class="link-button" type="button">모르겠어요 · 해설 보기</button><button id="blank-check" class="learn-primary" type="submit">정답 확인</button></div></form><div id="blank-feedback" role="status" hidden></div><button id="next-blank" class="learn-primary" hidden>다음 문제</button></article>
+      <article class="lesson-card"><p class="eyebrow" id="lesson-unit"></p><h1 id="lesson-title"></h1><p id="lesson-prompt"></p><details id="concept-note"><summary>개념 다시 보기</summary><p id="lesson-concept"></p></details><section id="lesson-tables" aria-label="문제 테이블"><h2>테이블과 열 정보</h2><div id="lesson-schema" class="schema-list"></div><details><summary>예제 데이터 보기</summary><div id="lesson-samples"></div></details></section><form id="blank-form"><pre id="blank-code"></pre><div class="lesson-actions"><button id="blank-reveal" class="link-button" type="button">모르겠어요 · 해설 보기</button><button id="blank-check" class="learn-primary" type="submit">정답 확인</button></div></form><div id="blank-feedback" role="status" hidden></div><button id="next-blank" class="learn-primary" hidden>다음 문제</button></article>
     </section>
   </main>
   <div id="query-learning-bar" hidden><button id="query-back" class="link-button">← 문제 목록</button><span id="query-mission"></span><button id="next-daily-query" class="link-button" hidden>다음 쿼리 풀기 →</button><button id="query-return" class="link-button">오늘의 학습으로 돌아가기 →</button></div>

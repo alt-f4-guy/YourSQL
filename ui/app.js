@@ -80,8 +80,13 @@
     $('problem-level').textContent = `${p.level}단계 · ${levels[p.level-1].name}`; $('problem-level').dataset.level = p.level; $('problem-topic').textContent = p.topic; $('problem-title').textContent = p.title; $('problem-description').textContent = p.description;
     const prog = progressFor(p.id), pill = $('problem-state'); pill.textContent = prog.solved ? '완료' : prog.attempts ? `${prog.attempts}회 시도` : '미완료'; pill.className = `state-pill${prog.solved ? ' solved' : ''}`;
     $('editor-problem-label').textContent = p.title;
-    const schemas = $('schema-list'); clear(schemas); const samples = $('sample-tables'); clear(samples);
-    (p.tables || []).forEach(t => {
+    renderTables(p.tables, $('schema-list'), $('sample-tables'));
+  }
+
+  // 쿼리와 빈칸 화면에서 동일한 스키마·예제 표를 사용한다.
+  function renderTables(tables, schemas, samples) {
+    clear(schemas); clear(samples);
+    (tables || []).forEach(t => {
       const card = node('div', 'schema-card'), title = node('div', 'schema-name', t.name); if (t.description) title.append(node('span', 'schema-description', t.description)); card.append(title);
       (t.columns || []).forEach(c => { const row = node('div', 'schema-column'); row.append(node('code', '', c.name), node('em', '', c.type), node('span', '', c.description || '')); card.append(row); }); schemas.append(card); samples.append(renderTable(t));
     });
@@ -250,7 +255,7 @@
   async function bootstrap() {
     if (!api) { setEngine({ ready: false, message: '앱 연결이 필요합니다' }); el.save.textContent = '연결되지 않음'; clear(el.list); el.list.append(node('div', 'output-empty', 'Electron 앱에서 열어 주세요.')); return; }
     const selectedId = state.current?.id; if (selectedId && !await saveDraft(selectedId, el.editor.value)) return;
-    try { const data = await api.bootstrap(); state.problems = data.problems || []; state.progress = data.progress || {}; state.current = null; setEngine(data.engine); el.save.textContent = '초안 자동 저장'; renderList(); const next = state.problems.find(p => p.id === selectedId) || state.problems[0]; if (next) await selectProblem(next.id, false, true); window.learningUI?.ready({selectProblem,saveDraft,busy:()=>state.busy, current:()=>state.current?.id, progress:()=>state.progress, levels, problems:state.problems}); }
+    try { const data = await api.bootstrap(); state.problems = data.problems || []; state.progress = data.progress || {}; state.current = null; setEngine(data.engine); el.save.textContent = '초안 자동 저장'; renderList(); const next = state.problems.find(p => p.id === selectedId) || state.problems[0]; if (next) await selectProblem(next.id, false, true); window.learningUI?.ready({renderTables,selectProblem,saveDraft,busy:()=>state.busy, current:()=>state.current?.id, progress:()=>state.progress, levels, problems:state.problems}); }
     catch (error) { setEngine({ ready: false, message: '초기 연결 실패' }); el.save.textContent = '연결 실패'; toast(error.message || '앱 데이터를 불러오지 못했습니다.', true); }
   }
   api?.onEngineChanged?.(setEngine);
