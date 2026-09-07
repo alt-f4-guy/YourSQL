@@ -40,7 +40,10 @@ test('Windows 보조 프로그램은 테마를 보존하고 실행 실패 시 �
       for(const folder of [target,candidate]) {
         const acknowledge=folder===candidate && success;
         const source=`using System; using System.IO; public class App { public static void Main() { ${acknowledge?'File.WriteAllText(Path.Combine(Environment.GetEnvironmentVariable("YOURSQL_UPDATE_WORK"), "ready"), "ready");':''} } }`;
-        execFileSync(powershell,encoded('Add-Type -TypeDefinition $env:TEST_SOURCE -OutputAssembly $env:TEST_OUTPUT -OutputType ConsoleApplication'),{env:{...process.env,TEST_SOURCE:source,TEST_OUTPUT:path.join(folder,'YourSQL.exe')}});
+        // Add-Type은 대괄호를 와일드카드로 해석하므로 컴파일 후 실제 검사 경로로 옮긴다.
+        const compiled=path.join(work,folder===candidate?'new.exe':'old.exe');
+        execFileSync(powershell,encoded('Add-Type -TypeDefinition $env:TEST_SOURCE -OutputAssembly $env:TEST_OUTPUT -OutputType ConsoleApplication'),{env:{...process.env,TEST_SOURCE:source,TEST_OUTPUT:compiled}});
+        fs.renameSync(compiled,path.join(folder,'YourSQL.exe'));
       }
       const result=path.join(directory,`result-${success}`),transactionFile=path.join(work,'transaction.json');
       fs.writeFileSync(transactionFile,JSON.stringify({target,candidate,backup:path.join(work,'previous'),failed:path.join(work,'failed'),ready:path.join(work,'ready'),result,parent:99999999}));
