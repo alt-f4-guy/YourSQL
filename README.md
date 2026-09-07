@@ -61,6 +61,8 @@ Windows 배포본은 생성했지만 실제 Windows 기기에서 실행·업데�
 
 ## 학습 기록과 테마
 
+배포본에는 macOS 라이트·macOS 다크만 포함됩니다. 개인 테마는 로컬 `theme` 폴더에서 별도로 관리합니다.
+
 | 항목 | Mac | Windows |
 |---|---|---|
 | 학습 기록·앱 설정 | `~/Library/Application Support/YourSQL/` | `%APPDATA%/YourSQL/` |

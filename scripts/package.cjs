@@ -19,7 +19,7 @@ async function main() {
       ignore:[/^\/[^/]+\.app(\/|$)/,/^\/(dist|artifacts|tests|scripts|docs|examples|theme)(\/|$)/,/^\/assets\/icon\.iconset/,/^\/\..*runtime/,/^\/\.yoursql-update-/,/^\/content\/(build-content\.cjs|extra-[a-z]+\.cjs|hints\.cjs|mutants\.cjs|checks\.json)$/],
       extendInfo:{NSHumanReadableCopyright:'로컬 SQL 코딩 테스트 연습장'}}));
     }
-    // 재빌드할 때 사용자가 편집하거나 삭제한 외부 테마를 덮어쓰지 않는다.
+    // 배포 폴더는 공개용 테마만 구성한다. 루트의 개인 테마는 건드리지 않는다.
     for (const output of paths) {
       const destinationDirectory=path.join(root,'dist',path.basename(output));
       fs.mkdirSync(destinationDirectory,{recursive:true});
@@ -29,7 +29,11 @@ async function main() {
         fs.cpSync(path.join(output,file),destination,{recursive:true,verbatimSymlinks:true});
       }
       const destination=path.join(destinationDirectory,'theme');
-      if (!fs.existsSync(destination)) fs.cpSync(path.join(root,'theme'),destination,{recursive:true});
+      fs.rmSync(destination,{recursive:true,force:true});
+      fs.mkdirSync(destination,{recursive:true});
+      for (const file of ['macos-light.json','macos-dark.json']) {
+        fs.copyFileSync(path.join(root,'theme',file),path.join(destination,file));
+      }
       const [platform,arch]=path.basename(output).replace('YourSQL-','').split('-');
       fs.writeFileSync(path.join(destinationDirectory,'update.json'),JSON.stringify({product:name,version,platform,arch},null,2));
       console.log('앱 생성:',destinationDirectory);

@@ -12,3 +12,4 @@ for(const [folder,name] of [['YourSQL-darwin-arm64','YourSQL-Mac-arm64.zip'],['Y
   fs.rmSync(zip,{force:true});fs.renameSync(temporary,zip);
   console.log('배포 ZIP 생성:',zip);
 }
+execFileSync(process.execPath,[path.join(root,'tests','distribution-themes.cjs')],{cwd:root,stdio:'inherit'});
