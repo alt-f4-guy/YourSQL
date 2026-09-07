@@ -24,7 +24,8 @@ async function main() {
   try {
     const page=await app.firstWindow();
     // Windows에서는 화면이 보인 뒤에도 설정 IPC 초기화가 진행될 수 있다.
-    await page.waitForFunction(()=>document.getElementById('update-status').textContent.includes('공개 GitHub 저장소'));
+    await page.waitForFunction(()=>document.getElementById('update-status').textContent.length>0);
+    assert.match(await page.locator('#update-status').textContent(),/공개 GitHub 저장소/,`초기 설정 상태: ${page.url()}`);
     // 배포된 앱을 그대로 검증하되, 현재 버전과 GitHub 통신만 고정한다.
     await app.evaluate(({app},fixture)=>{
       const fs=process.getBuiltinModule('node:fs');

@@ -49,12 +49,12 @@ test('Windows 보조 프로그램은 테마를 보존하고 실행 실패 시 �
       fs.writeFileSync(transactionFile,JSON.stringify({target,candidate,backup:path.join(work,'previous'),failed:path.join(work,'failed'),ready:path.join(work,'ready'),result,parent:99999999}));
       const child=spawn(powershell,encoded(fs.readFileSync(path.join(__dirname,'../lib/update-helper.ps1'),'utf8')),{env:{...process.env,YOURSQL_UPDATE_TRANSACTION:transactionFile},stdio:'pipe'});
       let error='';child.stderr.on('data',chunk=>error+=chunk);
-      const code=await new Promise((resolve,reject)=>{child.on('error',reject);child.on('exit',resolve);});
+      const code=await new Promise((resolve,reject)=>{child.on('error',reject);child.on('close',resolve);});
       const diagnostic=path.join(work,'error.txt');
       assert.equal(code,success?0:1,error+(fs.existsSync(diagnostic)?fs.readFileSync(diagnostic,'utf8'):''));
       assert.equal(fs.readFileSync(result,'utf8').trim(),success?'success':'rollback');
       assert.equal(fs.readFileSync(path.join(target,'theme','custom.json'),'utf8'),'내 테마');
       assert.equal(fs.existsSync(path.join(target,'theme','default.json')),false);
     }
-  } finally {fs.rmSync(directory,{recursive:true,force:true});}
+  } finally {await fs.promises.rm(directory,{recursive:true,force:true,maxRetries:5,retryDelay:200});}
 });
