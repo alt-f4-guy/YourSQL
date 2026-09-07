@@ -56,6 +56,8 @@ async function main() {
       console.log('보조 프로그램 시작 오류 전달·앱 및 기록 보존 검사 통과');
       return;
     }
+    // 보조 프로그램은 기존 앱 종료를 기다리므로, 앱이 먼저 종료되지 않으면 교착이다.
+    await Promise.race([appClosed,new Promise((_,reject)=>setTimeout(()=>reject(new Error('기존 앱 종료 확인 시간 초과')),15000))]);
     const outcome=path.join(data,'update-result.txt');
     let done=false;
     for(let attempt=0;attempt<180;attempt++) {
@@ -77,7 +79,6 @@ async function main() {
     }
     console.log('업데이트 결과:',fs.readFileSync(outcome,'utf8').trim());
     assert.equal(fs.readFileSync(outcome,'utf8').trim(),'success');
-    await Promise.race([appClosed,new Promise((_,reject)=>setTimeout(()=>reject(new Error('기존 앱 종료 확인 시간 초과')),15000))]);
     assert.equal(fs.readFileSync(marker,'utf8'),'개인 기록 유지');
     assert.equal(fs.readFileSync(path.join(installed,'theme','custom-marker.txt'),'utf8'),'내 테마 유지');
     console.log('실제 배포 ZIP 다운로드·검증·압축 해제·앱 교체·재시작·기록 보존 검사 통과');
