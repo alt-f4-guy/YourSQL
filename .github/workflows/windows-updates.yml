@@ -17,7 +17,6 @@ jobs:
           node-version: 24
           cache: npm
       - run: npm ci --no-audit --no-fund
-      - run: npm test
       - run: npm run package:windows
       - name: 공개된 Windows ZIP 준비
         shell: pwsh
@@ -28,3 +27,6 @@ jobs:
         run: node tests/updates-packaged.cjs --helper-failure
       - name: 실제 앱 교체와 재시작
         run: node tests/updates-packaged.cjs
+      - name: 핵심 검사와 보조 프로그램 복구
+        if: ${{ !cancelled() }}
+        run: npm test
