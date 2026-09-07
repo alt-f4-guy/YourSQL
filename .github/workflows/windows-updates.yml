@@ -19,6 +19,8 @@ jobs:
       - run: npm ci --no-audit --no-fund
       - name: 실제 MySQL 학습 계정 연결과 복구
         run: npm run test:engine
+      - name: 실제 MySQL 정답과 읽기 권한 검사
+        run: npm run test:mysql
       - run: npm run package:windows
       - name: 새 Windows 빌드 압축
         shell: pwsh
