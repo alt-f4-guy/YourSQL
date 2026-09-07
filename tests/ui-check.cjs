@@ -10,7 +10,7 @@ const rootCopy=process.argv.includes('--root-copy');
 const packaged=rootCopy||process.argv.includes('--packaged');
 // 각 운영체제에서 동일한 화면·채점 검사를 실행한다.
 const executable=process.platform==='win32'?path.join(root,'dist','YourSQL-win32-x64','YourSQL.exe'):rootCopy?path.join(root,'YourSQL.app','Contents','MacOS','YourSQL'):path.join(root,'dist','YourSQL-darwin-arm64','YourSQL.app','Contents','MacOS','YourSQL');
-const launch=()=>electron.launch({...(packaged?{executablePath:executable,args:[]}:{args:[root]}),env:{...process.env,SQL_PRACTICE_DATA_DIR:data},timeout:60000});
+const launch=()=>electron.launch({...(process.env.YOURSQL_TEST_EXECUTABLE||packaged?{executablePath:process.env.YOURSQL_TEST_EXECUTABLE||executable,args:[]}:{args:[root]}),env:{...process.env,SQL_PRACTICE_DATA_DIR:data},timeout:60000});
 async function main(){
   let app=await launch();
   const errors=[];
