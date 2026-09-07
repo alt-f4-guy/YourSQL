@@ -12,14 +12,14 @@ async function main() {
   try {
     const page=await app.firstWindow(),errors=[];
     page.on('pageerror',error=>errors.push(error.message));
-    await app.evaluate(()=>{global.fetch=async()=>({ok:true,json:async()=>({tag_name:'v0.0.2',assets:[]})});});
+    await app.evaluate(()=>{global.fetch=async()=>({ok:true,json:async()=>({tag_name:'v0.0.6',assets:[]})});});
     await page.locator('#open-settings').click();
     await page.locator('#update-repository').fill('https://evil.test/a/b');
     await page.locator('#save-update-repository').click();
     await page.waitForFunction(()=>document.getElementById('update-status').textContent.includes('형식'));
     await page.locator('#update-repository').fill('https://github.com/me/YourSQL');
     await page.locator('#save-update-repository').click();
-    await page.waitForFunction(()=>document.getElementById('update-version').textContent.includes('최신 0.0.2'));
+    await page.waitForFunction(()=>document.getElementById('update-version').textContent.includes('최신 0.0.6'));
     assert.equal(JSON.parse(fs.readFileSync(path.join(data,'updates.json'),'utf8')).repository,'me/YourSQL');
     assert.equal(await page.locator('#update-dialog').isVisible(),false);
     await page.reload();
