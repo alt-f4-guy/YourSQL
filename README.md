@@ -21,7 +21,7 @@
 
 | 운영체제 | 다운로드 파일 | 실행 파일 |
 |---|---|---|
-| Apple Silicon Mac · arm64 | `YourSQL-Mac-arm64.zip` | `YourSQL.app` |
+| Apple Silicon Mac · arm64 | `YourSQL-Mac-arm64.dmg` | `YourSQL.app` |
 | Windows · x64 | `YourSQL-Windows-x64.zip` | `YourSQL.exe` |
 
 현재 Intel Mac과 Windows ARM 전용 빌드는 제공하지 않습니다. **Code → Download ZIP**이나 릴리스의 **Source code**는 개발용 소스이며, 실행 앱이 아닙니다.
@@ -34,12 +34,10 @@ YourSQL은 설치된 서버 실행 파일로 **앱 전용 데이터베이스**�
 
 ### Mac에서 설치·실행
 
-1. `YourSQL-Mac-arm64.zip`을 내려받고 압축을 풉니다.
-2. 압축을 푼 **`YourSQL-darwin-arm64` 폴더 전체**를 쓰기 가능한 위치로 옮깁니다. 예를 들어 사용자 홈의 `Applications` 폴더 아래에 보관할 수 있습니다.
-3. 폴더 안의 **`YourSQL.app`**을 더블 클릭합니다.
+1. `YourSQL-Mac-arm64.dmg`를 내려받아 엽니다.
+2. **`YourSQL.app`**을 같은 창의 **`Applications`** 바로가기로 끌어 놓습니다.
+3. 응용 프로그램 폴더의 **`YourSQL.app`**을 실행합니다.
 4. 처음 실행할 때는 연습용 데이터베이스 초기화가 끝날 때까지 기다립니다.
-
-`YourSQL.app` 옆의 **`theme` 폴더를 함께 유지**하세요. 앱만 따로 옮기면 기존 외부 테마를 읽지 못할 수 있습니다. 자동 업데이트에는 앱을 보관한 폴더의 쓰기 권한도 필요합니다.
 
 ### Windows에서 설치·실행
 
@@ -66,7 +64,7 @@ Windows 배포본은 생성했지만 실제 Windows 기기에서 실행·업데�
 | 항목 | Mac | Windows |
 |---|---|---|
 | 학습 기록·앱 설정 | `~/Library/Application Support/YourSQL/` | `%APPDATA%/YourSQL/` |
-| 외부 테마 | `YourSQL.app` 옆의 `theme/` | `YourSQL.exe` 옆의 `theme/` |
+| 외부 테마 | `~/Library/Application Support/YourSQL/theme/` | `YourSQL.exe` 옆의 `theme/` |
 
 백업할 때는 **앱을 종료한 뒤 학습 기록 폴더 전체**를 복사하세요. 테마를 수정했다면 외부 `theme` 폴더도 따로 백업하세요. 앱 업데이트는 학습 기록을 삭제하지 않습니다.
 

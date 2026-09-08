@@ -1,10 +1,14 @@
 // 운영체제별 배포 위치와 전용 연결 경로를 검증한다.
 const test=require('node:test');
 const assert=require('node:assert/strict');
-const {themeDirectory,mysqlCandidates,validSocket}=require('../lib/platform.cjs');
-test('Mac과 Windows는 실행 앱 옆의 테마를 사용한다',()=>{
-  assert.equal(themeDirectory('/apps/YourSQL.app/Contents/MacOS/YourSQL','darwin'),'/apps/theme');
-  assert.equal(themeDirectory('C:\\apps\\YourSQL\\YourSQL.exe','win32'),'C:\\apps\\YourSQL\\theme');
+const {themeDirectories,mysqlCandidates,validSocket}=require('../lib/platform.cjs');
+test('Mac은 사용자 데이터 테마를 사용하고 Windows는 실행 앱 옆 테마를 사용한다',()=>{
+  assert.deepEqual(themeDirectories('/private/var/folders/x/AppTranslocation/id/d/YourSQL.app/Contents/MacOS/YourSQL','/Users/me/Library/Application Support/YourSQL','darwin'),{
+    active:'/Users/me/Library/Application Support/YourSQL/theme',legacy:'/private/var/folders/x/AppTranslocation/id/d/theme'
+  });
+  assert.deepEqual(themeDirectories('C:\\apps\\YourSQL\\YourSQL.exe','C:\\Users\\me\\AppData\\Roaming\\YourSQL','win32'),{
+    active:'C:\\apps\\YourSQL\\theme',legacy:'C:\\apps\\YourSQL\\theme'
+  });
 });
 test('Windows MySQL 설치 위치와 지정 경로를 탐색한다',()=>{
   const candidates=mysqlCandidates('win32',{ProgramFiles:'C:\\Program Files',PATH:'C:\\tools\\mysql\\bin',YOURSQL_MYSQLD:'D:\\mysql\\bin\\mysqld.exe'});

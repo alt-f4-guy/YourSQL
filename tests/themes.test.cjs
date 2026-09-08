@@ -4,7 +4,25 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
-const {readThemes,deleteTheme} = require('../lib/themes.cjs');
+const {readThemes,deleteTheme,seedThemes} = require('../lib/themes.cjs');
+
+test('새 테마 폴더는 기존 사용자 테마와 내장 기본 테마를 한 번만 복사한다',()=>{
+  const directory=fs.mkdtempSync(path.join(os.tmpdir(),'sql-theme-seed-'));
+  const legacy=path.join(directory,'legacy'),defaults=path.join(directory,'defaults'),destination=path.join(directory,'active');
+  fs.mkdirSync(legacy);fs.mkdirSync(defaults);
+  fs.writeFileSync(path.join(legacy,'custom.json'),'사용자 테마');
+  fs.writeFileSync(path.join(defaults,'macos-light.json'),'기본 테마');
+  fs.symlinkSync(path.join(legacy,'custom.json'),path.join(legacy,'linked.json'));
+  try {
+    seedThemes(destination,[legacy,defaults]);
+    assert.equal(fs.readFileSync(path.join(destination,'custom.json'),'utf8'),'사용자 테마');
+    assert.equal(fs.readFileSync(path.join(destination,'macos-light.json'),'utf8'),'기본 테마');
+    assert.equal(fs.existsSync(path.join(destination,'linked.json')),false);
+    fs.writeFileSync(path.join(destination,'custom.json'),'수정한 테마');
+    seedThemes(destination,[legacy,defaults]);
+    assert.equal(fs.readFileSync(path.join(destination,'custom.json'),'utf8'),'수정한 테마');
+  } finally {fs.rmSync(directory,{recursive:true,force:true});}
+});
 
 test('테마 파일 검증과 실제 삭제, 마지막 파일 보호',()=>{
   const directory = fs.mkdtempSync(path.join(os.tmpdir(),'sql-themes-'));

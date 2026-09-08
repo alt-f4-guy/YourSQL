@@ -5,8 +5,8 @@ const fs = require('node:fs');
 const {pathToFileURL} = require('node:url');
 const {Engine} = require('./lib/engine.cjs');
 const {PracticeService} = require('./lib/service.cjs');
-const {readThemes,deleteTheme} = require('./lib/themes.cjs');
-const {themeDirectory:packagedThemeDirectory} = require('./lib/platform.cjs');
+const {readThemes,deleteTheme,seedThemes} = require('./lib/themes.cjs');
+const {themeDirectories} = require('./lib/platform.cjs');
 const {Updater}=require('./lib/updates.cjs');
 const appName='YourSQL';
 app.setName(appName);
@@ -21,9 +21,13 @@ else {
   app.on('second-instance',()=>{window?.show();window?.focus();});
   app.whenReady().then(async()=>{
     const directory=app.getPath('userData');
+    const packagedThemes=app.isPackaged?themeDirectories(process.execPath,directory):null;
     const themeDirectory=process.env.SQL_PRACTICE_DATA_DIR ? path.join(directory,'theme') :
-      app.isPackaged ? packagedThemeDirectory(process.execPath) : path.join(__dirname,'theme');
-    fs.mkdirSync(themeDirectory,{recursive:true});
+      packagedThemes?.active || path.join(__dirname,'theme');
+    if(app.isPackaged&&process.platform==='darwin') {
+      const legacy=packagedThemes.legacy,legacyDefaults=['macos-light.json','macos-dark.json'].some(name=>fs.existsSync(path.join(legacy,name)));
+      seedThemes(themeDirectory,[...(legacyDefaults?[legacy]:[]),process.resourcesPath]);
+    } else fs.mkdirSync(themeDirectory,{recursive:true});
     engine=new Engine(path.join(directory,'engine'));
     service=new PracticeService(path.join(__dirname,'content'),directory,engine);
     const learning=new (require('./lib/learning.cjs').Learning)(directory);
