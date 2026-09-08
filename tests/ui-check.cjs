@@ -127,7 +127,18 @@ async function main(){
     assert.match(await page.locator('#daily-detail').textContent(),/빈칸 6\/6 · 쿼리 1\/2/);
     assert.equal(await page.locator('#daily-progress').getAttribute('max'),'8');
     assert.equal(await page.locator(`[data-date="${today}"]`).getAttribute('data-status'),'partial');
-    await page.locator('#next-daily-query').click();
+    // 자동 반복과 열린 대화상자에서는 다음 문제로 이동하지 않는다.
+    await page.locator('#editor').evaluate(el=>el.dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',ctrlKey:true,altKey:true,repeat:true,bubbles:true})));
+    assert.match(await page.locator('#query-mission').textContent(),/오늘의 쿼리 1 \/ 2/);
+    await page.locator('#open-settings').click();
+    await page.keyboard.press(process.platform==='darwin'?'Meta+Alt+Enter':'Control+Alt+Enter');
+    assert.match(await page.locator('#query-mission').textContent(),/오늘의 쿼리 1 \/ 2/);
+    await page.keyboard.press('Escape');
+    // 편집기에서 다음 쿼리 단축키를 눌러 이동하고 입력 초점을 유지한다.
+    await page.locator('#editor').focus();
+    await page.keyboard.press(process.platform==='darwin'?'Meta+Alt+Enter':'Control+Alt+Enter');
+    await page.waitForFunction(()=>document.getElementById('query-mission').textContent.includes('오늘의 쿼리 2 / 2'));
+    assert.equal(await page.locator('#editor').evaluate(el=>el===document.activeElement),true);
     assert.match(await page.locator('#query-mission').textContent(),/오늘의 쿼리 2 \/ 2/);
     const secondQuery=await page.evaluate(async()=>{const {today}=await window.practice.learning();return window.practice.solution(today.queries[1]);});
     await page.locator('#editor').fill(secondQuery.sql);await page.locator('#submit').click();

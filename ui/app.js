@@ -5,7 +5,7 @@
   const api = window.practice;
   // Windows에서는 실제 동작과 같은 Ctrl 단축키를 표시한다.
   if (!navigator.platform.startsWith('Mac')) {
-    document.querySelectorAll('kbd,.list-summary').forEach(element=>{element.textContent=element.textContent.replaceAll('⌘','Ctrl+').replaceAll('⇧','Shift+');});
+    document.querySelectorAll('kbd,.list-summary').forEach(element=>{element.textContent=element.textContent.replaceAll('⌘','Ctrl+').replaceAll('⇧','Shift+').replaceAll('⌥','Alt+');});
   }
   // 단계 이름과 선수 범위를 목록·필터·문제 배지에서 일관되게 사용한다.
   const levels = [
@@ -203,7 +203,7 @@
   el.editor.addEventListener('scroll', () => { el.lines.scrollTop = el.editor.scrollTop; syncHighlightScroll(); });
   el.editor.addEventListener('keydown', e => {
     if (e.isComposing) return;
-    if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+    if ((e.metaKey || e.ctrlKey) && !e.altKey && e.key === 'Enter') {
       e.preventDefault(); execute(e.shiftKey ? 'submit' : 'run'); return;
     }
     const a = el.editor.selectionStart, b = el.editor.selectionEnd;

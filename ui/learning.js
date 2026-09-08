@@ -208,7 +208,19 @@
   $('start-review').addEventListener('click',safely(startReview));
   $('query-search').addEventListener('input',()=>{querySearch=$('query-search').value;catalogScroll=0;renderCatalog();});
   $('query-back').addEventListener('click',safely(async()=>{await refresh();await show('catalog');}));
-  $('next-daily-query').addEventListener('click',safely(()=>openQuery()));
+  // 버튼과 단축키는 같은 저장·이동 경로를 사용하고 중복 입력을 막는다.
+  let movingQuery=false;
+  async function nextDailyQuery(){
+    if(movingQuery||working||workspace?.busy()||mode!=='query'||$('next-daily-query').hidden||document.querySelector('dialog[open]'))return;
+    movingQuery=true;
+    try{await openQuery();}finally{movingQuery=false;}
+  }
+  $('next-daily-query').addEventListener('click',safely(nextDailyQuery));
+  document.addEventListener('keydown',safely(async e=>{
+    if(e.isComposing||!(e.metaKey||e.ctrlKey)||!e.altKey||e.shiftKey||e.key!=='Enter'||mode!=='query')return;
+    e.preventDefault();
+    if(!e.repeat)await nextDailyQuery();
+  }));
   $('open-daily-query').addEventListener('click',safely(()=>openQuery()));
   $('query-return').addEventListener('click',safely(async()=>{await refresh();await show('today');}));
   document.querySelectorAll('.learning-nav [data-mode], [data-open]').forEach(b=>b.addEventListener('click',safely(async()=>{await refresh();const next=b.dataset.mode||b.dataset.open;await show(next==='query'?'catalog':next);}))); 
