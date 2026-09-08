@@ -79,3 +79,40 @@ test('Windows 엔진은 TCP 없이 같은 파이프로 시작하고 복구한다
     assert.deepEqual(authenticate(Buffer.from([4])),Buffer.from([2]));
   } finally {await first.stop();await second.stop();fs.rmSync(directory,{recursive:true,force:true});}
 });
+test('초기화 중 stop은 초기화 프로세스를 종료한다',async()=>{
+  const fs=require('node:fs');
+  const vm=require('node:vm');
+  const {EventEmitter}=require('node:events');
+  const directory=fs.mkdtempSync(path.join(require('node:os').tmpdir(),'yoursql-initialize-stop-'));
+  const binary=path.join(directory,'mysqld');
+  fs.writeFileSync(binary,'');
+  const child=new EventEmitter();child.exitCode=null;child.signalCode=null;
+  let finish;
+  child.kill=signal=>{child.killSignal=signal;return true;};
+  const module={exports:{}};
+  vm.runInNewContext(fs.readFileSync(path.join(__dirname,'../lib/engine.cjs'),'utf8'),{
+    module,process:{platform:'darwin'},Buffer,setTimeout,clearTimeout,
+    require:name=>name==='node:child_process'?{...require(name),execFile:(_binary,args,_options,callback)=>{
+      assert.ok(args.includes('--initialize-insecure'));
+      finish=error=>{child.exitCode=error?1:0;child.emit('exit',child.exitCode);callback(error,'','');};
+      return child;
+    }}:name==='./platform.cjs'?{mysqlCandidates:()=>[binary],validSocket:()=>false}:require(name)
+  });
+  const engine=new module.exports.Engine(directory);
+  let starting,stopped=false;
+  try {
+    starting=engine.start();
+    await Promise.resolve();
+    const stopping=engine.stop().then(()=>{stopped=true;});
+    await Promise.resolve();
+    assert.equal(child.killSignal,'SIGTERM');
+    assert.equal(stopped,false);
+    finish(new Error('초기화 중단'));
+    await stopping;
+    await assert.rejects(starting,/초기화 중단/);
+  } finally {
+    if (!child.exitCode) finish?.(new Error('초기화 중단'));
+    await starting?.catch(()=>{});
+    fs.rmSync(directory,{recursive:true,force:true});
+  }
+});
