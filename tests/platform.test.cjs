@@ -79,7 +79,7 @@ test('Windows 엔진은 TCP 없이 같은 파이프로 시작하고 복구한다
     assert.deepEqual(authenticate(Buffer.from([4])),Buffer.from([2]));
   } finally {await first.stop();await second.stop();fs.rmSync(directory,{recursive:true,force:true});}
 });
-test('초기화 중 stop은 초기화 프로세스를 종료한다',async()=>{
+test('초기화가 SIGTERM을 무시하면 동시 stop은 강제 종료 확인까지 함께 기다린다',async()=>{
   const fs=require('node:fs');
   const vm=require('node:vm');
   const {EventEmitter}=require('node:events');
@@ -87,31 +87,53 @@ test('초기화 중 stop은 초기화 프로세스를 종료한다',async()=>{
   const binary=path.join(directory,'mysqld');
   fs.writeFileSync(binary,'');
   const child=new EventEmitter();child.exitCode=null;child.signalCode=null;
-  let finish;
-  child.kill=signal=>{child.killSignal=signal;return true;};
+  let finish,allowExit;
+  const signals=[],timers=new Map();
+  const exitAllowed=new Promise(resolve=>{allowExit=resolve;});
+  child.kill=signal=>{
+    signals.push(signal);
+    if(signal==='SIGKILL') void exitAllowed.then(()=>finish(new Error('초기화 중단')));
+    return true;
+  };
   const module={exports:{}};
   vm.runInNewContext(fs.readFileSync(path.join(__dirname,'../lib/engine.cjs'),'utf8'),{
-    module,process:{platform:'darwin'},Buffer,setTimeout,clearTimeout,
+    module,process:{platform:'darwin'},Buffer,
+    setTimeout:(callback,ms)=>{const timer={callback,ms};timers.set(timer,timer);return timer;},
+    clearTimeout:timer=>timers.delete(timer),
     require:name=>name==='node:child_process'?{...require(name),execFile:(_binary,args,_options,callback)=>{
       assert.ok(args.includes('--initialize-insecure'));
-      finish=error=>{child.exitCode=error?1:0;child.emit('exit',child.exitCode);callback(error,'','');};
+      finish=error=>{child.signalCode='SIGKILL';child.emit('exit',null,'SIGKILL');callback(error,'','');};
       return child;
     }}:name==='./platform.cjs'?{mysqlCandidates:()=>[binary],validSocket:()=>false}:require(name)
   });
   const engine=new module.exports.Engine(directory);
-  let starting,stopped=false;
+  const staging=path.join(directory,'mysql-initializing');
+  let starting,stopped=0;
   try {
     starting=engine.start();
+    const failedStart=assert.rejects(starting,/초기화 중단/);
     await Promise.resolve();
-    const stopping=engine.stop().then(()=>{stopped=true;});
-    await Promise.resolve();
-    assert.equal(child.killSignal,'SIGTERM');
-    assert.equal(stopped,false);
-    finish(new Error('초기화 중단'));
-    await stopping;
-    await assert.rejects(starting,/초기화 중단/);
+    const stopping=engine.stop().then(()=>{stopped++;});
+    assert.deepEqual(signals,['SIGTERM']);
+    const alsoStopping=engine.stop().then(()=>{stopped++;});
+    // 유예 시간은 가짜 시계로 넘기되 종료 이벤트는 별도로 보류한다.
+    for(const timer of [...timers.values()]) {
+      assert.equal(timer.ms,5000);
+      timer.callback();
+    }
+    await new Promise(resolve=>setImmediate(resolve));
+    assert.ok(signals.includes('SIGKILL'),'SIGTERM 무응답이면 SIGKILL을 보내야 한다');
+    assert.deepEqual(signals,['SIGTERM','SIGKILL']);
+    assert.equal(stopped,0,'두 stop 모두 실제 종료를 기다려야 한다');
+    assert.equal(engine.initializing,child);
+    assert.equal(fs.existsSync(staging),true,'살아 있는 초기화 폴더는 지우지 않는다');
+    allowExit();
+    await Promise.all([stopping,alsoStopping,failedStart]);
+    assert.equal(stopped,2);
+    assert.equal(engine.initializing,null);
+    assert.equal(fs.existsSync(staging),false,'중단된 초기화 폴더가 다음 실행을 막지 않아야 한다');
   } finally {
-    if (!child.exitCode) finish?.(new Error('초기화 중단'));
+    if (child.signalCode===null) finish?.(new Error('초기화 중단'));
     await starting?.catch(()=>{});
     fs.rmSync(directory,{recursive:true,force:true});
   }
