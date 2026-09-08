@@ -56,5 +56,7 @@
 - Task 5: fix round 1/5 (1 addressed, 0 open — 실제 runner AppData 경계와 내용 보존 검증; commits 5b2c47c..99af893)
 - Task 5: complete (commits 25860e4..99af893, review clean; Windows Actions 실기는 외부 승인 대기)
 - Task 6: local complete (commits 99af893..63fc15e, review clean; Step 7~9 Windows Actions·태그·공개 릴리스 승인 대기)
+- Final review: fix wave complete (commits 63fc15e..20d6263; 중요 2건·경미 2건 모두 addressed, scoped re-review clean)
 - 최종 브랜치 검토: 단일 수정 1/1 완료 (4건 처리, 열린 지적 0건). Mac 모의 경로에 `path.posix` 지정, 업데이트 화면 응답 두 곳을 `v0.0.7`로 수정, 일반 서버 SIGTERM 무응답 시 SIGKILL·실제 exit 대기 적용, 자산 부재 재확인 후 `Updater.open()` 거부 직접 검사 추가. 기존 Task 1·Task 2의 보류한 경미 지적도 해소함.
 - 최종 수정 검증: 일반 서버 회귀 RED 11/12 → GREEN 12/12; `npm test` 1회 38/38 통과; `npm run test:updates` 1회 통과. 직후 지정한 `lsof` 검색 결과 없음, 데이터 볼륨 여유 195Gi. Windows 실기와 배포 산출물 재생성은 이번 수정 범위에서 미실행. 증거: `final-fix-report.md`.
+- 최종 로컬 통합 검증: `npm test` 38/38, `npm run test:updates`, `npm run test:ui`, `npm run release`, `node tests/mac-signature.cjs --launch`, `npm run test:app` 모두 통과. UI와 설치 앱 모두 버전 `0.0.6` 확인. 테스트용 `mysqld` 잔류 없음, 데이터 볼륨 여유 194Gi. 최종 DMG SHA-256: `0ec6f560f040a8ada44bb81b5822a650dcd1ab7f4af5149ade879dd07634850f`.
