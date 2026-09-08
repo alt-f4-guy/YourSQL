@@ -33,7 +33,7 @@ else {
     const learning=new (require('./lib/learning.cjs').Learning)(directory);
     const updater=new Updater(app,value=>{
       if (window && !window.isDestroyed()) window.webContents.send('practice:updateChanged',value);
-    });
+    },url=>shell.openExternal(url));
     const starting=engine.start().catch(()=>{});
     session.defaultSession.setPermissionRequestHandler((_wc,_permission,callback)=>callback(false));
     session.defaultSession.setPermissionCheckHandler(()=>false);
@@ -43,9 +43,8 @@ else {
     });
     handle('bootstrap',()=>service.bootstrap());
     handle('updateState',()=>({...updater.state}));
-    handle('saveUpdateRepository',value=>updater.save(value));
     handle('checkUpdates',()=>updater.check());
-    handle('installUpdate',()=>updater.install());
+    handle('openUpdatePage',()=>updater.open());
     handle('themes',deleted=>{
       // 이전 버전에서 숨긴 테마도 한 번만 실제 파일 삭제로 이관한다.
       if (Array.isArray(deleted) && deleted.length <= 1000 && deleted.every(id=>typeof id==='string')) {
@@ -111,7 +110,6 @@ else {
       {label:'보기',submenu:[{label:'확대',role:'zoomIn'},{label:'축소',role:'zoomOut'},{label:'실제 크기',role:'resetZoom'},{label:'전체 화면',role:'togglefullscreen'}]}
     ]));
     await window.loadFile(page);
-    updater.confirmLaunch();
     void starting.then(()=>{if(window&&!window.isDestroyed())window.webContents.send('practice:engineChanged',{ready:engine.ready,message:engine.message});});
   }).catch(error=>{dialog.showErrorBox('앱 시작 실패',error.message);closing=true;app.quit();});
   app.on('window-all-closed',()=>{clearTimeout(themeTimer);themeWatcher?.close();app.quit();});

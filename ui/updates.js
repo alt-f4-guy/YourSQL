@@ -1,57 +1,45 @@
-// 시작 알림과 설정창은 같은 상태를 표시하며, 파일 교체는 메인 프로세스에 맡긴다.
+// 시작 알림과 설정창은 같은 공식 릴리스 상태를 표시한다.
 document.addEventListener('DOMContentLoaded',async()=>{
-  const repository=document.getElementById('update-repository');
-  const save=document.getElementById('save-update-repository');
   const check=document.getElementById('check-updates');
-  const install=document.getElementById('install-update');
+  const open=document.getElementById('open-update-page');
   const status=document.getElementById('update-status');
   const popup=document.getElementById('update-dialog');
   const popupStatus=document.getElementById('update-dialog-status');
-  const popupInstall=document.getElementById('update-now');
+  const popupOpen=document.getElementById('update-now');
   const later=document.getElementById('update-later');
   let state={};
-  function render(value) {
+  function render(value){
     state=value;
-    const busy=['checking','downloading','preparing','installing'].includes(value.phase);
+    const busy=value.phase==='checking';
     document.getElementById('update-version').textContent=`현재 ${value.current}${value.latest?` · 최신 ${value.latest}`:''}`;
-    status.textContent=value.message+(value.phase==='downloading'?` ${value.percent||0}%`:'');
-    popupStatus.textContent=status.textContent;
-    repository.disabled=save.disabled=check.disabled=busy;
-    install.hidden=!value.available;
-    install.disabled=popupInstall.disabled=busy || !value.installable;
-    later.disabled=busy;
+    status.textContent=popupStatus.textContent=value.message;
+    check.disabled=busy;
+    open.hidden=!value.available;
+    open.disabled=popupOpen.disabled=busy||!value.downloadable;
+    later.disabled=false;
   }
-  function report(error) {status.textContent=popupStatus.textContent=error.message;}
-  async function checkVersion(startup=false) {
+  function report(error){render({...state,message:error.message});}
+  async function checkVersion(startup=false){
     try {
       const result=await window.practice.checkUpdates();render(result);
-      if (startup && result.available && !popup.open) {
+      if(startup&&result.available&&!popup.open){
         document.getElementById('update-dialog-version').textContent=`${result.current} → ${result.latest}`;
         popup.showModal();
         later.focus();
       }
-    } catch(error) {report(error);}
+    } catch(error){report(error);}
   }
-  save.addEventListener('click',async()=>{
-    try {
-      render(await window.practice.saveUpdateRepository(repository.value));
-      repository.value=state.repository?`https://github.com/${state.repository}`:'';
-      if (state.repository) await checkVersion();
-    } catch(error) {report(error);}
-  });
+  async function openPage(){
+    open.disabled=popupOpen.disabled=true;
+    try {await window.practice.openUpdatePage();popup.close();}
+    catch(error){report(error);}
+    finally {render(state);}
+  }
   check.addEventListener('click',()=>checkVersion());
-  async function update() {
-    install.disabled=popupInstall.disabled=true;
-    try {await window.practice.installUpdate();}
-    catch(error) {render({...state,phase:'idle'});report(error);}
-  }
-  install.addEventListener('click',update);
-  popupInstall.addEventListener('click',update);
+  open.addEventListener('click',openPage);
+  popupOpen.addEventListener('click',openPage);
   later.addEventListener('click',()=>popup.close());
-  popup.addEventListener('cancel',event=>{if(later.disabled) event.preventDefault();});
   window.practice.onUpdateChanged(render);
-  try {
-    render(await window.practice.updateState());repository.value=state.repository?`https://github.com/${state.repository}`:'';
-    if (state.repository) await checkVersion(true);
-  } catch(error) {report(error);}
+  try {render(await window.practice.updateState());await checkVersion(true);}
+  catch(error){report(error);}
 });

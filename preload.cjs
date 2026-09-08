@@ -2,7 +2,7 @@
 const {contextBridge,ipcRenderer} = require('electron');
 const invoke = channel => argument => ipcRenderer.invoke(channel,argument);
 contextBridge.exposeInMainWorld('practice',{
-  updateState:invoke('practice:updateState'),saveUpdateRepository:invoke('practice:saveUpdateRepository'),checkUpdates:invoke('practice:checkUpdates'),installUpdate:invoke('practice:installUpdate'),
+  updateState:invoke('practice:updateState'),checkUpdates:invoke('practice:checkUpdates'),openUpdatePage:invoke('practice:openUpdatePage'),
   onUpdateChanged:callback=>{ipcRenderer.on('practice:updateChanged',(_event,value)=>callback(value));},
   learning:invoke('practice:learning'),startExtra:invoke('practice:startExtra'),blankAnswer:invoke('practice:blankAnswer'),blankReveal:invoke('practice:blankReveal'),learningAssist:invoke('practice:learningAssist'),
   themes:invoke('practice:themes'),deleteTheme:invoke('practice:deleteTheme'),openThemeFolder:invoke('practice:openThemeFolder'),
