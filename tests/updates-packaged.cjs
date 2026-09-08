@@ -37,7 +37,7 @@ async function main() {
         const copy=fs.copyFileSync;
         fs.copyFileSync=(source,target,...args)=>{
           copy(source,target,...args);
-          if(/helper\.(sh|ps1)$/.test(target))fs.writeFileSync(target,process.platform==='win32'?"$s=[Console]::OpenStandardError();$w=[IO.StreamWriter]::new($s);$w.WriteLine('helper-startup-test');$w.Flush();[Console]::Error.WriteLine('helper-startup-test');exit 42":"#!/bin/sh\nprintf 'helper-startup-test' >&2\nexit 42\n");
+          if(/helper\.(sh|ps1)$/.test(target))fs.writeFileSync(target,process.platform==='win32'?"[System.Console]::Error.WriteLine('helper-startup-test'); [System.Console]::WriteLine('helper-startup-test'); exit 42":"#!/bin/sh\nprintf 'helper-startup-test' >&2\nexit 42\n");
         };
       }
       global.fetch=async url=>url.includes('api.github.com')?new Response(JSON.stringify({tag_name:`v${fixture.version}`,assets:[{name:fixture.name,size:fixture.size,digest:fixture.digest,browser_download_url:`https://github.com/me/YourSQL/releases/download/v${fixture.version}/${fixture.name}`}]})):new Response(fs.readFileSync(fixture.zip));
