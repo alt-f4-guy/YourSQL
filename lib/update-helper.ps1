@@ -20,8 +20,12 @@ function Move-App($source, $destination) {
         catch { if ($attempt -eq 19) { throw }; Start-Sleep -Milliseconds 500 }
     }
 }
+function Log-Step($msg) {
+    try { [Console]::Error.WriteLine("HELPER: $msg"); [Console]::Error.Flush() } catch {}
+}
 try {
     [IO.File]::WriteAllText((Join-Path $work 'armed'), 'armed')
+    Log-Step "armed, waiting for parent $($transaction.parent)"
     # 부모 프로세스 종료를 매초 확인하며 안전하게 대기한다.
     for ($attempt = 0; $attempt -lt 120; $attempt++) {
         $running = Get-Process -Id $transaction.parent -ErrorAction SilentlyContinue
@@ -29,31 +33,42 @@ try {
         Start-Sleep -Seconds 1
     }
     if ($running) { throw '앱 종료 대기 시간이 초과되었습니다.' }
+    Log-Step "parent exited, stopping residual processes"
     # 기존 앱의 잔여 프로세스를 정리하여 파일 잠금을 해제한다.
     $targetExe = Join-Path $transaction.target 'YourSQL.exe'
-    Get-CimInstance Win32_Process -ErrorAction SilentlyContinue | Where-Object { $_.ExecutablePath -eq $targetExe } | ForEach-Object {
+    Get-Process -Name 'YourSQL' -ErrorAction SilentlyContinue | Where-Object {
+        try { $_.Path -eq $targetExe } catch { $true }
+    } | ForEach-Object {
         Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue
     }
     Start-Sleep -Milliseconds 500
+    Log-Step "preserving theme"
     # 새 배포본의 기본 테마 대신 사용자가 편집하거나 삭제한 테마 상태를 보존한다.
     $oldTheme = Join-Path $transaction.target 'theme'
     $newTheme = Join-Path $transaction.candidate 'theme'
     if (Test-Path -LiteralPath $newTheme) { Remove-Item -LiteralPath $newTheme -Recurse -Force }
     if (Test-Path -LiteralPath $oldTheme) { Copy-Item -LiteralPath $oldTheme -Destination $newTheme -Recurse -Force }
     else { [IO.Directory]::CreateDirectory($newTheme) | Out-Null }
+    Log-Step "moving target to backup"
     Move-App $transaction.target $transaction.backup
     $backedUp = $true
+    Log-Step "moving candidate to target"
     Move-App $transaction.candidate $transaction.target
     $env:YOURSQL_UPDATE_WORK = $work
+    Log-Step "starting new app"
     $newProcess = Start-App
     $deadline = [DateTime]::UtcNow.AddSeconds(90)
+    Log-Step "waiting for ready file"
     while (-not (Test-Path -LiteralPath $transaction.ready)) {
         if ($newProcess.HasExited -or [DateTime]::UtcNow -gt $deadline) { throw '새 앱 시작을 확인하지 못했습니다.' }
         Start-Sleep -Milliseconds 500
     }
+    Log-Step "update success"
     Write-Result 'success'
 } catch {
-    $_ | Out-String | Set-Content -LiteralPath (Join-Path $work 'error.txt') -Encoding UTF8
+    $errStr = $_ | Out-String
+    Log-Step "EXCEPTION: $errStr"
+    $errStr | Set-Content -LiteralPath (Join-Path $work 'error.txt') -Encoding UTF8
     try {
         if ($newProcess -and -not $newProcess.HasExited) { $newProcess.Kill(); $newProcess.WaitForExit() }
         if ($backedUp) {
