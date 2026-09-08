@@ -35,6 +35,22 @@ FunctionEnd
 
 Section "YourSQL" MainSection
   SetShellVarContext current
+  InitPluginsDir
+  File /oname=$PLUGINSDIR\close-app.ps1 "${__FILEDIR__}\close-app.ps1"
+  DetailPrint "실행 중인 YourSQL을 종료합니다. 응답하지 않으면 강제 종료합니다."
+  ; 64비트 앱의 실행 경로를 읽을 수 있도록 네이티브 PowerShell을 사용합니다.
+  StrCpy $2 "$SYSDIR\WindowsPowerShell\v1.0\powershell.exe"
+  IfFileExists "$WINDIR\Sysnative\WindowsPowerShell\v1.0\powershell.exe" 0 +2
+  StrCpy $2 "$WINDIR\Sysnative\WindowsPowerShell\v1.0\powershell.exe"
+  nsExec::ExecToStack '"$2" -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "$PLUGINSDIR\close-app.ps1" -InstallDirectory "$INSTDIR"'
+  Pop $0
+  Pop $1
+  StrCmp $0 "0" app_closed
+  DetailPrint "$1"
+  MessageBox MB_OK|MB_ICONSTOP "YourSQL을 종료하지 못했습니다. 앱을 종료한 뒤 설치를 다시 실행해 주세요." /SD IDOK
+  SetErrorLevel 1
+  Abort
+app_closed:
   SetOutPath "$INSTDIR"
   File /r "${SOURCE_DIR}\*"
   FileOpen $0 "$INSTDIR\.yoursql-install" w

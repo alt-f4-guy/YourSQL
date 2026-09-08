@@ -28,8 +28,13 @@ jobs:
       - name: 설치·재설치·실행·제거 검사
         shell: pwsh
         run: ./tests/windows-installer.ps1
+      - name: 새 Windows 폴더 압축
+        shell: pwsh
+        run: Compress-Archive -Path dist/YourSQL-win32-x64 -DestinationPath dist/YourSQL-Windows-x64.zip -Force
       - uses: actions/upload-artifact@v4
         with:
           name: YourSQL-Setup-x64
-          path: dist/YourSQL-Setup-x64.exe
+          path: |
+            dist/YourSQL-Setup-x64.exe
+            dist/YourSQL-Windows-x64.zip
           if-no-files-found: error
