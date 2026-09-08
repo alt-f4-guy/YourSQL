@@ -33,8 +33,9 @@ $keepAlive = Join-Path $env:RUNNER_TEMP 'yoursql-keep-alive.cjs'
 Set-Content -LiteralPath $keepAlive -Value 'setInterval(() => {}, 1000);'
 foreach ($headless in @($false, $true)) {
   if ($headless) { $env:ELECTRON_RUN_AS_NODE = '1' }
-  $arguments = if ($headless) { @('"' + $keepAlive + '"') } else { @() }
-  $running = Start-Process -FilePath (Join-Path $install 'YourSQL.exe') -ArgumentList ($arguments + '--no-sandbox') -PassThru
+  $arguments = @('--no-sandbox')
+  if ($headless) { $arguments = @('"' + $keepAlive + '"') }
+  $running = Start-Process -FilePath (Join-Path $install 'YourSQL.exe') -ArgumentList $arguments -PassThru
   Remove-Item Env:ELECTRON_RUN_AS_NODE -ErrorAction SilentlyContinue
   try {
     $deadline = (Get-Date).AddSeconds(60)
