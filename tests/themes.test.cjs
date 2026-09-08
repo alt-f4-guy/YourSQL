@@ -24,6 +24,20 @@ test('새 테마 폴더는 기존 사용자 테마와 내장 기본 테마를 �
   } finally {fs.rmSync(directory,{recursive:true,force:true});}
 });
 
+test('기본 테마가 없는 이전 폴더에서도 개인 테마를 이관한다',()=>{
+  const directory=fs.mkdtempSync(path.join(os.tmpdir(),'sql-theme-legacy-'));
+  const legacy=path.join(directory,'legacy'),active=path.join(directory,'active');
+  fs.mkdirSync(legacy);
+  fs.writeFileSync(path.join(legacy,'custom.json'),'개인 테마');
+  try {
+    seedThemes(active,[legacy,path.join(directory,'missing-resources')]);
+    assert.equal(fs.readFileSync(path.join(active,'custom.json'),'utf8'),'개인 테마');
+    fs.writeFileSync(path.join(active,'custom.json'),'사용자 수정본');
+    seedThemes(active,[legacy]);
+    assert.equal(fs.readFileSync(path.join(active,'custom.json'),'utf8'),'사용자 수정본');
+  } finally {fs.rmSync(directory,{recursive:true,force:true});}
+});
+
 test('테마 파일 검증과 실제 삭제, 마지막 파일 보호',()=>{
   const directory = fs.mkdtempSync(path.join(os.tmpdir(),'sql-themes-'));
   try {

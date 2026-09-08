@@ -17,28 +17,20 @@ async function main() {
       appBundleId:'local.yoursql.practice',appVersion:version,buildVersion:version,asar:{unpack:'**/*.node'},overwrite:true,
       // 인증서 없이 내부 코드부터 임시 서명한다. 실패한 앱은 배포하지 않는다.
       ...(platform==='darwin'?{osxSign:{identity:'-',identityValidation:false,preAutoEntitlements:false,preEmbedProvisioningProfile:false,continueOnError:false,optionsForFile:()=>({hardenedRuntime:false,timestamp:'none'})}}:{}),
-      ...(platform==='darwin'?{extraResource:['macos-light.json','macos-dark.json'].map(file=>path.join(root,'theme',file))}:{}),
+      extraResource:['macos-light.json','macos-dark.json'].map(file=>path.join(root,'theme',file)),
       icon:path.join(root,'assets',icon),
       ignore:[/^\/\.impeccable(\/|$)/,/^\/yoursql-(design-improvement-report|redesign-spec)\.md$/,/^\/[^/]+\.app(\/|$)/,/^\/(dist|artifacts|tests|scripts|docs|examples|theme)(\/|$)/,/^\/assets\/icon\.iconset/,/^\/\..*runtime/,/^\/\.yoursql-update-/,/^\/content\/(build-content\.cjs|extra-[a-z]+\.cjs|hints\.cjs|mutants\.cjs|checks\.json)$/],
       extendInfo:{NSHumanReadableCopyright:'로컬 SQL 코딩 테스트 연습장'}}));
     }
-    // 배포 폴더는 공개용 테마만 구성한다. 루트의 개인 테마는 건드리지 않는다.
     for (const output of paths) {
       const destinationDirectory=path.join(root,'dist',path.basename(output));
-      const [platform,arch]=path.basename(output).replace('YourSQL-','').split('-');
+      fs.rmSync(destinationDirectory,{recursive:true,force:true});
       fs.mkdirSync(destinationDirectory,{recursive:true});
       for (const file of fs.readdirSync(output)) {
         const destination=path.join(destinationDirectory,file);
         fs.rmSync(destination,{recursive:true,force:true});
         fs.cpSync(path.join(output,file),destination,{recursive:true,verbatimSymlinks:true});
       }
-      const destination=path.join(destinationDirectory,'theme');
-      fs.rmSync(destination,{recursive:true,force:true});
-      if(platform==='win32') {
-        fs.mkdirSync(destination,{recursive:true});
-        for (const file of ['macos-light.json','macos-dark.json']) fs.copyFileSync(path.join(root,'theme',file),path.join(destination,file));
-      }
-      fs.writeFileSync(path.join(destinationDirectory,'update.json'),JSON.stringify({product:name,version,platform,arch},null,2));
       console.log('앱 생성:',destinationDirectory);
     }
   } finally { fs.rmSync(staging,{recursive:true,force:true}); }

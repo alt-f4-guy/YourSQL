@@ -24,10 +24,8 @@ else {
     const packagedThemes=app.isPackaged?themeDirectories(process.execPath,directory):null;
     const themeDirectory=process.env.SQL_PRACTICE_DATA_DIR ? path.join(directory,'theme') :
       packagedThemes?.active || path.join(__dirname,'theme');
-    if(app.isPackaged&&process.platform==='darwin') {
-      const legacy=packagedThemes.legacy,legacyDefaults=['macos-light.json','macos-dark.json'].some(name=>fs.existsSync(path.join(legacy,name)));
-      seedThemes(themeDirectory,[...(legacyDefaults?[legacy]:[]),process.resourcesPath]);
-    } else fs.mkdirSync(themeDirectory,{recursive:true});
+    if(app.isPackaged) seedThemes(themeDirectory,[packagedThemes.legacy,process.resourcesPath]);
+    else fs.mkdirSync(themeDirectory,{recursive:true});
     engine=new Engine(path.join(directory,'engine'));
     service=new PracticeService(path.join(__dirname,'content'),directory,engine);
     const learning=new (require('./lib/learning.cjs').Learning)(directory);
