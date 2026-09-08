@@ -24,12 +24,19 @@ if(target==='all'||target==='windows'){
 }
 
 if(mode==='release'&&(target==='all'||target==='windows')){
-  const setup=path.join(root,'dist/YourSQL-Setup-x64.exe');
-  assert.equal(fs.existsSync(setup),true,'Windows Setup EXE가 필요합니다.');
-  assert.equal(fs.existsSync(path.join(root,'dist/YourSQL-Windows-x64.zip')),false,'Windows ZIP을 배포하면 안 됩니다.');
   const script=fs.readFileSync(path.join(root,'installer/YourSQL.nsi'),'utf8');
   assert.match(script,/InstallDir "\$LOCALAPPDATA\\Programs\\YourSQL"/);
   assert.match(script,/RequestExecutionLevel user/);
+  assert.doesNotMatch(script,/MUI_PAGE_DIRECTORY/);
+  assert.match(script,/Function \.onInit\s+StrCpy \$INSTDIR "\$LOCALAPPDATA\\Programs\\YourSQL"\s+FunctionEnd/s);
+  assert.match(script,/FileOpen \$0 "\$INSTDIR\\\.yoursql-install" w/);
+  assert.match(script,/Function un\.onInit/);
+  assert.match(script,/StrCmp \$INSTDIR "\$LOCALAPPDATA\\Programs\\YourSQL" 0/);
+  assert.match(script,/IfFileExists "\$INSTDIR\\\.yoursql-install"/);
+  assert.match(script,/MessageBox MB_ICONSTOP/);
+  const setup=path.join(root,'dist/YourSQL-Setup-x64.exe');
+  assert.equal(fs.existsSync(setup),true,'Windows Setup EXE가 필요합니다.');
+  assert.equal(fs.existsSync(path.join(root,'dist/YourSQL-Windows-x64.zip')),false,'Windows ZIP을 배포하면 안 됩니다.');
 }
 
 console.log(`${mode} ${target} 배포 자산 검사 통과`);
