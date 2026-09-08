@@ -4,14 +4,16 @@ const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const path=require('node:path');
 const root=path.resolve(__dirname,'..');
+const updateAsset=process.platform==='win32'?'YourSQL-Setup-x64.exe':'YourSQL-Mac-arm64.dmg';
+const missingAsset=process.platform==='win32'?'Windows 설치 파일':'Mac 디스크 이미지';
 const data=fs.mkdtempSync(path.join(require('node:os').tmpdir(),'yoursql-updates-ui-'));
 fs.cpSync(path.join(root,'theme'),path.join(data,'theme'),{recursive:true});
 async function main() {
-  const app=await electron.launch({args:[root],env:{...process.env,SQL_PRACTICE_DATA_DIR:data}});
+  const app=await electron.launch({args:[root],env:{...process.env,SQL_PRACTICE_DATA_DIR:data,YOURSQL_TEST_UPDATE_ASSET:updateAsset}});
   try {
     await app.evaluate(()=>{global.fetch=async()=>({ok:true,json:async()=>({
       tag_name:'v0.0.6',draft:false,prerelease:false,
-      assets:[{name:'YourSQL-Mac-arm64.dmg'}]
+      assets:[{name:process.env.YOURSQL_TEST_UPDATE_ASSET}]
     })});});
     const page=await app.firstWindow(),errors=[];
     page.on('pageerror',error=>errors.push(error.message));
@@ -26,7 +28,7 @@ async function main() {
       tag_name:'v0.0.6',draft:false,prerelease:false,assets:[]
     })});});
     await page.locator('#check-updates').click();
-    await page.waitForFunction(()=>document.getElementById('update-status').textContent.includes('디스크 이미지'));
+    await page.waitForFunction(message=>document.getElementById('update-status').textContent.includes(message),missingAsset);
     assert.equal(await page.locator('#open-update-page').isDisabled(),true);
     await app.evaluate(()=>{global.fetch=async()=>{throw new Error('offline');};});
     await page.locator('#check-updates').click();
