@@ -1,0 +1,45 @@
+$ErrorActionPreference = 'Stop'
+$root = Split-Path -Parent $PSScriptRoot
+$installer = Join-Path $root 'dist\YourSQL-Setup-x64.exe'
+$install = Join-Path $env:LOCALAPPDATA 'Programs\YourSQL'
+$appData = Join-Path $env:RUNNER_TEMP 'YourSQL-appdata'
+$data = Join-Path $appData 'YourSQL'
+$theme = Join-Path $data 'theme'
+$appKey = 'HKCU:\Software\YourSQL'
+$uninstallKey = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\YourSQL'
+$shortcut = Join-Path ([Environment]::GetFolderPath('Programs')) 'YourSQL\YourSQL.lnk'
+$version = (Get-Content (Join-Path $root 'package.json') -Raw | ConvertFrom-Json).version
+
+New-Item -ItemType Directory -Force -Path $theme | Out-Null
+Set-Content -LiteralPath (Join-Path $data 'installer-preserved.txt') -Value 'preserve'
+Set-Content -LiteralPath (Join-Path $theme 'custom.json') -Value '{"personal":true}'
+$env:APPDATA = $appData
+
+function Install-YourSQL {
+  $process = Start-Process -FilePath $installer -ArgumentList '/S' -Wait -PassThru
+  if ($process.ExitCode -ne 0) { throw "설치 실패: $($process.ExitCode)" }
+  if (-not (Test-Path (Join-Path $install 'YourSQL.exe'))) { throw 'YourSQL.exe가 설치되지 않았습니다.' }
+  if (-not (Test-Path (Join-Path $install 'Uninstall.exe'))) { throw '제거 프로그램이 설치되지 않았습니다.' }
+  if ((Get-ItemPropertyValue $appKey InstallLocation) -ne $install) { throw '현재 사용자 설치 경로가 등록되지 않았습니다.' }
+  if ((Get-ItemPropertyValue $uninstallKey DisplayVersion) -ne $version) { throw '제거 프로그램 버전이 일치하지 않습니다.' }
+  if (-not (Test-Path $shortcut)) { throw '시작 메뉴 바로가기가 없습니다.' }
+}
+
+Install-YourSQL
+Install-YourSQL
+if (-not (Test-Path (Join-Path $data 'installer-preserved.txt'))) { throw '재설치 중 사용자 데이터가 삭제되었습니다.' }
+if (-not (Test-Path (Join-Path $theme 'custom.json'))) { throw '재설치 중 사용자 테마가 삭제되었습니다.' }
+$env:YOURSQL_TEST_EXECUTABLE = Join-Path $install 'YourSQL.exe'
+& npm run test:packaged
+if ($LASTEXITCODE -ne 0) { throw "설치 앱 검사 실패: $LASTEXITCODE" }
+
+$uninstaller = Join-Path $install 'Uninstall.exe'
+$process = Start-Process -FilePath $uninstaller -ArgumentList '/S' -Wait -PassThru
+if ($process.ExitCode -ne 0) { throw "제거 실패: $($process.ExitCode)" }
+if (Test-Path $install) { throw '설치 폴더가 제거되지 않았습니다.' }
+if (Test-Path $appKey) { throw '설치 위치 레지스트리가 제거되지 않았습니다.' }
+if (Test-Path $uninstallKey) { throw '제거 프로그램 레지스트리가 제거되지 않았습니다.' }
+if (Test-Path $shortcut) { throw '시작 메뉴 바로가기가 제거되지 않았습니다.' }
+if (-not (Test-Path (Join-Path $data 'installer-preserved.txt'))) { throw '사용자 데이터가 삭제되었습니다.' }
+if (-not (Test-Path (Join-Path $theme 'custom.json'))) { throw '사용자 테마가 삭제되었습니다.' }
+Write-Host 'Windows 설치·재설치·실행·제거·등록 정보·사용자 데이터·테마 보존 검사 통과'
