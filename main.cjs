@@ -116,7 +116,7 @@ else {
       event.preventDefault();
       if (!closing && window && !window.isDestroyed()) {window.close();return;}
       stopped=true;
-      engine.stop().finally(()=>app.quit());
+      engine.stop().finally(()=>app.exit(0));
     }
   });
 }

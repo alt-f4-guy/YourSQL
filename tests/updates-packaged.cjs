@@ -37,7 +37,7 @@ async function main() {
         const copy=fs.copyFileSync;
         fs.copyFileSync=(source,target,...args)=>{
           copy(source,target,...args);
-          if(/helper\.(sh|ps1)$/.test(target))fs.writeFileSync(target,process.platform==='win32'?"Write-Error 'helper-startup-test'; exit 42":"#!/bin/sh\nprintf 'helper-startup-test' >&2\nexit 42\n");
+          if(/helper\.(sh|ps1)$/.test(target))fs.writeFileSync(target,process.platform==='win32'?"[Console]::Error.WriteLine('helper-startup-test'); exit 42":"#!/bin/sh\nprintf 'helper-startup-test' >&2\nexit 42\n");
         };
       }
       global.fetch=async url=>url.includes('api.github.com')?new Response(JSON.stringify({tag_name:`v${fixture.version}`,assets:[{name:fixture.name,size:fixture.size,digest:fixture.digest,browser_download_url:`https://github.com/me/YourSQL/releases/download/v${fixture.version}/${fixture.name}`}]})):new Response(fs.readFileSync(fixture.zip));
@@ -61,7 +61,7 @@ async function main() {
     // 보조 프로그램은 기존 앱 종료를 기다리므로, 앱이 먼저 종료되지 않으면 교착이다.
     await Promise.race([appClosed,new Promise((_,reject)=>setTimeout(()=>reject(new Error('기존 앱 종료 확인 시간 초과')),15000))]);
     if(platform==='win32') {
-      const code = '$process = Get-Process -Id $env:YOURSQL_TEST_PID -ErrorAction SilentlyContinue; if ($process -and -not $process.WaitForExit(15000)) { exit 1 }';
+      const code = '$deadline = [DateTime]::UtcNow.AddSeconds(15); while (Get-Process -Id $env:YOURSQL_TEST_PID -ErrorAction SilentlyContinue) { if ([DateTime]::UtcNow -gt $deadline) { exit 1 }; Start-Sleep -Milliseconds 200 }';
       try {execFileSync('powershell.exe',['-NoProfile','-NonInteractive','-EncodedCommand',Buffer.from(code,'utf16le').toString('base64')],{env:{...process.env,YOURSQL_TEST_PID:String(originalPid)}});}
       catch {throw new Error('기존 앱 프로세스 종료 확인 시간 초과');}
     }

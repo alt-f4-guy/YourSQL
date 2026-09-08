@@ -22,8 +22,19 @@ function Move-App($source, $destination) {
 }
 try {
     [IO.File]::WriteAllText((Join-Path $work 'armed'), 'armed')
-    $oldProcess = Get-Process -Id $transaction.parent -ErrorAction SilentlyContinue
-    if ($oldProcess -and -not $oldProcess.WaitForExit(120000)) { throw '앱 종료 대기 시간이 초과되었습니다.' }
+    # 부모 프로세스 종료를 매초 확인하며 안전하게 대기한다.
+    for ($attempt = 0; $attempt -lt 120; $attempt++) {
+        $running = Get-Process -Id $transaction.parent -ErrorAction SilentlyContinue
+        if (-not $running) { break }
+        Start-Sleep -Seconds 1
+    }
+    if ($running) { throw '앱 종료 대기 시간이 초과되었습니다.' }
+    # 기존 앱의 잔여 프로세스를 정리하여 파일 잠금을 해제한다.
+    $targetExe = Join-Path $transaction.target 'YourSQL.exe'
+    Get-CimInstance Win32_Process -ErrorAction SilentlyContinue | Where-Object { $_.ExecutablePath -eq $targetExe } | ForEach-Object {
+        Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue
+    }
+    Start-Sleep -Milliseconds 500
     # 새 배포본의 기본 테마 대신 사용자가 편집하거나 삭제한 테마 상태를 보존한다.
     $oldTheme = Join-Path $transaction.target 'theme'
     $newTheme = Join-Path $transaction.candidate 'theme'
