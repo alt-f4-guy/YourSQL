@@ -53,4 +53,11 @@ test('검증된 최신 릴리스 페이지만 연다',async()=>{
 test('확인 전이거나 자산이 없으면 외부 페이지를 열지 않는다',async()=>{
   const updater=new Updater({getVersion:()=> '0.0.5'},()=>{},()=>assert.fail('열면 안 됨'));
   await assert.rejects(updater.open(),/먼저/);
+  updater.platform='darwin';updater.arch='arm64';
+  updater.fetcher=async()=>({ok:true,json:async()=>release('v0.0.6',['YourSQL-Mac-arm64.dmg'])});
+  assert.equal((await updater.check()).downloadable,true);
+  // 자산이 사라진 재확인은 앞서 검증한 다운로드 권한도 취소한다.
+  updater.fetcher=async()=>({ok:true,json:async()=>release('v0.0.6')});
+  assert.equal((await updater.check()).downloadable,false);
+  await assert.rejects(updater.open(),/먼저/);
 });

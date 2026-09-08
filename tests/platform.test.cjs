@@ -4,7 +4,7 @@ const assert=require('node:assert/strict');
 const path=require('node:path');
 const {themeDirectories,mysqlCandidates,validSocket}=require('../lib/platform.cjs');
 test('Mac은 사용자 데이터 테마를 사용하고 이전 앱 옆 테마를 이관한다',()=>{
-  assert.deepEqual(themeDirectories('/private/var/folders/x/AppTranslocation/id/d/YourSQL.app/Contents/MacOS/YourSQL','/Users/me/Library/Application Support/YourSQL','darwin'),{
+  assert.deepEqual(themeDirectories('/private/var/folders/x/AppTranslocation/id/d/YourSQL.app/Contents/MacOS/YourSQL','/Users/me/Library/Application Support/YourSQL','darwin',path.posix),{
     active:'/Users/me/Library/Application Support/YourSQL/theme',legacy:'/private/var/folders/x/AppTranslocation/id/d/theme'
   });
   assert.deepEqual(themeDirectories('C:\\apps\\YourSQL\\YourSQL.exe','C:\\Users\\me\\AppData\\Roaming\\YourSQL','win32',path.win32),{
@@ -137,4 +137,53 @@ test('초기화가 SIGTERM을 무시하면 동시 stop은 강제 종료 확인�
     await starting?.catch(()=>{});
     fs.rmSync(directory,{recursive:true,force:true});
   }
+});
+test('일반 서버가 SIGTERM을 무시하면 동시 stop은 강제 종료 확인까지 함께 기다린다',async()=>{
+  const fs=require('node:fs');
+  const vm=require('node:vm');
+  const {EventEmitter}=require('node:events');
+  const directory=fs.mkdtempSync(path.join(require('node:os').tmpdir(),'yoursql-server-stop-'));
+  const socketDirectory=path.join(directory,'socket');
+  fs.mkdirSync(socketDirectory);
+  const child=new EventEmitter();child.exitCode=null;child.signalCode=null;
+  const actions=[],timers=new Map();
+  let allowExit,stopped=0;
+  const exitAllowed=new Promise(resolve=>{allowExit=resolve;});
+  child.kill=signal=>{
+    actions.push(signal);
+    if(signal==='SIGKILL') void exitAllowed.then(()=>{child.signalCode=signal;child.emit('exit',null,signal);});
+    return true;
+  };
+  const module={exports:{}};
+  vm.runInNewContext(fs.readFileSync(path.join(__dirname,'../lib/engine.cjs'),'utf8'),{
+    module,process,Buffer,require:require('node:module').createRequire(path.join(__dirname,'../lib/engine.cjs')),
+    setTimeout:(callback,ms)=>{const timer={callback,ms};timers.set(timer,timer);return timer;},
+    clearTimeout:timer=>timers.delete(timer)
+  });
+  const engine=new module.exports.Engine(directory);
+  engine.child=child;engine.socketDirectory=socketDirectory;
+  engine.admin={query:async({sql})=>{actions.push(sql);throw new Error('관리자 종료 실패');},destroy:()=>actions.push('destroy')};
+  try {
+    const stopping=engine.stop(),alsoStopping=engine.stop();
+    assert.equal(stopping,alsoStopping,'동시 stop은 같은 종료 작업을 공유해야 한다');
+    stopping.then(()=>{stopped++;});alsoStopping.then(()=>{stopped++;});
+    await new Promise(resolve=>setImmediate(resolve));
+    assert.deepEqual(actions,['SHUTDOWN','destroy','SIGTERM']);
+    // 유예 뒤에도 실제 exit 전에는 자식 참조와 소켓 폴더를 보존한다.
+    for(const timer of [...timers.values()]) {
+      assert.equal(timer.ms,5000);
+      timer.callback();
+    }
+    await new Promise(resolve=>setImmediate(resolve));
+    assert.deepEqual(actions,['SHUTDOWN','destroy','SIGTERM','SIGKILL']);
+    assert.equal(stopped,0);
+    assert.equal(engine.child,child);
+    assert.equal(fs.existsSync(socketDirectory),true);
+    allowExit();
+    await Promise.all([stopping,alsoStopping]);
+    assert.equal(stopped,2);
+    assert.equal(engine.child,null);
+    assert.equal(fs.existsSync(socketDirectory),false);
+    assert.equal(timers.size,0);
+  } finally {allowExit();fs.rmSync(directory,{recursive:true,force:true});}
 });

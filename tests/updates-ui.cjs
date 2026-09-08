@@ -14,7 +14,7 @@ async function main() {
   const app=await electron.launch({args:[root],env:{...process.env,SQL_PRACTICE_DATA_DIR:data,YOURSQL_TEST_UPDATE_ASSET:updateAsset}});
   try {
     await app.evaluate(()=>{global.fetch=async()=>({ok:true,json:async()=>({
-      tag_name:'v0.0.6',draft:false,prerelease:false,
+      tag_name:'v0.0.7',draft:false,prerelease:false,
       assets:[{name:process.env.YOURSQL_TEST_UPDATE_ASSET}]
     })});});
     const page=await app.firstWindow(),errors=[];
@@ -27,7 +27,7 @@ async function main() {
     assert.equal(await page.locator('#update-repository').count(),0);
     assert.equal(await page.locator('#open-update-page').textContent(),'다운로드 페이지 열기');
     await app.evaluate(()=>{global.fetch=async()=>({ok:true,json:async()=>({
-      tag_name:'v0.0.6',draft:false,prerelease:false,assets:[]
+      tag_name:'v0.0.7',draft:false,prerelease:false,assets:[]
     })});});
     await page.locator('#check-updates').click();
     await page.waitForFunction(message=>document.getElementById('update-status').textContent.includes(message),missingAsset);
