@@ -4,8 +4,10 @@ const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const path=require('node:path');
 const root=path.resolve(__dirname,'..');
-const updateAsset=process.platform==='win32'?'YourSQL-Setup-x64.exe':'YourSQL-Mac-arm64.dmg';
-const missingAsset=process.platform==='win32'?'Windows 설치 파일':'Mac 디스크 이미지';
+const updateFixture=process.platform==='darwin'&&process.arch==='arm64'?{asset:'YourSQL-Mac-arm64.dmg',missing:'Mac 디스크 이미지'}:
+  process.platform==='win32'&&process.arch==='x64'?{asset:'YourSQL-Setup-x64.exe',missing:'Windows 설치 파일'}:null;
+if(!updateFixture) throw new Error(`지원하지 않는 업데이트 UI 검사 조합입니다: ${process.platform}/${process.arch}`);
+const {asset:updateAsset,missing:missingAsset}=updateFixture;
 const data=fs.mkdtempSync(path.join(require('node:os').tmpdir(),'yoursql-updates-ui-'));
 fs.cpSync(path.join(root,'theme'),path.join(data,'theme'),{recursive:true});
 async function main() {
