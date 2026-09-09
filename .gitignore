@@ -8,9 +8,17 @@ artifacts/
 
 # 로컬 작업 지침과 내부 기록
 /AGENTS.md
+/.impeccable/
+/.superpowers/
 /docs/superpowers/
 /docs/security-review.md
 /docs/0.0.1.md
+/yoursql-design-improvement-report.md
+/yoursql-redesign-spec.md
+/theme/mercedes-amg-w17.json
+
+# 아이콘 변환 중간 산출물
+/assets/icon.iconset/
 
 # 개인 환경 설정과 서명키
 .env
