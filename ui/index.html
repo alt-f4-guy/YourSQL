@@ -12,7 +12,7 @@
 </head>
 <body data-mode="today">
   <header class="topbar">
-    <div class="brand" aria-label="YourSQL"><span>YourSQL</span><strong><small>0.0.7</small></strong></div>
+    <div class="brand" aria-label="YourSQL"><span>YourSQL</span><strong><small>0.0.8</small></strong></div>
     <div class="engine"><span id="engine-dot" class="status-dot"></span><span id="engine-text">엔진 확인 중</span><button id="retry-engine" class="link-button" type="button">재연결</button></div>
     <div class="top-actions"><button id="open-settings" class="button ghost" type="button">설정</button><span id="save-status" aria-live="polite">초안 불러오는 중</span><button id="import-pack" class="button ghost" type="button">문제팩 가져오기</button><button id="open-study" class="button ghost" type="button">연속 학습일수</button><button id="open-history" class="button ghost" type="button">오답 기록</button></div>
   </header>
@@ -63,7 +63,7 @@
       <article class="lesson-card"><p class="eyebrow" id="lesson-unit"></p><h1 id="lesson-title"></h1><p id="lesson-prompt"></p><details id="concept-note"><summary>개념 다시 보기</summary><p id="lesson-concept"></p></details><section id="lesson-tables" aria-label="문제 테이블"><h2>테이블과 열 정보</h2><div id="lesson-schema" class="schema-list"></div><details><summary>예제 데이터 보기</summary><div id="lesson-samples"></div></details></section><form id="blank-form"><pre id="blank-code"></pre><div class="lesson-actions"><button id="blank-reveal" class="link-button" type="button">모르겠어요 · 해설 보기</button><button id="blank-check" class="learn-primary" type="submit">정답 확인</button></div></form><div id="blank-feedback" role="status" hidden></div><button id="next-blank" class="learn-primary" hidden>다음 문제</button></article>
     </section>
   </main>
-  <div id="query-learning-bar" hidden><button id="query-back" class="link-button">← 문제 목록</button><span id="query-mission"></span><button id="next-daily-query" class="link-button" hidden>다음 쿼리 풀기 → <kbd>⌘⌥Enter</kbd></button><button id="query-return" class="link-button">오늘의 학습으로 돌아가기 →</button></div>
+  <div id="query-learning-bar" hidden><button id="query-back" class="link-button">← 문제 목록</button><span id="query-mission"></span><button id="next-daily-query" class="link-button" hidden><span id="next-query-label">다음 쿼리 풀기 →</span> <kbd>⌘⌥Enter</kbd></button><button id="query-return" class="link-button">오늘의 학습으로 돌아가기 →</button></div>
   <main id="workspace" class="workspace" hidden>
     <aside id="sidebar" class="sidebar" aria-label="문제 목록" hidden>
       <div class="sidebar-head">

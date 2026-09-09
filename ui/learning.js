@@ -106,8 +106,17 @@
   // 기존 문제·단계·풀이 상태를 재사용하고 목록 화면에서만 탐색한다.
   function renderQueryMission(){
     const current=workspace?.current(),t=data.today;
+    const reviewing=current&&!$('review-banner').hidden;
+    if(reviewing){
+      const pending=reviews().some(item=>item.id===current),next=reviews().find(item=>item.kind==='query'&&item.id!==current);
+      $('query-mission').textContent=`복습 · ${title(current)}`;
+      $('next-query-label').textContent=next?'다음 복습 쿼리 →':'복습 목록으로 →';
+      $('next-daily-query').hidden=pending;
+      return;
+    }
     const index=t.queries.indexOf(current);
     $('query-mission').textContent=index>=0?`오늘의 쿼리 ${index+1} / ${t.queries.length} · ${title(current)} · ${t.queriesDone.includes(current)?'완료':'정답 제출 시 하루 목표에 반영'}`:current?`${problem(current)?.level}단계 · ${title(current)}`:'문제를 선택하세요';
+    $('next-query-label').textContent='다음 쿼리 풀기 →';
     $('next-daily-query').hidden=index<0||!t.queriesDone.includes(current)||t.queryDone;
   }
   function renderCatalog(){
@@ -210,16 +219,22 @@
   $('query-back').addEventListener('click',safely(async()=>{await refresh();await show('catalog');}));
   // 버튼과 단축키는 같은 저장·이동 경로를 사용하고 중복 입력을 막는다.
   let movingQuery=false;
-  async function nextDailyQuery(){
+  async function nextQuery(){
     if(movingQuery||working||workspace?.busy()||mode!=='query'||$('next-daily-query').hidden||document.querySelector('dialog[open]'))return;
     movingQuery=true;
-    try{await openQuery();}finally{movingQuery=false;}
+    try{
+      if(!$('review-banner').hidden){
+        const current=workspace.current();await refresh();
+        const next=reviews().find(item=>item.kind==='query'&&item.id!==current);
+        if(next)await openQuery(next.id,true);else await show('review');
+      }else await openQuery();
+    }finally{movingQuery=false;}
   }
-  $('next-daily-query').addEventListener('click',safely(nextDailyQuery));
+  $('next-daily-query').addEventListener('click',safely(nextQuery));
   document.addEventListener('keydown',safely(async e=>{
     if(e.isComposing||!(e.metaKey||e.ctrlKey)||!e.altKey||e.shiftKey||e.key!=='Enter'||mode!=='query')return;
     e.preventDefault();
-    if(!e.repeat)await nextDailyQuery();
+    if(!e.repeat)await nextQuery();
   }));
   $('open-daily-query').addEventListener('click',safely(()=>openQuery()));
   $('query-return').addEventListener('click',safely(async()=>{await refresh();await show('today');}));

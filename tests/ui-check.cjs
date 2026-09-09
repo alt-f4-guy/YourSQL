@@ -157,6 +157,27 @@ async function main(){
     await page.locator('.learning-nav [data-mode="review"]').click();
     assert.ok(await page.locator('#upcoming-list .review-item').count()>=4);
     await page.screenshot({path:path.join(root,'artifacts','0.0.2-review.png')});
+    // Mac과 Windows의 같은 단축키로 완료한 복습 쿼리를 연속해서 이동한다.
+    const reviewQueries=await page.evaluate(async()=>{
+      const [{problems},{today}]=await Promise.all([window.practice.bootstrap(),window.practice.learning()]);
+      const selected=problems.filter(problem=>!today.queries.includes(problem.id)).slice(-2);
+      for(const problem of selected)await window.practice.submit({id:problem.id,sql:'SELECT FROM',review:false});
+      return selected.map(problem=>({id:problem.id,title:problem.title}));
+    });
+    await page.locator('.learning-nav [data-mode="review"]').click();
+    await page.locator('#review-list .review-item').filter({hasText:reviewQueries[0].title}).getByRole('button',{name:'다시 풀기'}).click();
+    for(const [index,query] of reviewQueries.entries()){
+      assert.equal(await page.locator('#editor-problem-label').textContent(),query.title);
+      const solution=await page.evaluate(id=>window.practice.solution(id),query.id);
+      await page.locator('#editor').fill(solution.sql);await page.locator('#submit').click();
+      await page.waitForFunction(()=>document.getElementById('grade-panel').textContent.includes('정답입니다'),null,{timeout:60000});
+      await page.locator('#next-daily-query').waitFor({state:'visible'});
+      await page.locator('#editor').focus();
+      if(index===0)await page.locator('#editor').evaluate(el=>el.dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',ctrlKey:true,altKey:true,bubbles:true})));
+      else await page.keyboard.press(process.platform==='darwin'?'Meta+Alt+Enter':'Control+Alt+Enter');
+      if(index+1<reviewQueries.length)await page.waitForFunction(title=>document.getElementById('editor-problem-label').textContent===title,reviewQueries[index+1].title);
+      else await page.locator('#review-screen').waitFor({state:'visible'});
+    }
     await app.close();app=await launch();page=await app.firstWindow();
     await page.waitForFunction(()=>document.getElementById('daily-title').textContent.includes('모두 마쳤어요'),null,{timeout:60000});
     assert.equal(await page.locator('#theme-select').inputValue(),'macos-light');
