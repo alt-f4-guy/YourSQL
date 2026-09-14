@@ -19,7 +19,7 @@ async function main(){
     // 종료 직후 재시작해 Windows 감시 프로세스 뒤에 서버가 남지 않는지 확인한다.
     await original.stop();await recovered.stop();
     await original.start();
-    assert.deepEqual((await original.query('SELECT 1')).rows,[[1]]);
+    assert.deepEqual((await original.query("SELECT '재시작 성공' AS value")).rows,[['재시작 성공']]);
     console.log('정상 종료 직후 서버 재시작 확인');
   }finally{
     clearTimeout(timer);
