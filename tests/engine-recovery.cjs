@@ -16,6 +16,11 @@ async function main(){
     assert.deepEqual((await recovered.query("SELECT '연결 성공' AS value")).rows,[['연결 성공']]);
     assert.equal(recovered.socketPath,original.socketPath);
     console.log('남아 있는 전용 서버 재사용 및 쿼리 실행 확인');
+    // 종료 직후 재시작해 Windows 감시 프로세스 뒤에 서버가 남지 않는지 확인한다.
+    await original.stop();await recovered.stop();
+    await original.start();
+    assert.deepEqual((await original.query('SELECT 1')).rows,[[1]]);
+    console.log('정상 종료 직후 서버 재시작 확인');
   }finally{
     clearTimeout(timer);
     await original.stop();

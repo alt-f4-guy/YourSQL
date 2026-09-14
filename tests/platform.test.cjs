@@ -170,6 +170,22 @@ test('초기화가 SIGTERM을 무시하면 동시 stop은 강제 종료 확인�
     fs.rmSync(directory,{recursive:true,force:true});
   }
 });
+// Windows의 SIGTERM은 감시 프로세스를 즉시 죽이므로 정상 종료 요청 뒤에는 보내지 않는다.
+test('Windows 정상 종료는 감시 프로세스를 죽이지 않고 서버 종료를 기다린다',async()=>{
+  const fs=require('node:fs'),vm=require('node:vm'),{EventEmitter}=require('node:events');
+  const file=path.join(__dirname,'../lib/engine.cjs'),module={exports:{}},timers=new Set(),signals=[];
+  vm.runInNewContext(fs.readFileSync(file,'utf8'),{module,process:{platform:'win32'},Buffer,require:require('node:module').createRequire(file),
+    setTimeout:callback=>{timers.add(callback);return callback;},clearTimeout:callback=>timers.delete(callback)});
+  const child=new EventEmitter();child.exitCode=null;child.signalCode=null;child.kill=signal=>signals.push(signal);
+  const engine=new module.exports.Engine('/검사용');engine.child=child;
+  engine.admin={query:async()=>{},destroy(){}};
+  let stopped=false;
+  const stopping=engine.stop().then(()=>{stopped=true;});
+  await new Promise(resolve=>setImmediate(resolve));
+  assert.deepEqual(signals,[]);assert.equal(stopped,false);
+  child.exitCode=0;child.emit('exit',0);await stopping;
+  assert.equal(stopped,true);assert.equal(timers.size,0);
+});
 test('일반 서버가 SIGTERM을 무시하면 동시 stop은 강제 종료 확인까지 함께 기다린다',async()=>{
   const fs=require('node:fs');
   const vm=require('node:vm');
