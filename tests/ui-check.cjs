@@ -316,6 +316,13 @@ async function main(){
     await app.evaluate(()=>{global.mysqlEngine.prototype.start=global.originalStart;});
     assert.deepEqual(errors,[]);
     console.log(`버전 ${require('../package.json').version} 화면·설정창·6+2 학습·복습·MySQL 채점·재시작 검사 통과`);
+  }catch(error){
+    // Windows 재시작 실패 시 검사 전용 서버 상태를 남겨 시간 초과의 원인을 확인한다.
+    const page=await app.firstWindow().catch(()=>null);
+    if(page)console.error('검사 중 엔진 상태:',await page.locator('#engine-text').textContent().catch(()=>''));
+    const log=path.join(data,'engine','mysql.log');
+    if(fs.existsSync(log))console.error('검사 전용 MySQL 로그:',fs.readFileSync(log,'utf8').slice(-8000));
+    throw error;
   }finally{await app.close();}
 }
 main().catch(e=>{console.error(e);process.exitCode=1;});

@@ -23,6 +23,8 @@ jobs:
         run: npm run test:engine
       - name: 실제 MySQL 정답과 읽기 권한 검사
         run: npm run test:mysql
+      - name: 소스 앱 학습·재시작 검사
+        run: npm run test:ui
       - name: Windows Setup 생성
         run: npm run release
       - name: 설치·재설치·실행·제거 검사
