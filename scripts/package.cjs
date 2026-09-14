@@ -19,7 +19,7 @@ async function main() {
       ...(platform==='darwin'?{osxSign:{identity:'-',identityValidation:false,preAutoEntitlements:false,preEmbedProvisioningProfile:false,continueOnError:false,optionsForFile:()=>({hardenedRuntime:false,timestamp:'none'})}}:{}),
       extraResource:['macos-light.json','macos-dark.json'].map(file=>path.join(root,'theme',file)),
       icon:path.join(root,'assets',icon),
-      ignore:[/^\/\.(impeccable|vscode)(\/|$)/,/^\/yoursql-(design-improvement-report|redesign-spec)\.md$/,/^\/[^/]+\.app(\/|$)/,/^\/(dist|artifacts|tests|scripts|docs|examples|theme)(\/|$)/,/^\/assets\/icon\.iconset/,/^\/\..*runtime/,/^\/\.yoursql-update-/,/^\/content\/(build-content\.cjs|extra-[a-z]+\.cjs|hints\.cjs|mutants\.cjs|checks\.json)$/],
+      ignore:[/^\/AGENTS\.md$/,/^\/\.(impeccable|vscode)(\/|$)/,/^\/yoursql-(design-improvement-report|redesign-spec)\.md$/,/^\/[^/]+\.app(\/|$)/,/^\/(dist|artifacts|tests|scripts|docs|examples|theme)(\/|$)/,/^\/assets\/icon\.iconset/,/^\/\..*runtime/,/^\/\.yoursql-update-/,/^\/content\/(build-content\.cjs|extra-[a-z]+\.cjs|hints\.cjs|mutants\.cjs|checks\.json)$/],
       extendInfo:{NSHumanReadableCopyright:'로컬 SQL 코딩 테스트 연습장'}}));
     }
     for (const output of paths) {
