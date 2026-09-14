@@ -16,7 +16,8 @@ problems: `{id,level,title,topic,description,tables:[테이블명],columns:[결�
 - `exportLog(id)` → `{canceled:boolean,path?:string}` (네이티브 저장 대화상자)
 - `importPack()` → `{canceled:boolean,count?:number,error?:string}` (네이티브 열기 대화상자)
 - `solution(id)` → `{sql,explanation}`
-- `retryEngine()` → `{ready,message}`
+- `retryEngine()` → `{ready,message,missing}`. `bootstrap().engine`와 `onEngineChanged`에도 같은 미설치 여부를 전달한다.
+- `openMySQLPage()` → 고정된 공식 MySQL 8.4 설치 페이지를 외부 브라우저로 연다. 주소 입력은 받지 않는다.
 IPC 실패는 예외로 전달되므로 화면은 오류를 표시한다. 제출의 wrong·error는 자동으로 로그 파일에 기록한다. 연결 실패 등의 인프라 오류도 error로 기록하되 오답과 구별한다.
 
 ## 화면 파일
@@ -26,4 +27,8 @@ IPC 실패는 예외로 전달되므로 화면은 오류를 표시한다. 제출
 
 문제의 선택 필드 `hints`는 비어 있지 않은 문자열 정확히 3개(각 5,000자 이하)로, 핵심 개념·접근 순서·빈칸 SQL 골격 순서다. 필드가 없는 기존 문제팩도 지원한다.
 
-`saveDraft`와 `submit`에 선택 불리언 `review`를 전달하면 복습 초안 `reviewSql`을 저장하고 원래 `sql`은 보존한다. 문제별 진행 기록의 `studyDays`는 제출 시점의 현지 날짜 배열이다. `practice:study`는 현재·최장 연속일수, 전체 학습일, 오늘 제출 여부와 날짜 목록을 반환한다. 과거 기록을 추정하여 채우지 않는다.
+`saveDraft`와 `submit`에 선택 불리언 `review`를 전달하면 복습 초안 `reviewSql`을 저장하고 원래 `sql`은 보존한다. 선택 필드 `reviewDue`는 현재 복습 예정일(YYYY-MM-DD 또는 null)로, 같은 예정일의 초안만 복원한다. 문제별 진행 기록의 `studyDays`는 제출 시점의 현지 날짜 배열이다. `practice:study`는 현재·최장 연속일수, 전체 학습일, 오늘 제출 여부와 날짜 목록을 반환한다. 과거 기록을 추정하여 채우지 않는다.
+
+일일 6+2 미완료→완료 전환 시 복습 알림을 표시한다. 표시한 현지 날짜는 앱의 로컬 저장소 `review-reminder-date`에 보관하여 같은 날 추가 학습·재시작 시 중복 표시하지 않는다. 이미 완료된 상태로 앱을 시작하면 알림을 다시 띄우지 않는다.
+
+`blankAnswer({id,answer,review=false})`와 `submit({id,sql,review=false})`는 예정일이 된 문제의 복습 제출에만 회차를 반영한다. 기록의 `reviewCount`는 완료 회차, `reviewTotal`은 기본 3회와 오답 회차별 추가분의 합, `reviewFailed`는 현재 회차에서 이미 횟수를 추가했는지 나타낸다. `due`는 다음 복습일이며 복습 대상이 아니거나 종료하면 `null`이다. `learning().due`는 오늘까지 예정된 미완료 복습만 반환한다. 답안 실행 오류에는 `answerError:true`를 전달하고 서버 준비·기준 쿼리 오류는 오답 복습에서 제외한다.

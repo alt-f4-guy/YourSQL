@@ -12,7 +12,7 @@ contextBridge.exposeInMainWorld('practice',{
   bootstrap:invoke('practice:bootstrap'),saveDraft:invoke('practice:saveDraft'),
   run:invoke('practice:run'),submit:invoke('practice:submit'),history:invoke('practice:history'),
   exportLog:invoke('practice:exportLog'),importPack:invoke('practice:importPack'),
-  solution:invoke('practice:solution'),retryEngine:invoke('practice:retryEngine'),
+  solution:invoke('practice:solution'),retryEngine:invoke('practice:retryEngine'),openMySQLPage:invoke('practice:openMySQLPage'),
   onBeforeClose:callback=>{ipcRenderer.on('practice:beforeClose',()=>callback());},
   closeReady:()=>ipcRenderer.send('practice:closeReady')
 });

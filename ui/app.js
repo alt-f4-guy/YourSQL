@@ -1,7 +1,7 @@
 (() => {
   'use strict';
   const $ = (id) => document.getElementById(id);
-  const state = { problems: [], progress: {}, current: null, level: 'all', query: '', timer: null, saving: false, busy: false, engineReady: false, reviewOnly: false, reviewId: null, hintCounts: {} };
+  const state = { problems: [], progress: {}, current: null, level: 'all', query: '', timer: null, saving: false, busy: false, engineReady: false, reviewOnly: false, reviewId: null, reviewDue: null, hintCounts: {} };
   const api = window.practice;
   // Windows에서는 실제 동작과 같은 Ctrl 단축키를 표시한다.
   if (!navigator.platform.startsWith('Mac')) {
@@ -30,7 +30,19 @@
   function node(tag, className, text) { const n = document.createElement(tag); if (className) n.className = className; if (text !== undefined) n.textContent = String(text); return n; }
   function clear(target) { target.replaceChildren(); }
   function toast(message, error = false) { const n = node('div', `toast${error ? ' error' : ''}`, message); $('toast-region').append(n); setTimeout(() => n.remove(), 3200); }
-  function setEngine(engine) { state.engineReady = Boolean(engine && engine.ready); el.engineDot.className = `status-dot ${state.engineReady ? 'ready' : 'error'}`; el.engineText.textContent = engine?.message || (state.engineReady ? '엔진 연결됨' : '엔진 연결 필요'); updateActions(); }
+  // 시작 알림과 초기 조회가 겹쳐도 자동으로 여는 설치 페이지는 실행당 한 번이다.
+  let mysqlPageOpened=false;
+  async function openMySQLPage(){
+    $('open-mysql-page').disabled=true;
+    try{await api.openMySQLPage();}catch(error){toast(error.message||'설치 페이지를 열지 못했습니다. 다시 시도해 주세요.',true);}
+    finally{$('open-mysql-page').disabled=false;}
+  }
+  $('open-mysql-page').addEventListener('click',openMySQLPage);
+  function setEngine(engine) {
+    state.engineReady = Boolean(engine && engine.ready); el.engineDot.className = `status-dot ${state.engineReady ? 'ready' : 'error'}`; el.engineText.textContent = engine?.message || (state.engineReady ? '엔진 연결됨' : '엔진 연결 필요'); updateActions();
+    $('mysql-notice').hidden=engine?.missing!==true;
+    if(engine?.missing===true&&!mysqlPageOpened){mysqlPageOpened=true;void openMySQLPage();}
+  }
   function updateActions() { const enabled = Boolean(state.current && state.engineReady && !state.busy); el.editor.disabled = !state.current; el.run.disabled = !enabled; el.submit.disabled = !enabled; el.solution.disabled = !state.current || state.busy; el.retry.disabled = state.busy; $('import-pack').disabled = state.busy; $('hint').disabled = !state.current || !state.current.hints || state.busy; $('end-review').disabled = state.busy; $('reset-sql').disabled = !state.current || state.busy; }
   // 입력·문제 전환·초안/오답 복원·리셋이 같은 표시 갱신 경로를 사용한다.
   function syncHighlightScroll() { $('sql-highlight').style.width = `${el.editor.clientWidth}px`; $('sql-highlight').style.height = `${el.editor.clientHeight}px`; $('sql-highlight').scrollTop = el.editor.scrollTop; $('sql-highlight').scrollLeft = el.editor.scrollLeft; }
@@ -95,17 +107,18 @@
   async function saveDraft(id = state.current?.id, sql = el.editor.value) {
     clearTimeout(state.timer); if (!id || !api) return true;
     state.saving = true; el.save.textContent = '초안 저장 중…';
-    try { const review = state.reviewId === id; await api.saveDraft({ id, sql, review }); state.progress[id] = { ...progressFor(id), [review ? 'reviewSql' : 'sql']: sql }; el.save.textContent = '초안 자동 저장됨'; return true; }
+    try { const review = state.reviewId === id,reviewDue=review?state.reviewDue:null; await api.saveDraft({ id, sql, review, reviewDue }); state.progress[id] = { ...progressFor(id), ...(review?{reviewSql:sql,reviewDue}:{sql}) }; el.save.textContent = '초안 자동 저장됨'; return true; }
     catch (error) { el.save.textContent = '초안 저장 실패'; toast(error.message || '초안을 저장하지 못했습니다.', true); return false; }
     finally { state.saving = false; }
   }
 
   async function selectProblem(id, review=false, initializing=false) {
     if (state.busy && !initializing) return false;
-    if (state.current?.id === id && (state.reviewId === id) === review) return true;
+    const reviewDue=review?(await api.learning()).records[id]?.due??null:null;
+    if (state.current?.id === id && (state.reviewId === id) === review && state.reviewDue===reviewDue) return true;
     if (state.current && !await saveDraft(state.current.id, el.editor.value)) return false;
     const p = state.problems.find(item => item.id === id); if (!p) return false;
-    state.current = p; state.reviewId = review ? id : null; $('review-banner').hidden = !review; if (review) state.hintCounts[id] = 0; renderProblem(p); el.editor.value = review ? '' : state.progress[id]?.sql ?? p.starter ?? ''; syncLines(); renderList(); updateActions();
+    state.current = p; state.reviewId = review ? id : null; state.reviewDue=reviewDue; $('review-banner').hidden = !review; if (review) state.hintCounts[id] = 0; renderProblem(p); el.editor.value = review ? state.progress[id]?.reviewDue===reviewDue?state.progress[id]?.reviewSql??'':'' : state.progress[id]?.sql ?? p.starter ?? ''; syncLines(); renderList(); updateActions();
     clear(el.result); el.result.append(node('div', 'output-empty', '쿼리를 실행하면 결과가 여기에 표시됩니다.')); clear(el.grade); el.grade.append(node('div', 'output-empty', 'SQL을 제출하면 채점 결과가 여기에 표시됩니다.')); el.summary.textContent = ''; switchTab('result'); el.editor.focus();
     return true;
   }
@@ -128,7 +141,7 @@
   async function execute(kind) {
     if (!state.current || !state.engineReady || state.busy) return; const id = state.current.id, sql = el.editor.value; state.busy = true; updateActions(); const button = kind === 'run' ? el.run : el.submit, label = button.textContent;
     if (!await saveDraft(id, sql)) { state.busy = false; updateActions(); return; } button.textContent = kind === 'run' ? '실행 중…' : '채점 중…';
-    try { const data = await api[kind]({ id, sql, review: state.reviewId === id }); if (kind === 'submit' && data.progress) { state.progress[id] = data.progress; renderList(); } if (state.current?.id !== id) return; if (kind === 'run') renderResult(data); else { renderGrade(data); if (data.logId && data.status !== 'correct') el.grade.prepend(node('div', 'auto-log', '오답 기록에 자동 저장됨')); renderProblem(state.current); } }
+    try { const data = await api[kind]({ id, sql, review: state.reviewId === id, reviewDue: state.reviewDue }); if (kind === 'submit' && data.progress) { state.progress[id] = data.progress; renderList(); } if (state.current?.id !== id) return; if (kind === 'run') renderResult(data); else { renderGrade(data); if (data.logId && data.status !== 'correct') el.grade.prepend(node('div', 'auto-log', '오답 기록에 자동 저장됨')); if(data.status==='wrong'||data.answerError===true){const notice=await window.learningUI?.reviewNotice(id);if(notice)el.grade.prepend(node('p','auto-log',notice));} renderProblem(state.current); } }
     catch (error) { if (state.current?.id === id) { const data = { status: 'error', error: error.message || '연결 오류가 발생했습니다.' }; kind === 'run' ? renderResult(data) : renderGrade(data); } }
     finally { button.textContent = label; state.busy = false; updateActions(); window.learningUI?.refresh(); }
   }

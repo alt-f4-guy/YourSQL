@@ -28,7 +28,7 @@ else {
     else fs.mkdirSync(themeDirectory,{recursive:true});
     engine=new Engine(path.join(directory,'engine'));
     service=new PracticeService(path.join(__dirname,'content'),directory,engine);
-    const learning=new (require('./lib/learning.cjs').Learning)(directory);
+    const learning=new (require('./lib/learning.cjs').Learning)(directory,undefined,service.store.logs());
     const updater=new Updater(app,value=>{
       if (window && !window.isDestroyed()) window.webContents.send('practice:updateChanged',value);
     },url=>shell.openExternal(url));
@@ -43,6 +43,8 @@ else {
     handle('updateState',()=>({...updater.state}));
     handle('checkUpdates',()=>updater.check());
     handle('openUpdatePage',()=>updater.open());
+    // 화면에서 받은 주소를 열지 않고 공식 MySQL 서버 설치 페이지만 허용한다.
+    handle('openMySQLPage',()=>shell.openExternal('https://dev.mysql.com/downloads/mysql/8.4.html'));
     handle('themes',deleted=>{
       // 이전 버전에서 숨긴 테마도 한 번만 실제 파일 삭제로 이관한다.
       if (Array.isArray(deleted) && deleted.length <= 1000 && deleted.every(id=>typeof id==='string')) {
@@ -59,7 +61,7 @@ else {
     });
     handle('saveDraft',value=>service.saveDraft(value));
     handle('run',value=>service.run(value));
-    handle('submit',async value=>{const result=await service.submit(value);learning.queryResult(value.id,result);return result;});
+    handle('submit',async value=>{const result=await service.submit(value);learning.queryResult(value.id,result,value.review);return result;});
     handle('learning',()=>learning.snapshot());
     handle('startExtra',()=>learning.startExtra());
     handle('blankAnswer',value=>learning.answer(value));
@@ -70,7 +72,7 @@ else {
     handle('solution',id=>{const p=service.entry(id).problem;return {sql:p.solution,explanation:p.explanation};});
     handle('retryEngine',()=>service.exclusive(async()=>{
       try {await engine.start();} catch {}
-      return {ready:engine.ready,message:engine.message};
+      return {ready:engine.ready,message:engine.message,missing:engine.missing};
     }));
     handle('exportLog',async id=>{
       const log=service.store.logs().find(item=>item.id===id);
@@ -108,7 +110,7 @@ else {
       {label:'보기',submenu:[{label:'확대',role:'zoomIn'},{label:'축소',role:'zoomOut'},{label:'실제 크기',role:'resetZoom'},{label:'전체 화면',role:'togglefullscreen'}]}
     ]));
     await window.loadFile(page);
-    void starting.then(()=>{if(window&&!window.isDestroyed())window.webContents.send('practice:engineChanged',{ready:engine.ready,message:engine.message});});
+    void starting.then(()=>{if(window&&!window.isDestroyed())window.webContents.send('practice:engineChanged',{ready:engine.ready,message:engine.message,missing:engine.missing});});
   }).catch(error=>{dialog.showErrorBox('앱 시작 실패',error.message);closing=true;app.quit();});
   app.on('window-all-closed',()=>{clearTimeout(themeTimer);themeWatcher?.close();app.quit();});
   app.on('before-quit',event=>{

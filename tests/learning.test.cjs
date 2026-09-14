@@ -43,27 +43,93 @@ test('하루 6+2 고정 배정, 재시작, 오답·도움 사용·중복 제출�
     assert.equal(next.today.date,'2026-09-07');
     assert.equal(next.today.done.length,0);
     assert.ok(next.due.some(item=>item.id===id));
-    store.answer({id,answer:solution.answer});
+    store.answer({id,answer:solution.answer,review:true});
     assert.equal(store.snapshot().records[id].due,'2026-09-10');
-    store.answer({id,answer:solution.answer});
+    store.answer({id,answer:solution.answer,review:true});
     assert.equal(store.snapshot().records[id].due,'2026-09-10');
     // 복습 답변은 오늘 새로 배정된 다른 문제의 완료 수를 올리지 않는다.
     assert.equal(store.snapshot().today.done.includes(id),next.today.blanks.includes(id));
   } finally {fs.rmSync(dir,{recursive:true,force:true});}
 });
-// 도움을 나중에 보거나 정답 뒤 오답을 내도 다음 복습이 잘못 늘어나지 않아야 한다.
-test('정답 후 도움 사용은 복습을 다음날로 당기고 다시 정답을 내면 오답 상태를 해제한다',()=>{
+// 정답·도움 열람만으로는 오답 복습에 등록하지 않는다.
+test('해설 열람과 정답은 복습을 만들지 않고 실제 오답만 다음날 예약한다',()=>{
   const dir=fs.mkdtempSync(path.join(os.tmpdir(),'sql-0.0.1-test-'));
   try{
     let now=new Date(2026,8,6);
     const store=new Learning(dir,()=>now),id=store.snapshot().today.blanks[0];
     store.answer({id,answer:'SELECT'});
     now=new Date(2026,8,7);store.answer({id,answer:'SELECT'});
-    assert.equal(store.snapshot().records[id].due,'2026-09-10');
+    assert.equal(store.snapshot().records[id].due,null);
     store.reveal(id);
-    assert.equal(store.snapshot().records[id].due,'2026-09-08');
+    assert.equal(store.snapshot().records[id].due,null);
     store.answer({id,answer:'오답'});store.answer({id,answer:'SELECT'});
+    assert.equal(store.snapshot().records[id].due,'2026-09-08');
     assert.equal(store.snapshot().records[id].lastStatus,'correct');
+    assert.deepEqual(store.snapshot().due,[]);
+  }finally{fs.rmSync(dir,{recursive:true,force:true});}
+});
+
+// 빈칸·쿼리는 같은 간격을 쓰고, 같은 회차의 오답은 재시작해도 한 번만 추가한다.
+for(const kind of ['blank','query'])test(`${kind}: 복습 3회와 오답 추가 회차를 1·3·7일 간격으로 저장한다`,()=>{
+  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'sql-review-spacing-'));
+  try{
+    let now=new Date(2026,8,6),store=new Learning(dir,()=>now);
+    const id=kind==='blank'?'blank1':'level1_01';
+    const answer=(correct,review=false)=>kind==='blank'?store.answer({id,answer:correct?'SELECT':'오답',review}):store.queryResult(id,{status:correct?'correct':'wrong'},review);
+    const record=()=>store.snapshot().records[id];
+    answer(false);answer(true);answer(true,true);
+    assert.equal(record().due,'2026-09-07');assert.equal(record().reviewTotal,3);assert.equal(record().reviewCount,0);
+    now=new Date(2026,8,7);
+    answer(true);assert.equal(record().reviewCount,0,'일반 학습은 복습 회차를 완료하지 않는다');
+    answer(false,true);assert.equal(record().reviewTotal,4);
+    store=new Learning(dir,()=>now);answer(false,true);
+    assert.equal(record().reviewTotal,4);assert.equal(record().due,'2026-09-07');
+    answer(true,true);answer(true,true);
+    assert.equal(record().reviewCount,1);assert.equal(record().due,'2026-09-10');
+    store.reveal('blank1');assert.equal(record().due,'2026-09-10');
+    now=new Date(2026,8,10);answer(true,true);
+    assert.equal(record().reviewCount,2);assert.equal(record().due,'2026-09-17');
+    // 늦게 완료한 회차는 실제 완료일로부터 다음 간격을 계산한다.
+    now=new Date(2026,8,19);answer(false,true);answer(true,true);
+    assert.equal(record().reviewTotal,5);assert.equal(record().reviewCount,3);assert.equal(record().due,'2026-09-26');
+    now=new Date(2026,8,26);answer(true,true);
+    assert.equal(record().reviewCount,4);assert.equal(record().due,'2026-10-03');
+    now=new Date(2026,9,3);answer(true,true);answer(true,true);
+    assert.equal(record().reviewCount,5);assert.equal(record().due,null);assert.deepEqual(store.snapshot().due,[]);
+    assert.equal(new Learning(dir,()=>now).snapshot().records[id].due,null);
+  }finally{fs.rmSync(dir,{recursive:true,force:true});}
+});
+
+// 세 번 모두 맞히면 종료하고 연결 오류는 오답으로 오인하지 않는다.
+test('기본 복습은 3회에 종료하며 SQL 실행 오류 중 답안 오류만 복습에 등록한다',()=>{
+  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'sql-review-complete-'));
+  try{
+    let now=new Date(2026,11,31),store=new Learning(dir,()=>now);
+    store.queryResult('level1_01',{status:'error'});
+    assert.equal(store.snapshot().records.level1_01,undefined);
+    store.queryResult('level1_01',{status:'error',answerError:true});
+    assert.equal(store.snapshot().records.level1_01.due,'2027-01-01');
+    for(const [date,due] of [[1,'2027-01-04'],[4,'2027-01-11'],[11,null]]){
+      now=new Date(2027,0,date);store.queryResult('level1_01',{status:'correct'},true);
+      assert.equal(store.snapshot().records.level1_01.due,due);
+    }
+    assert.equal(store.snapshot().records.level1_01.reviewCount,3);
+  }finally{fs.rmSync(dir,{recursive:true,force:true});}
+});
+
+// 구버전의 완료 진도는 보존하고 확인 가능한 오답만 기존 복습일에 이관한다.
+test('기존 정답 복습은 해제하고 마지막 오답과 SQL 오답 기록을 한 번만 이관한다',()=>{
+  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'sql-review-migration-'));
+  try{
+    const records={blank1:{kind:'blank',passed:true,lastStatus:'correct',due:'2026-09-07',step:3},blank2:{kind:'blank',lastStatus:'wrong',due:'2026-09-07'},level1_01:{kind:'query',passed:true,lastStatus:'correct',due:'2026-09-10'}};
+    fs.writeFileSync(path.join(dir,'learning.json'),JSON.stringify({days:{},records}));
+    const logs=[{problemId:'level1_01',status:'wrong'}];
+    const store=new Learning(dir,()=>new Date(2026,8,7),logs),snapshot=store.snapshot();
+    assert.equal(snapshot.records.blank1.passed,true);assert.equal(snapshot.records.blank1.due,null);
+    assert.deepEqual(snapshot.due.map(r=>r.id),['blank2']);
+    assert.equal(snapshot.records.level1_01.reviewTotal,3);assert.equal(snapshot.records.level1_01.due,'2026-09-10');
+    store.answer({id:'blank2',answer:'FROM',review:true});
+    assert.equal(new Learning(dir,()=>new Date(2026,8,7),logs).snapshot().records.blank2.reviewCount,1);
   }finally{fs.rmSync(dir,{recursive:true,force:true});}
 });
 // 과정 확대가 기존 기록을 바꾸거나 하루에 서로 다른 단원을 섞는 회귀를 막는다.

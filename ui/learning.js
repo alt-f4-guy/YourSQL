@@ -3,6 +3,7 @@
   const $=id=>document.getElementById(id),api=window.practice;
   let data,workspace,mode='today',session=[],sessionIndex=0,sessionKind='daily',card,working=false;
   const drafts=new Map();
+  let lastDailyState,reminderPending;
   let calendarDate,selectedDate;
   let queryLevel='all',querySearch='',catalogScroll=0;
   const node=(tag,text,className)=>{const el=document.createElement(tag);if(text!==undefined)el.textContent=text;if(className)el.className=className;return el;};
@@ -11,12 +12,29 @@
   const allCards=()=>data.units.flatMap(unit=>unit.cards);
   const problem=id=>workspace?.problems.find(p=>p.id===id);
   const title=id=>allCards().find(c=>c.id===id)?.title||problem(id)?.title||id;
-  const reviews=()=>Object.entries(data.records).filter(([,r])=>r.kind&&(r.due<=data.today.date||r.lastStatus==='wrong')).map(([id,r])=>({id,...r}));
+  const reviews=()=>data.due;
   // 당일 복습 없음과 학습 기록 없음을 구분한다.
-  const reviewEmpty=()=>{const next=Object.values(data.records).filter(r=>r.kind&&r.due>data.today.date).map(r=>r.due).sort()[0];return next?`오늘 복습할 문제는 없어요. 다음 복습: ${next.replaceAll('-','.')}`:'예정된 복습이 없어요. 문제를 학습하면 복습 일정이 표시됩니다.';};
+  const reviewEmpty=()=>{const next=Object.values(data.records).filter(r=>r.kind&&r.due>data.today.date).map(r=>r.due).sort()[0];return next?`오늘 복습할 문제는 없어요. 다음 복습: ${next.replaceAll('-','.')}`:'예정된 복습이 없어요. 풀이 중 틀린 문제만 복습에 등록됩니다.';};
+  const reviewDetail=item=>`${item.reviewCount}/${item.reviewTotal}회 완료 · 복습일 ${item.due}${item.reviewFailed?' · 이번 오답으로 1회 추가됨':''}`;
+  const reviewNotice=id=>{
+    const r=data.records[id];if(!r?.due)return '';
+    const date=r.due.replaceAll('-','.');
+    return !r.reviewCount&&!r.reviewFailed?`복습에 등록되었습니다. 첫 복습: ${date} · 기본 ${r.reviewTotal}회`:`복습 일정: ${date} · 총 ${r.reviewTotal}회${r.reviewFailed?' · 이번 회차 오답으로 1회 추가됨':''}`;
+  };
+  // 완료로 바뀐 순간만 알리고 표시 날짜를 저장해 추가 학습·재시작 중복을 막는다.
+  function showReviewReminder(){
+    if(reminderPending!==data.today.date||!workspace||document.querySelector('dialog[open]'))return;
+    if(localStorage.getItem('review-reminder-date')===reminderPending){reminderPending=null;return;}
+    $('review-reminder-copy').textContent=reviews().length?`오늘 복습할 문제 ${reviews().length}개가 있어요. 지금 이어서 풀어볼까요?`:reviewEmpty();
+    $('reminder-start-review').hidden=!reviews().length;
+    $('review-reminder-dialog').showModal();
+    localStorage.setItem('review-reminder-date',reminderPending);reminderPending=null;
+  }
   async function refresh(){data=await api.learning();render();}
   function render(){
     const t=data.today,total=t.done.length+t.queriesDone.length,due=reviews();
+    if(lastDailyState?.date===t.date&&!lastDailyState.complete&&total===8)reminderPending=t.date;
+    lastDailyState={date:t.date,complete:total===8};
     $('today-date').textContent=`${t.date.replaceAll('-','.')} · 오늘의 루틴`;
     $('daily-cycle').textContent=`${(t.completedCycles?.length||0)+1}번째 사이클 · 빈칸 6 + 쿼리 2`;
     $('completed-days').textContent=`하루 목표 달성 ${data.completedDays}일`;
@@ -51,8 +69,9 @@
       });
     }
     renderReview($('review-list'),due,true);
-    renderReview($('upcoming-list'),Object.entries(data.records).filter(([,r])=>r.kind&&r.due>t.date&&r.lastStatus!=='wrong').map(([id,r])=>({id,...r})).sort((a,b)=>a.due.localeCompare(b.due)),false);
+    renderReview($('upcoming-list'),Object.entries(data.records).filter(([,r])=>r.kind&&r.due>t.date).map(([id,r])=>({id,...r})).sort((a,b)=>a.due.localeCompare(b.due)),false);
     $('start-review').disabled=!due.length||!workspace;
+    showReviewReminder();
   }
   function renderHome(today,due){
     const review=$('home-review');review.replaceChildren();
@@ -61,7 +80,7 @@
     if(!items.length) review.append(node('p',reviewEmpty(),'home-empty'));
     for(const item of items){
       const row=node('button',undefined,'home-row');row.type='button';
-      const copy=node('span');copy.append(node('strong',title(item.id)),node('small',`${item.kind==='blank'?'개념':'쿼리'} · ${item.lastStatus==='wrong'?'최근 오답':`복습 ${item.due}`} `));
+      const copy=node('span');copy.append(node('strong',title(item.id)),node('small',`${item.kind==='blank'?'개념':'쿼리'} · ${reviewDetail(item)}`));
       row.append(copy,node('span','열기 →','home-row-action'));row.addEventListener('click',safely(()=>item.kind==='blank'?startSession([item.id],'review'):openQuery(item.id,true)));review.append(row);
     }
     const progress=$('home-progress');progress.replaceChildren();
@@ -142,7 +161,7 @@
     target.replaceChildren();
     if(!items.length){target.append(node('p',available?reviewEmpty():'예정된 복습이 없습니다.','review-empty'));return;}
     for(const item of items){
-      const row=node('article',undefined,'review-item'),copy=node('div');copy.append(node('strong',title(item.id)),node('p',`${item.kind==='blank'?'빈칸':'쿼리 작성'} · ${item.lastStatus==='wrong'?'다시 풀어볼 문제':`복습일 ${item.due}`}`));row.append(copy);
+      const row=node('article',undefined,'review-item'),copy=node('div');copy.append(node('strong',title(item.id)),node('p',`${item.kind==='blank'?'빈칸':'쿼리 작성'} · ${reviewDetail(item)}`));row.append(copy);
       if(available){const b=node('button','다시 풀기','button');b.addEventListener('click',safely(()=>item.kind==='blank'?startSession([item.id],'review'):openQuery(item.id,true)));row.append(b);}target.append(row);
     }
   }
@@ -166,9 +185,16 @@
   }
   async function startSession(ids,kind){
     if(!ids.length){await show('today');return;}
-    if(!await show('lesson'))return;
-    session=ids;sessionIndex=0;sessionKind=kind;await show('lesson');renderCard();
+    if(working||workspace?.busy()||$('daily-concept-dialog').open)return;
+    session=ids;sessionIndex=0;sessionKind=kind;
+    if(kind==='daily'){
+      const unit=data.units[allCards().find(c=>c.id===ids[0]).unit];
+      $('daily-concept-title').textContent=unit.title;$('daily-concept-copy').textContent=unit.concept;
+      $('daily-concept-dialog').showModal();return;
+    }
+    if(await show('lesson'))renderCard();
   }
+  $('begin-blanks').addEventListener('click',safely(async()=>{$('daily-concept-dialog').close();if(await show('lesson'))renderCard();}));
   function renderCard(){
     card=allCards().find(c=>c.id===session[sessionIndex]);
     const unit=data.units[card.unit];
@@ -193,16 +219,15 @@
   $('blank-form').addEventListener('submit',safely(async e=>{
     e.preventDefault();if(working)return;working=true;$('blank-check').disabled=true;
     try{
-      const result=await api.blankAnswer({id:card.id,answer:$('blank-input').value});data=result.snapshot;render();
-      const feedback=$('blank-feedback');feedback.hidden=false;feedback.dataset.correct=String(result.correct);feedback.textContent=(result.correct?'정답이에요. ':'')+result.explanation;
+      const result=await api.blankAnswer({id:card.id,answer:$('blank-input').value,review:sessionKind==='review'});data=result.snapshot;render();
+      const feedback=$('blank-feedback');feedback.hidden=false;feedback.dataset.correct=String(result.correct);feedback.textContent=(result.correct?'정답이에요. ':'')+result.explanation+(result.correct?'':` ${reviewNotice(card.id)}`);
       if(result.correct){$('blank-input').disabled=true;$('blank-reveal').disabled=true;$('next-blank').hidden=false;$('next-blank').textContent=sessionIndex+1<session.length?'다음 문제 →':sessionKind==='daily'&&!data.today.queryDone?'전체 쿼리 작성으로 →':'학습 마치기';$('next-blank').focus();}else $('blank-input').focus();
     }finally{working=false;$('blank-check').disabled=$('blank-input').disabled;}
   }));
   $('blank-reveal').addEventListener('click',safely(async()=>{
     if(working)return;working=true;
-    try{const result=await api.blankReveal(card.id);$('blank-feedback').hidden=false;$('blank-feedback').dataset.correct='false';$('blank-feedback').textContent=`정답: ${result.answer} — ${result.explanation} 직접 입력해 마무리하세요. 내일 다시 복습합니다.`;$('blank-input').focus();}finally{working=false;}
+    try{const result=await api.blankReveal(card.id);$('blank-feedback').hidden=false;$('blank-feedback').dataset.correct='false';$('blank-feedback').textContent=`정답: ${result.answer} — ${result.explanation} 직접 입력해 마무리하세요.`;$('blank-input').focus();}finally{working=false;}
   }));
-  $('concept-note').addEventListener('toggle',safely(async()=>{if($('concept-note').open&&card)await api.blankReveal(card.id);}));
   $('next-blank').addEventListener('click',safely(next));
   $('leave-lesson').addEventListener('click',safely(()=>show(sessionKind==='review'?'review':'concept')));
   $('start-daily').addEventListener('click',safely(daily));
@@ -215,6 +240,11 @@
   }));
   $('start-blanks').addEventListener('click',safely(async()=>{await refresh();const ids=data.today.blanks.filter(id=>!data.today.done.includes(id));await startSession(ids.length?ids:data.today.blanks,'daily');}));
   $('start-review').addEventListener('click',safely(startReview));
+  $('reminder-start-review').addEventListener('click',safely(async()=>{
+    $('review-reminder-dialog').close();await refresh();
+    if(reviews().length)await startReview();else await show('review');
+  }));
+  document.querySelectorAll('dialog').forEach(dialog=>dialog.addEventListener('close',safely(showReviewReminder)));
   $('query-search').addEventListener('input',()=>{querySearch=$('query-search').value;catalogScroll=0;renderCatalog();});
   $('query-back').addEventListener('click',safely(async()=>{await refresh();await show('catalog');}));
   // 버튼과 단축키는 같은 저장·이동 경로를 사용하고 중복 입력을 막는다.
@@ -243,6 +273,7 @@
   for(const id of ['hint','solution'])$(id).addEventListener('click',safely(async()=>{if(workspace?.current())await api.learningAssist(workspace.current());}));
   window.learningUI={
     ready(value){workspace=value;void safely(refresh)();},
+    async reviewNotice(id){await refresh();return reviewNotice(id);},
     refresh:safely(refresh)
   };
   // 빈칸 학습은 MySQL 시작을 기다리지 않아도 표시한다. 자정 이후에는 새 배정을 읽는다.

@@ -24,4 +24,12 @@ test('모든 테마의 문법색 대비',()=>{
     const a=luminance(theme.colors[key]),b=luminance(theme.colors.bg),ratio=(Math.max(a,b)+.05)/(Math.min(a,b)+.05);
     assert.ok(ratio>=4.5,`${theme.id}/${key}: ${ratio.toFixed(2)}`);
   }
+  // 기본 배포 테마의 안내·링크·버튼도 실제 사용하는 표면에서 읽혀야 한다.
+  for(const theme of themes.filter(t=>['macos-light','macos-dark'].includes(t.id))){
+    const pairs=[['on-accent','accent'],['on-accent','accent-hover'],['accent','selected'],['success','selected'],...['bg','panel','sidebar-bg','control','selected'].map(bg=>['muted',bg])];
+    for(const [text,bg] of pairs){
+      const a=luminance(theme.colors[text]),b=luminance(theme.colors[bg]);
+      assert.ok((Math.max(a,b)+.05)/(Math.min(a,b)+.05)>=4.5,`${theme.id}: ${text}/${bg} 대비 부족`);
+    }
+  }
 });

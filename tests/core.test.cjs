@@ -5,6 +5,43 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 
+// 답안 실행 단계의 오류만 학습 오답이며 서버·기준 쿼리 실패는 제외한다.
+test('채점은 답안 오류와 서버 준비 오류를 구분한다',async()=>{
+  const {PracticeService}=require('../lib/service.cjs');
+  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'sql-grade-errors-'));
+  try{
+    const engine={ready:true,prepare:async()=>{},query:async sql=>{if(sql==='SELECT FROM')throw Object.assign(new Error('문법 오류'),{answerError:true});return {columns:['customer_id','name'],rows:[]};}};
+    const service=new PracticeService(path.join(__dirname,'../content'),dir,engine);
+    assert.equal((await service.submit({id:'level1_01',sql:'SELECT FROM'})).answerError,true);
+    engine.prepare=async()=>{throw new Error('연결 실패');};
+    assert.equal((await service.submit({id:'level1_01',sql:'SELECT FROM'})).answerError,false);
+  }finally{fs.rmSync(dir,{recursive:true,force:true});}
+});
+
+// 실제 엔진의 연결 경계만 대체하고 서비스·학습 저장소의 오답 분류까지 검증한다.
+test('학습자 연결·세션 준비·연결 끊김은 복습에서 제외하고 SQL 문법 오류만 등록한다',async()=>{
+  const vm=require('node:vm'),{EventEmitter}=require('node:events');
+  const {PracticeService}=require('../lib/service.cjs'),{Learning}=require('../lib/learning.cjs');
+  const directory=fs.mkdtempSync(path.join(os.tmpdir(),'sql-answer-errors-'));
+  const file=path.join(__dirname,'../lib/engine.cjs'),actualRequire=require('node:module').createRequire(file);
+  try{
+    for(const phase of ['connect','session','disconnect','syntax']){
+      const module={exports:{}},connection=new EventEmitter();
+      connection.destroy=()=>{};
+      connection.promise=()=>({query:async()=>{if(phase==='session')throw new Error('세션 준비 실패');}});
+      connection.query=()=>{const query=new EventEmitter();queueMicrotask(()=>query.emit('error',phase==='syntax'?{message:'문법 오류',errno:1064,sqlState:'42000'}:{message:'연결 끊김',code:'PROTOCOL_CONNECTION_LOST',fatal:true}));return query;};
+      vm.runInNewContext(fs.readFileSync(file,'utf8'),{module,process,Buffer,setTimeout,clearTimeout,require:name=>name==='mysql2'?{createConnection:()=>{if(phase==='connect')throw Object.assign(new Error('connect ECONNREFUSED'),{code:'ECONNREFUSED'});return connection;}}:actualRequire(name)});
+      const data=path.join(directory,phase);fs.mkdirSync(data);
+      const actual=new module.exports.Engine(path.join(data,'engine'));actual.ready=true;
+      const engine={ready:true,prepare:async()=>{},query:sql=>sql==='SELECT FROM'?actual.query(sql):Promise.resolve({columns:['customer_id','name'],rows:[]})};
+      const result=await new PracticeService(path.join(__dirname,'../content'),data,engine).submit({id:'level1_01',sql:'SELECT FROM'});
+      const learning=new Learning(data);learning.queryResult('level1_01',result);
+      assert.equal(result.answerError,phase==='syntax',phase);
+      assert.equal(Boolean(learning.snapshot().records.level1_01?.due),phase==='syntax',phase);
+    }
+  }finally{fs.rmSync(directory,{recursive:true,force:true});}
+});
+
 test('결과 비교는 중복, NULL, 행 순서, 정확한 큰 정수를 구분한다', () => {
   const { compareResults } = require('../lib/core.cjs');
   const result = rows => ({ columns: ['VALUE'], rows });
@@ -64,15 +101,18 @@ test('학습일은 현지 제출일을 중복 없이 세고 연속일은 어제�
     let store = new PracticeStore(dir);
     const p = {id:'q1',title:'복습',level:1}, result = {status:'wrong'};
     store.saveDraft('q1','원래 초안');
-    store.saveDraft('q1','복습 초안',true);
-    assert.equal(store.progress.q1.sql,'원래 초안');
+    store.saveDraft('q1','복습 초안',true,'2024-02-28');
+    store.saveDraft('q1','일반 초안');
+    assert.equal(store.progress.q1.sql,'일반 초안');
     for (const day of [28,28,29]) store.record(p,'제출',result,new Date(2024,1,day,23,59));
     store.record(p,'제출',{status:'correct'},new Date(2024,2,1,0,1));
     store = new PracticeStore(dir);
     assert.deepEqual(store.study(new Date(2024,2,2)),{current:3,longest:3,total:3,today:false,dates:['2024-02-28','2024-02-29','2024-03-01']});
     assert.equal(store.study(new Date(2024,2,3)).current,0);
-    assert.equal(store.progress.q1.sql,'원래 초안');
+    assert.equal(store.progress.q1.sql,'일반 초안');
     assert.equal(store.progress.q1.reviewSql,'복습 초안');
+    assert.equal(store.progress.q1.reviewDue,'2024-02-28');
+    assert.throws(()=>store.saveDraft('q1','복습 초안',true,42));
     store.record(p,'오답',result,new Date(2024,2,3));
     assert.equal(store.progress.q1.lastStatus,'wrong');
     assert.equal(store.progress.q1.solved,true);

@@ -58,6 +58,8 @@ if ((Get-Content -LiteralPath (Join-Path $theme 'custom.json') -Raw) -ne '{"pers
 $env:YOURSQL_TEST_EXECUTABLE = Join-Path $install 'YourSQL.exe'
 & npm run test:packaged
 if ($LASTEXITCODE -ne 0) { throw "설치 앱 검사 실패: $LASTEXITCODE" }
+& npm run test:reminder
+if ($LASTEXITCODE -ne 0) { throw "설치 앱 복습 알림 검사 실패: $LASTEXITCODE" }
 
 $uninstaller = Join-Path $install 'Uninstall.exe'
 $process = Start-Process -FilePath $uninstaller -ArgumentList '/S' -Wait -PassThru

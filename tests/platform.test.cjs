@@ -3,6 +3,23 @@ const test=require('node:test');
 const assert=require('node:assert/strict');
 const path=require('node:path');
 const {themeDirectories,mysqlCandidates,validSocket}=require('../lib/platform.cjs');
+// 실행 파일 부재만 설치 안내 대상이며 재시도 시 이전 상태를 지운다.
+test('MySQL 미설치와 설치 후 시작 오류를 구분한다',async()=>{
+  const fs=require('node:fs'),vm=require('node:vm');
+  const file=path.join(__dirname,'../lib/engine.cjs'),module={exports:{}};
+  const actualRequire=require('node:module').createRequire(file);
+  let candidates=[];
+  vm.runInNewContext(fs.readFileSync(file,'utf8'),{module,process,Buffer,setTimeout,clearTimeout,require:name=>name==='./platform.cjs'?{mysqlCandidates:()=>candidates,validSocket}:actualRequire(name)});
+  const dir=fs.mkdtempSync(path.join(require('node:os').tmpdir(),'sql-mysql-missing-'));
+  const engine=new module.exports.Engine(dir);
+  try{
+    await assert.rejects(engine.start(),/실행 파일을 찾을 수 없습니다/);
+    assert.equal(engine.missing,true);
+    candidates=[process.execPath];fs.mkdirSync(path.join(dir,'mysql-initializing'));
+    await assert.rejects(engine.start(),/이전 초기화/);
+    assert.equal(engine.missing,false);
+  }finally{await engine.stop();fs.rmSync(dir,{recursive:true,force:true});}
+});
 test('Mac은 사용자 데이터 테마를 사용하고 이전 앱 옆 테마를 이관한다',()=>{
   assert.deepEqual(themeDirectories('/private/var/folders/x/AppTranslocation/id/d/YourSQL.app/Contents/MacOS/YourSQL','/Users/me/Library/Application Support/YourSQL','darwin',path.posix),{
     active:'/Users/me/Library/Application Support/YourSQL/theme',legacy:'/private/var/folders/x/AppTranslocation/id/d/theme'

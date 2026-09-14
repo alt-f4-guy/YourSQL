@@ -100,17 +100,31 @@ async function main(){
     assert.equal(await page.locator('#editor').inputValue(),'SELECT 321 AS saved_draft');
     await page.locator('.learning-nav [data-mode="today"]').click();
     await page.locator('#start-daily').click();
+    await page.locator('#daily-concept-dialog').waitFor({state:'visible'});
+    assert.equal(await page.locator('#lesson-screen').isVisible(),false);
+    assert.match(await page.locator('#daily-concept-copy').textContent(),/SELECT.*FROM/);
+    await page.screenshot({path:path.join(root,'artifacts','daily-concept.png')});
+    await page.keyboard.press('Escape');
+    assert.equal(await page.locator('#today-screen').isVisible(),true);
+    await page.locator('#start-daily').click();
+    await page.locator('#begin-blanks').click();
     await page.locator('#blank-input').fill('WRONG');await page.locator('#blank-check').click();
-    await page.waitForFunction(()=>document.getElementById('review-badge').textContent==='1');
+    await page.locator('#blank-feedback').waitFor({state:'visible'});
+    assert.match(await page.locator('#blank-feedback').textContent(),/복습에 등록.*첫 복습:/);
+    assert.equal(await page.locator('#review-badge').textContent(),'0');
     await page.locator('.learning-nav [data-mode="review"]').click();
     assert.equal(await page.locator('#review-screen').isVisible(),true);
-    await page.locator('#start-review').click();
+    assert.equal(await page.locator('#start-review').isDisabled(),true);
+    assert.equal(await page.locator('#upcoming-list .review-item').count(),1);
+    await page.locator('.learning-nav [data-mode="today"]').click();
+    await page.locator('#start-daily').click();await page.locator('#begin-blanks').click();
     await page.locator('#blank-reveal').click();
     await page.waitForFunction(()=>document.getElementById('blank-feedback').textContent.includes('SELECT'));
     await page.locator('#blank-input').fill('select');await page.locator('#blank-check').click();await page.locator('#next-blank').click();
     await page.locator('.learning-nav [data-mode="today"]').click();
     assert.match(await page.locator('#daily-detail').textContent(),/빈칸 1\/6/);
     await page.locator('#start-daily').click();
+    await page.locator('#begin-blanks').click();
     await page.locator('#blank-input').fill('FROM');
     await page.screenshot({path:path.join(root,'artifacts','0.0.2-lesson.png')});
     await page.locator('#blank-check').click();await page.locator('#next-blank').click();
@@ -143,6 +157,9 @@ async function main(){
     const secondQuery=await page.evaluate(async()=>{const {today}=await window.practice.learning();return window.practice.solution(today.queries[1]);});
     await page.locator('#editor').fill(secondQuery.sql);await page.locator('#submit').click();
     await page.waitForFunction(()=>document.getElementById('grade-panel').textContent.includes('정답입니다'),null,{timeout:60000});
+    await page.locator('#review-reminder-dialog').waitFor({state:'visible'});
+    assert.match(await page.locator('#review-reminder-copy').textContent(),/다음 복습:/);
+    await page.locator('#review-reminder-dialog [data-close-dialog]').first().click();
     await page.screenshot({path:path.join(root,'artifacts','0.0.2-query.png')});
     await page.locator('#query-return').click();
     await page.waitForFunction(()=>document.getElementById('daily-title').textContent.includes('모두 마쳤어요'));
@@ -155,7 +172,7 @@ async function main(){
     assert.match(await page.locator('#calendar-detail').textContent(),/8문제 완료/);
     await page.screenshot({path:path.join(root,'artifacts','0.0.2-calendar-complete.png')});
     await page.locator('.learning-nav [data-mode="review"]').click();
-    assert.ok(await page.locator('#upcoming-list .review-item').count()>=4);
+    assert.equal(await page.locator('#upcoming-list .review-item').count(),1);
     await page.screenshot({path:path.join(root,'artifacts','0.0.2-review.png')});
     // Mac과 Windows의 같은 단축키로 완료한 복습 쿼리를 연속해서 이동한다.
     const reviewQueries=await page.evaluate(async()=>{
@@ -164,22 +181,66 @@ async function main(){
       for(const problem of selected)await window.practice.submit({id:problem.id,sql:'SELECT FROM',review:false});
       return selected.map(problem=>({id:problem.id,title:problem.title}));
     });
+    // 사용자 데이터 대신 검사 전용 기록의 복습일만 당겨 실제 복습 IPC를 검증한다.
+    await app.close();
+    const learningFile=path.join(data,'learning.json'),saved=JSON.parse(fs.readFileSync(learningFile,'utf8'));
+    const yesterday=new Date(`${today}T12:00:00`);yesterday.setDate(yesterday.getDate()-1);
+    const overdue=`${yesterday.getFullYear()}-${String(yesterday.getMonth()+1).padStart(2,'0')}-${String(yesterday.getDate()).padStart(2,'0')}`;
+    for(const query of reviewQueries)saved.records[query.id].due=overdue;
+    saved.records.blank1.due=today;
+    fs.writeFileSync(learningFile,JSON.stringify(saved));
+    app=await launch();page=await app.firstWindow();
+    await page.waitForFunction(()=>document.getElementById('engine-text').textContent.includes('로컬 전용'),null,{timeout:60000});
+    await page.locator('.learning-nav [data-mode="review"]').click();
+    await page.locator('#start-review').click();
+    await page.locator('#blank-input').fill('WRONG');await page.locator('#blank-check').click();
+    await page.locator('#blank-feedback').waitFor({state:'visible'});
+    await page.locator('#blank-input').fill('SELECT');await page.locator('#blank-check').click();
+    await page.locator('#next-blank').click();
+    const blankReview=(await page.evaluate(()=>window.practice.learning())).records.blank1;
+    assert.equal(blankReview.reviewCount,1);assert.equal(blankReview.reviewTotal,4);
+    await page.locator('#review-list .review-item').filter({hasText:reviewQueries[0].title}).getByRole('button',{name:'다시 풀기'}).click();
+    // 다른 복습 문제를 열고 돌아오거나 앱을 재시작해도 진행 중인 초안을 복원한다.
+    await page.locator('#editor').fill('SELECT 123 AS review_draft');
+    await page.locator('.learning-nav [data-mode="review"]').click();
+    await page.locator('#review-list .review-item').filter({hasText:reviewQueries[1].title}).getByRole('button',{name:'다시 풀기'}).click();
     await page.locator('.learning-nav [data-mode="review"]').click();
     await page.locator('#review-list .review-item').filter({hasText:reviewQueries[0].title}).getByRole('button',{name:'다시 풀기'}).click();
+    assert.equal(await page.locator('#editor').inputValue(),'SELECT 123 AS review_draft');
+    await app.close();app=await launch();page=await app.firstWindow();
+    await page.waitForFunction(()=>document.getElementById('engine-text').textContent.includes('로컬 전용'),null,{timeout:60000});
+    await page.locator('.learning-nav [data-mode="review"]').click();
+    await page.locator('#review-list .review-item').filter({hasText:reviewQueries[0].title}).getByRole('button',{name:'다시 풀기'}).click();
+    assert.equal(await page.locator('#editor').inputValue(),'SELECT 123 AS review_draft');
     for(const [index,query] of reviewQueries.entries()){
       assert.equal(await page.locator('#editor-problem-label').textContent(),query.title);
+      if(index===0){
+        await page.locator('#editor').fill('SELECT FROM');await page.locator('#submit').click();
+        await page.waitForFunction(()=>!document.getElementById('submit').disabled);
+        assert.match(await page.locator('#grade-panel').textContent(),/복습 일정:/);
+        assert.equal((await page.evaluate(id=>window.practice.learning().then(d=>d.records[id]),query.id)).reviewTotal,4);
+      }
       const solution=await page.evaluate(id=>window.practice.solution(id),query.id);
       await page.locator('#editor').fill(solution.sql);await page.locator('#submit').click();
       await page.waitForFunction(()=>document.getElementById('grade-panel').textContent.includes('정답입니다'),null,{timeout:60000});
       await page.locator('#next-daily-query').waitFor({state:'visible'});
+      assert.equal((await page.evaluate(id=>window.practice.learning().then(d=>d.records[id]),query.id)).reviewCount,1);
       await page.locator('#editor').focus();
       if(index===0)await page.locator('#editor').evaluate(el=>el.dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',ctrlKey:true,altKey:true,bubbles:true})));
       else await page.keyboard.press(process.platform==='darwin'?'Meta+Alt+Enter':'Control+Alt+Enter');
       if(index+1<reviewQueries.length)await page.waitForFunction(title=>document.getElementById('editor-problem-label').textContent===title,reviewQueries[index+1].title);
       else await page.locator('#review-screen').waitFor({state:'visible'});
     }
-    await app.close();app=await launch();page=await app.firstWindow();
+    await app.close();
+    // 다음 회차를 검사 날짜로 당겨 이전 회차의 정답이 자동 입력되지 않는지 확인한다.
+    const nextRound=JSON.parse(fs.readFileSync(learningFile,'utf8'));
+    nextRound.records[reviewQueries[0].id].due=today;fs.writeFileSync(learningFile,JSON.stringify(nextRound));
+    app=await launch();page=await app.firstWindow();
     await page.waitForFunction(()=>document.getElementById('daily-title').textContent.includes('모두 마쳤어요'),null,{timeout:60000});
+    await page.locator('.learning-nav [data-mode="review"]').click();
+    await page.locator('#review-list .review-item').filter({hasText:reviewQueries[0].title}).getByRole('button',{name:'다시 풀기'}).click();
+    assert.equal(await page.locator('#editor').inputValue(),'');
+    await page.locator('.learning-nav [data-mode="today"]').click();
     assert.equal(await page.locator('#theme-select').inputValue(),'macos-light');
     assert.equal(await page.locator(`[data-date="${today}"]`).getAttribute('data-status'),'complete');
     // 완료 버튼 옆에서 두 사이클을 더 풀고 중간 재시작·누적 달력을 확인한다.
@@ -188,6 +249,7 @@ async function main(){
       assert.equal(await page.locator('#start-extra').isVisible(),true);
       await page.screenshot({path:path.join(root,'artifacts',`extra-cycle-${cycle}-start.png`)});
       await page.locator('#start-extra').click();
+      await page.locator('#begin-blanks').click();
       const assigned=(await page.evaluate(()=>window.practice.learning())).today;
       for(let i=0;i<assigned.blanks.length;i++){
         await page.locator('#blank-input').fill(answers.get(assigned.blanks[i]));
@@ -200,6 +262,7 @@ async function main(){
           assert.match(await page.locator('#calendar-detail').textContent(),/9문제 완료/);
           assert.equal(await page.locator(`[data-date="${today}"]`).getAttribute('data-status'),'complete');
           await page.locator('#start-daily').click();
+          await page.locator('#begin-blanks').click();
         }else await page.locator('#next-blank').click();
       }
       for(const [index,id] of assigned.queries.entries()){
@@ -229,6 +292,28 @@ async function main(){
     assert.equal(await page.locator('#concept-units .unit-card').last().locator('progress').getAttribute('value'),'1');
     assert.match(await page.locator('#calendar-detail').textContent(),/25문제 완료/);
     await page.screenshot({path:path.join(root,'artifacts','concept-progress.png')});
+    // 외부 브라우저와 설치 상태만 대체해 자동 안내·중복 방지·재연결을 확인한다.
+    await app.evaluate(({app,shell})=>{
+      global.mysqlOpened=[];shell.openExternal=async url=>{global.mysqlOpened.push(url);};
+      global.mysqlEngine=process.getBuiltinModule('module').createRequire(app.getAppPath()+'/main.cjs')('./lib/engine.cjs').Engine;
+      const Engine=global.mysqlEngine;global.originalStart=Engine.prototype.start;
+      Engine.prototype.start=async function(){this.ready=false;this.missing=true;this.message='MySQL 서버 실행 파일을 찾을 수 없습니다.';};
+    });
+    await page.locator('#retry-engine').click();
+    await page.locator('#mysql-notice').waitFor({state:'visible'});
+    assert.deepEqual(await app.evaluate(()=>global.mysqlOpened),['https://dev.mysql.com/downloads/mysql/8.4.html']);
+    await page.locator('#retry-engine').click();
+    assert.equal(await app.evaluate(()=>global.mysqlOpened.length),1);
+    await page.locator('#open-mysql-page').click();
+    assert.equal(await app.evaluate(()=>global.mysqlOpened.length),2);
+    await app.evaluate(()=>{
+      const Engine=global.mysqlEngine;
+      Engine.prototype.start=async function(){this.ready=false;this.missing=false;this.message='서버 시작 오류';};
+    });
+    await page.locator('#retry-engine').click();
+    await page.locator('#mysql-notice').waitFor({state:'hidden'});
+    assert.equal(await app.evaluate(()=>global.mysqlOpened.length),2);
+    await app.evaluate(()=>{global.mysqlEngine.prototype.start=global.originalStart;});
     assert.deepEqual(errors,[]);
     console.log(`버전 ${require('../package.json').version} 화면·설정창·6+2 학습·복습·MySQL 채점·재시작 검사 통과`);
   }finally{await app.close();}
