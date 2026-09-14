@@ -114,8 +114,10 @@ else {
   }).catch(error=>{dialog.showErrorBox('앱 시작 실패',error.message);closing=true;app.quit();});
   app.on('window-all-closed',()=>{clearTimeout(themeTimer);themeWatcher?.close();app.quit();});
   app.on('before-quit',event=>{
-    if (!stopped && engine) {
+    if (engine) {
       event.preventDefault();
+      // 창 닫기와 종료 요청이 겹쳐도 MySQL 종료 완료 전에는 앱을 끝내지 않는다.
+      if (stopped) return;
       if (!closing && window && !window.isDestroyed()) {window.close();return;}
       stopped=true;
       engine.stop().finally(()=>app.exit(0));

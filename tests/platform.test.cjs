@@ -3,6 +3,21 @@ const test=require('node:test');
 const assert=require('node:assert/strict');
 const path=require('node:path');
 const {themeDirectories,mysqlCandidates,validSocket}=require('../lib/platform.cjs');
+// 창 닫기와 앱 종료가 겹쳐도 전용 서버가 종료될 때까지 앱 종료를 보류한다.
+test('중복 종료 요청은 MySQL 종료 대기를 건너뛰지 않는다',async()=>{
+  const fs=require('node:fs'),vm=require('node:vm'),{EventEmitter}=require('node:events');
+  const app=new EventEmitter(),file=path.join(__dirname,'../main.cjs'),actualRequire=require('node:module').createRequire(file);
+  let finish,stops=0,prevented=0,exits=0;
+  Object.assign(app,{setName(){},setPath(){},getPath:()=>'/검사용',requestSingleInstanceLock:()=>true,whenReady:()=>new Promise(()=>{}),exit(){exits++;}});
+  const fakeEngine={stop:()=>{stops++;return new Promise(resolve=>{finish=resolve;});}};
+  const context=vm.createContext({require:name=>name==='electron'?{app}:actualRequire(name),__dirname:path.dirname(file),process:{env:{}},fakeEngine});
+  vm.runInContext(fs.readFileSync(file,'utf8')+'\nengine=fakeEngine;closing=true;',context);
+  const event={preventDefault(){prevented++;}};
+  app.emit('before-quit',event);app.emit('before-quit',event);
+  assert.equal(prevented,2);assert.equal(stops,1);assert.equal(exits,0);
+  finish();await Promise.resolve();
+  assert.equal(exits,1);
+});
 // 실행 파일 부재만 설치 안내 대상이며 재시도 시 이전 상태를 지운다.
 test('MySQL 미설치와 설치 후 시작 오류를 구분한다',async()=>{
   const fs=require('node:fs'),vm=require('node:vm');
