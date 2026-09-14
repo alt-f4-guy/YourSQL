@@ -25,13 +25,13 @@ test('학습자 연결·세션 준비·연결 끊김은 복습에서 제외하�
   const directory=fs.mkdtempSync(path.join(os.tmpdir(),'sql-answer-errors-'));
   const file=path.join(__dirname,'../lib/engine.cjs'),actualRequire=require('node:module').createRequire(file);
   try{
-    for(const phase of ['connect','session','disconnect','syntax']){
+    for(const platform of ['darwin','win32'])for(const phase of ['connect','session','disconnect','syntax']){
       const module={exports:{}},connection=new EventEmitter();
       connection.destroy=()=>{};
       connection.promise=()=>({query:async()=>{if(phase==='session')throw new Error('세션 준비 실패');}});
       connection.query=()=>{const query=new EventEmitter();queueMicrotask(()=>query.emit('error',phase==='syntax'?{message:'문법 오류',errno:1064,sqlState:'42000'}:{message:'연결 끊김',code:'PROTOCOL_CONNECTION_LOST',fatal:true}));return query;};
-      vm.runInNewContext(fs.readFileSync(file,'utf8'),{module,process,Buffer,setTimeout,clearTimeout,require:name=>name==='mysql2'?{createConnection:()=>{if(phase==='connect')throw Object.assign(new Error('connect ECONNREFUSED'),{code:'ECONNREFUSED'});return connection;}}:actualRequire(name)});
-      const data=path.join(directory,phase);fs.mkdirSync(data);
+      vm.runInNewContext(fs.readFileSync(file,'utf8'),{module,process:{platform},Buffer,setTimeout,clearTimeout,require:name=>name==='mysql2'?{...actualRequire(name),createConnection:()=>{if(phase==='connect')throw Object.assign(new Error('connect ECONNREFUSED'),{code:'ECONNREFUSED'});return connection;}}:actualRequire(name)});
+      const data=path.join(directory,`${platform}-${phase}`);fs.mkdirSync(data);
       const actual=new module.exports.Engine(path.join(data,'engine'));actual.ready=true;
       const engine={ready:true,prepare:async()=>{},query:sql=>sql==='SELECT FROM'?actual.query(sql):Promise.resolve({columns:['customer_id','name'],rows:[]})};
       const result=await new PracticeService(path.join(__dirname,'../content'),data,engine).submit({id:'level1_01',sql:'SELECT FROM'});
