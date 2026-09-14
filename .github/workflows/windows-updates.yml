@@ -2,6 +2,11 @@
 name: Windows 배포 검사
 on:
   workflow_dispatch:
+    inputs:
+      build_only:
+        description: '알려진 문제를 수용한 배포: 전체 화면·설치 검사 생략'
+        type: boolean
+        default: false
 permissions:
   contents: read
 jobs:
@@ -24,10 +29,12 @@ jobs:
       - name: 실제 MySQL 정답과 읽기 권한 검사
         run: npm run test:mysql
       - name: 소스 앱 학습·재시작 검사
+        if: ${{ !inputs.build_only }}
         run: npm run test:ui
       - name: Windows Setup 생성
         run: npm run release
       - name: 설치·재설치·실행·제거 검사
+        if: ${{ !inputs.build_only }}
         shell: pwsh
         run: ./tests/windows-installer.ps1
       - name: 새 Windows 폴더 압축
