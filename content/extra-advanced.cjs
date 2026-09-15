@@ -2,7 +2,7 @@
 const problems = [];
 function add(pack, n, title, topic, tables, columns, description, solution, explanation, skeleton, expectedRows) {
   const problem = { pack, id: `level5_${n}`, level: 5, title, topic, tables: tables.split(','), columns: columns.split(','), ordered: true,
-    description: `${description} 결과 열은 ${columns} 순서다. 명시한 범위 외에는 전체 기간을 사용한다. 식별자 단위로 집계하며 이름이 같아도 합치지 않는다. 별도 언급 없는 동점은 모두 보존한다.`,
+    description: `${description} 결과 열은 ${columns} 순서로 출력한다.`,
     solution, explanation, hints: [`핵심 개념: ${topic}. ${explanation.split('.')[0]}.`, explanation, `-- 주석 빈칸을 채우세요.\n${skeleton}`], starter: '-- 조건과 출력 열을 확인하세요.\nWITH ' };
   if (expectedRows) problem.expectedRows = expectedRows;
   problems.push(problem);
@@ -30,7 +30,7 @@ add('shop',18,'첫 결제 코호트의 두 달 연속 유지','다중 시점 리
 add('shop',19,'결제 후 장기 공백을 끝낸 주문','휴면 복귀 이벤트','orders','customer_id,order_id,previous_date,ordered_at,gap_days',
 '고객별 paid 주문을 주문일·주문 번호 순으로 놓고 직전 paid 주문과 날짜 차이가 30일 이상인 복귀 주문을 모두 구한다. 첫 주문은 제외하며 같은 날 주문의 간격은 0이다. 상세 없는 주문도 인정한다. 고객 번호, 주문일, 주문 번호 오름차순이며 조건에 맞는 주문이 없으면 빈 결과다.',
 `WITH gaps AS (SELECT customer_id,order_id,ordered_at,LAG(ordered_at) OVER(PARTITION BY customer_id ORDER BY ordered_at,order_id) AS previous_date FROM orders WHERE status='paid') SELECT customer_id,order_id,previous_date,ordered_at,DATEDIFF(ordered_at,previous_date) AS gap_days FROM gaps WHERE DATEDIFF(ordered_at,previous_date)>=30 ORDER BY customer_id,ordered_at,order_id`,
-'취소를 제거한 주문열에서 직전 결제일을 구한다. 날짜 차이 필터는 윈도 함수 계산 다음 단계에서 적용한다.',
+'취소 주문을 제외하고 고객별 주문 순서에 따라 직전 결제일을 구한다. 날짜 차이 필터는 윈도 함수 계산 다음 단계에서 적용한다.',
 `WITH gaps AS (SELECT /* 주문 식별자와 LAG 날짜 */ FROM orders WHERE /* 결제 */) SELECT /* 날짜 차이 포함 */ FROM gaps WHERE /* 30일 이상 */ ORDER BY customer_id,ordered_at,order_id`);
 add('shop',20,'연속 구매 구간 사이의 빈 날짜','연속 구간 사이 공백','orders','customer_id,gap_start,gap_end,idle_days',
 '고객별 서로 다른 paid 주문일 중 인접 두 날짜 사이에 구매하지 않은 날이 하나 이상 있으면 그 공백의 시작일·종료일·일수를 출력한다. 첫 구매 이전과 마지막 구매 이후는 제외한다. 중복 주문일은 하루다. 고객 번호, 공백 시작일 오름차순이며 공백 없으면 빈 결과다.',
@@ -43,14 +43,14 @@ add('shop',21,'주문 상태가 유지되는 구간','범주 변화 세션','ord
 '직전 상태와 현재 상태를 비교해 구간 시작 플래그를 만든다. 누적합으로 구간 번호를 부여한 뒤 구간별 집계한다.',
 `WITH previous AS (/* LAG 상태 */), numbered AS (/* 상태 변화 플래그의 누적합 */) SELECT /* 구간별 시작·끝·건수 */ FROM numbered GROUP BY customer_id,run_number,status ORDER BY customer_id,run_number`);
 add('shop',22,'달력 위의 누적 결제 고객','중복 없는 누적 고객','orders','sale_date,cumulative_customers',
-'2024-01-01~2024-01-07 양 끝을 포함하여 매일 누적 paid 구매 고객 수를 출력한다. 해당 날짜까지 한 번이라도 결제한 고객을 세며 1월 이전 고객도 포함한다. 고객의 재구매는 증가시키지 않는다. 결제 없으면 매일 0이다. 날짜 오름차순이다.',
+'2024-01-01~2024-01-07 양 끝을 포함하여 매일 누적 paid 구매 고객 수를 출력한다. 해당 날짜까지 한 번이라도 결제한 고객을 세며 1월 이전 고객도 포함한다. 같은 고객의 재구매로 누적 고객 수가 늘어나지는 않는다. 결제 없으면 매일 0이다. 날짜 오름차순이다.',
 `WITH RECURSIVE calendar AS (SELECT CAST('2024-01-01' AS DATE) AS sale_date UNION ALL SELECT DATE_ADD(sale_date,INTERVAL 1 DAY) FROM calendar WHERE sale_date<'2024-01-07'), firsts AS (SELECT customer_id,MIN(ordered_at) AS first_date FROM orders WHERE status='paid' GROUP BY customer_id) SELECT c.sale_date,COUNT(f.customer_id) AS cumulative_customers FROM calendar c LEFT JOIN firsts f ON f.first_date<=c.sale_date GROUP BY c.sale_date ORDER BY c.sale_date`,
-'고객마다 최초 결제일 한 행만 남긴다. 날짜 달력에 최초 결제일 이하 조건으로 연결하면 누적 고유 고객을 셀 수 있다.',
+'고객마다 최초 결제일 한 행만 남긴다. 최초 결제일이 달력의 해당 날짜 이하인 고객을 연결하면 누적 고유 고객 수를 셀 수 있다.',
 `WITH RECURSIVE calendar AS (/* 7일 생성 */), firsts AS (/* 고객별 첫 결제 */) SELECT c.sale_date,/* 누적 인원 */ FROM calendar c LEFT JOIN firsts f ON /* 첫 결제일 이하 */ GROUP BY c.sale_date ORDER BY c.sale_date`);
 add('shop',23,'도시별 매출 집중도','허핀달 집중도','customers,orders,order_items','city,customer_count,concentration',
 '도시별 모든 고객을 포함해 고객별 paid 매출을 구하고 고객 매출 비중 제곱의 합을 소수 넷째 자리로 출력한다. 상세 매출은 quantity*unit_price이며 중복 상세도 합산한다. 미구매·상세 없는 주문은 0이다. 도시 전체 매출이 0이면 concentration은 NULL이다. NULL 도시는 한 그룹이며 NULL 먼저, 도시 오름차순이다.',
 `WITH totals AS (SELECT c.customer_id,c.city,COALESCE(SUM(i.quantity*i.unit_price),0) AS revenue FROM customers c LEFT JOIN orders o ON o.customer_id=c.customer_id AND o.status='paid' LEFT JOIN order_items i ON i.order_id=o.order_id GROUP BY c.customer_id,c.city), shares AS (SELECT *,SUM(revenue) OVER(PARTITION BY city) AS city_revenue FROM totals) SELECT city,COUNT(*) AS customer_count,ROUND(SUM(POWER(revenue/NULLIF(city_revenue,0),2)),4) AS concentration FROM shares GROUP BY city ORDER BY city`,
-'먼저 고객 단위 매출로 상세 중복 영향을 정리한다. 도시 전체 매출로 나눈 고객 비중을 제곱해 합하고 0 분모는 NULL로 둔다.',
+'중복된 상품 행도 포함해 고객별 매출을 먼저 합산한다. 도시 전체 매출로 나눈 고객 비중을 제곱해 합하고 0 분모는 NULL로 둔다.',
 `WITH totals AS (/* 모든 고객 매출 */), shares AS (/* 도시별 총매출 윈도 합 */) SELECT city,COUNT(*) AS customer_count,/* 비중 제곱 합 */ AS concentration FROM shares GROUP BY city ORDER BY city`);
 add('shop',24,'고객 매출의 지니 계수','쌍별 차이 기반 분포','customers,orders,order_items','customer_count,gini',
 '모든 고객의 paid 매출을 사용해 지니 계수를 소수 넷째 자리로 한 행 출력한다. 지니는 모든 순서 있는 고객 쌍의 매출 절대 차이 합 / (2*고객 수*전체 매출)이다. 자기 자신과의 쌍도 포함한다. 중복 상세 매출은 합산하고 미구매 매출은 0이다. 고객이나 총매출이 없으면 gini는 NULL, 고객 수는 0일 수 있다. 단일 행이다.',
@@ -78,7 +78,7 @@ add('shop',28,'등록된 모든 카테고리 경험자','그룹을 대상으로 
 '상품 대신 카테고리 집합을 나눗셈의 기준으로 삼는다. 경험하지 않은 카테고리가 없는 고객을 찾으면 빈 기준 집합도 처리된다.',
 `WITH categories AS (/* 현재 카테고리 */), experienced AS (/* 고객별 경험 카테고리 */) SELECT c.customer_id FROM customers c WHERE NOT EXISTS(/* 경험하지 않은 카테고리 */) ORDER BY c.customer_id`);
 add('shop',29,'일매출 하락 뒤 반등한 결제일','연속 관측값 패턴','orders,order_items','customer_id,ordered_at,daily_revenue',
-'고객별 paid 결제일 매출을 집계해 바로 앞 두 결제일과 현재일의 매출이 하락한 뒤 반등한 경우 현재일을 출력한다. 즉 두 결제일 전 매출 > 직전 결제일 매출 < 현재 매출이다. 세 날짜가 달력상 연속일일 필요는 없다. 같은 날 모든 주문·중복 상세 합산, 상세 없는 날은 0. 앞 결제일이 두 개 미만이면 제외한다. 고객 번호, 날짜 오름차순이다.',
+'고객별 paid 결제일 매출을 집계해 바로 앞 두 결제일과 현재일의 매출이 하락한 뒤 반등한 경우 현재일을 출력한다. 즉 두 결제일 전 매출 > 직전 결제일 매출 < 현재 매출이다. 세 날짜가 달력상 연속일일 필요는 없다. 같은 날의 모든 주문 상품 행을 중복 행까지 합산한다. 상품 행이 없는 결제일의 매출은 0이다. 앞 결제일이 두 개 미만이면 제외한다. 고객 번호, 날짜 오름차순이다.',
 `WITH daily AS (SELECT o.customer_id,o.ordered_at,COALESCE(SUM(i.quantity*i.unit_price),0) AS daily_revenue FROM orders o LEFT JOIN order_items i ON i.order_id=o.order_id WHERE o.status='paid' GROUP BY o.customer_id,o.ordered_at), compared AS (SELECT *,LAG(daily_revenue) OVER(PARTITION BY customer_id ORDER BY ordered_at) AS prev1,LAG(daily_revenue,2) OVER(PARTITION BY customer_id ORDER BY ordered_at) AS prev2 FROM daily) SELECT customer_id,ordered_at,daily_revenue FROM compared WHERE prev2>prev1 AND prev1<daily_revenue ORDER BY customer_id,ordered_at`,
 '일별 매출로 먼저 합친 뒤 한 칸과 두 칸 앞 매출을 비교한다. 같은 값은 하락이나 반등을 만족하지 않는다.',
 `WITH daily AS (/* 고객별 일매출 */), compared AS (/* LAG 1,2 */) SELECT customer_id,ordered_at,daily_revenue FROM compared WHERE /* 하락 후 반등 */ ORDER BY customer_id,ordered_at`);
@@ -113,29 +113,29 @@ add('shop',35,'월별 매출의 전월 대비 기여도','전체 증감 분해',
 '두 달의 매출을 부호 있는 조건부 합계로 결합한다. 카테고리 변화의 전체 합을 분모로 써서 총변화를 분해한다.',
 `WITH changes AS (/* 카테고리별 2월-1월 매출 */) SELECT category,revenue_change,/* 전체 변화 대비 비율 */ AS contribution_pct FROM changes ORDER BY category`);
 add('shop',36,'주문 금액의 상위 이상치','사분위와 사분위 범위','orders,order_items','order_id,revenue,q1,q3',
-'전체 paid 주문 금액을 오름차순·주문 번호 오름차순으로 놓고 최근접 순위 방식의 Q1=ceil(0.25*N)번째, Q3=ceil(0.75*N)번째 금액을 구한다. Q3+1.5*(Q3-Q1)보다 엄격히 큰 주문만 조회한다. 상세 없는 주문은 0, 중복 상세는 합산한다. 동액 경계는 제외하고 조건에 맞는 주문이나 결제가 없으면 빈 결과다. 주문 번호 오름차순이다.',
+'전체 paid 주문 금액을 오름차순·주문 번호 오름차순으로 놓고 최근접 순위 방식의 Q1=ceil(0.25*N)번째, Q3=ceil(0.75*N)번째 금액을 구한다. Q3+1.5*(Q3-Q1)보다 엄격히 큰 주문만 조회한다. 상세 없는 주문은 0, 중복 상세는 합산한다. 이상치 기준값과 같은 금액의 주문은 제외하고 조건에 맞는 주문이나 결제가 없으면 빈 결과다. 주문 번호 오름차순이다.',
 `WITH totals AS (SELECT o.order_id,COALESCE(SUM(i.quantity*i.unit_price),0) AS revenue FROM orders o LEFT JOIN order_items i ON i.order_id=o.order_id WHERE o.status='paid' GROUP BY o.order_id), ranked AS (SELECT *,ROW_NUMBER() OVER(ORDER BY revenue,order_id) AS rn,COUNT(*) OVER() AS n FROM totals), quartiles AS (SELECT MAX(CASE WHEN rn=CEIL(n*0.25) THEN revenue END) AS q1,MAX(CASE WHEN rn=CEIL(n*0.75) THEN revenue END) AS q3 FROM ranked) SELECT t.order_id,t.revenue,q.q1,q.q3 FROM totals t CROSS JOIN quartiles q WHERE t.revenue>q.q3+1.5*(q.q3-q.q1) ORDER BY t.order_id`,
 '주문 금액을 먼저 만든 뒤 전체 개수와 순번으로 사분위 위치를 선택한다. 사분위 범위로 계산한 상한을 엄격히 넘는 주문을 찾는다.',
 `WITH totals AS (/* 주문 금액 */), ranked AS (/* 순번과 N */), quartiles AS (/* ceil 위치의 Q1,Q3 */) SELECT /* 상한 초과 주문 */ FROM totals t CROSS JOIN quartiles q WHERE /* 이상치 조건 */ ORDER BY t.order_id`);
 add('shop',37,'가입 후 구매 전환 퍼널','시간 순서를 지키는 퍼널','customers,products,orders,order_items','customer_count,buyer_count,multi_category_count',
-'전체 고객 수, 가입일 이상에 paid 주문한 고객 수, 가입일 이상 paid 구매로 서로 다른 카테고리를 두 개 이상 경험한 고객 수를 한 행 출력한다. 가입 이전 주문은 제외한다. 상세 없는 결제도 구매자는 맞지만 카테고리 경험을 늘리지 않는다. 중복 상세·주문은 고객당 한 번 또는 카테고리당 한 번이다. 해당 고객 없으면 각 수는 0이다.',
+'전체 고객 수, 가입일 당일 또는 그 이후에 paid 주문한 고객 수, 같은 기간의 paid 구매로 서로 다른 카테고리를 두 개 이상 경험한 고객 수를 한 행 출력한다. 가입 이전 주문은 제외한다. 상세 없는 결제도 구매자는 맞지만 카테고리 경험을 늘리지 않는다. 중복 상세·주문은 고객당 한 번 또는 카테고리당 한 번이다. 해당 고객 없으면 각 수는 0이다.',
 `WITH flags AS (SELECT c.customer_id,COUNT(DISTINCT o.order_id) AS orders_count,COUNT(DISTINCT p.category) AS categories FROM customers c LEFT JOIN orders o ON o.customer_id=c.customer_id AND o.status='paid' AND o.ordered_at>=c.joined_at LEFT JOIN order_items i ON i.order_id=o.order_id LEFT JOIN products p ON p.product_id=i.product_id GROUP BY c.customer_id) SELECT COUNT(*) AS customer_count,COUNT(CASE WHEN orders_count>0 THEN 1 END) AS buyer_count,COUNT(CASE WHEN categories>=2 THEN 1 END) AS multi_category_count FROM flags ORDER BY customer_count`,
 '가입 이후 결제만 조인한 고객별 퍼널 플래그를 만든다. 주문 존재와 카테고리 확장을 독립적으로 집계하고 고객 수로 환산한다.',
 `WITH flags AS (/* 가입 이후 고객별 주문 수와 카테고리 수 */) SELECT /* 전체·구매·다중 카테고리 고객 수 */ FROM flags ORDER BY customer_count`);
-add('academy',38,'미등록 응시의 회원별 비중','존재 조건과 분모 보존','members,attempts,enrollments','member_id,attempt_count,unregistered_count',
-'모든 회원의 응시 수와 응시일 이하에 같은 강좌를 등록한 이력이 없는 응시 수를 구한다. 응시 후 등록은 인정하지 않는다. 미채점도 응시 한 건이며 재등록은 응시 수를 늘리지 않는다. 응시 없으면 두 수 모두 0이다. 회원 번호 오름차순이다.',
+add('academy',38,'회원별 전체 응시 수와 미등록 응시 수','존재 조건과 분모 보존','members,attempts,enrollments','member_id,attempt_count,unregistered_count',
+'모든 회원의 응시 수와 응시일 당일까지 같은 강좌에 등록한 이력이 없는 응시 수를 구한다. 응시 후 등록은 인정하지 않는다. 미채점도 응시 한 건이며 재등록은 응시 수를 늘리지 않는다. 응시 없으면 두 수 모두 0이다. 회원 번호 오름차순이다.',
 `WITH flagged AS (SELECT a.*,NOT EXISTS(SELECT 1 FROM enrollments e WHERE e.member_id=a.member_id AND e.course_id=a.course_id AND e.enrolled_at<=a.attempted_at) AS unregistered FROM attempts a) SELECT m.member_id,COUNT(f.attempt_id) AS attempt_count,COALESCE(SUM(f.unregistered),0) AS unregistered_count FROM members m LEFT JOIN flagged f ON f.member_id=m.member_id GROUP BY m.member_id ORDER BY m.member_id`,
 '응시 시점 이전 등록 존재 여부를 응시별 플래그로 만든다. 회원 목록에 조인해 응시 없는 회원도 보존한다.',
 `WITH flagged AS (SELECT a.*,/* 응시 시점 등록 NOT EXISTS */ AS unregistered FROM attempts a) SELECT /* 회원별 응시 수와 플래그 합 */ FROM members m LEFT JOIN flagged f ON /* 회원 */ GROUP BY m.member_id ORDER BY m.member_id`,[[1,4,0],[2,3,0],[3,2,1],[4,1,0],[5,0,0]]);
 add('academy',39,'등록부터 최초 합격까지','기준 사건 이후 첫 성공','enrollments,attempts','member_id,course_id,enrolled_at,passed_at,days_to_pass',
-'회원·강좌별 최초 등록일과 그 날짜 이상에 80점 이상 받은 최초 응시일, 날짜 차이를 조회한다. 재등록은 한 쌍으로 합친다. 미채점과 등록 전 합격은 무시하며 이후 합격이 없으면 날짜와 차이는 NULL이다. 같은 날 합격은 0일이다. 회원 번호, 강좌 번호 오름차순이다.',
+'회원·강좌별 최초 등록일과 최초 등록일 당일 또는 그 이후의 응시 중 처음으로 80점 이상을 받은 응시일, 날짜 차이를 조회한다. 재등록은 한 쌍으로 합친다. 미채점과 등록 전 합격은 무시하며 이후 합격이 없으면 날짜와 차이는 NULL이다. 같은 날 합격은 0일이다. 회원 번호, 강좌 번호 오름차순이다.',
 `WITH firsts AS (SELECT member_id,course_id,MIN(enrolled_at) AS enrolled_at FROM enrollments GROUP BY member_id,course_id), passed AS (SELECT f.member_id,f.course_id,f.enrolled_at,MIN(a.attempted_at) AS passed_at FROM firsts f LEFT JOIN attempts a ON a.member_id=f.member_id AND a.course_id=f.course_id AND a.attempted_at>=f.enrolled_at AND a.score>=80 GROUP BY f.member_id,f.course_id,f.enrolled_at) SELECT member_id,course_id,enrolled_at,passed_at,DATEDIFF(passed_at,enrolled_at) AS days_to_pass FROM passed ORDER BY member_id,course_id`,
 '회원·강좌별 최초 등록을 한 행으로 만든다. 유효한 합격 응시만 외부 조인하고 최초 합격 날짜에서 등록일을 뺀다.',
 `WITH firsts AS (/* 쌍별 최초 등록 */), passed AS (/* 등록 이후 최초 80점 이상 */) SELECT /* 날짜와 날짜 차이 */ FROM passed ORDER BY member_id,course_id`,[[1,1,'2024-01-01','2024-01-10',9],[1,2,'2024-01-05','2024-01-20',15],[2,1,'2024-01-15','2024-01-16',1],[2,3,'2024-01-16',null,null],[3,1,'2024-02-01','2024-02-29',28],[4,3,'2024-01-01',null,null]]);
 add('academy',40,'응시 성적의 최대 개선 폭','이전 최저점과 개선','attempts','member_id,course_id,max_improvement',
 '채점된 응시가 있는 회원·강좌별 시간 순서상 이전 점수 대비 가능한 최대 개선 폭을 구한다. 순서는 응시일·응시 번호 오름차순이다. 이전 어느 점수와 비교해도 되며 감소만 있거나 채점 한 건이면 0이다. NULL 점수는 제외하고 0점은 포함한다. 회원 번호, 강좌 번호 오름차순이다.',
 `WITH lows AS (SELECT member_id,course_id,score,MIN(score) OVER(PARTITION BY member_id,course_id ORDER BY attempted_at,attempt_id ROWS UNBOUNDED PRECEDING) AS lowest FROM attempts WHERE score IS NOT NULL) SELECT member_id,course_id,MAX(score-lowest) AS max_improvement FROM lows GROUP BY member_id,course_id ORDER BY member_id,course_id`,
-'현재까지 최저 점수를 누적 MIN으로 구한다. 현재 자신을 포함하면 감소뿐인 경우에도 개선 폭의 최솟값이 0이 된다.',
+'현재까지 최저 점수를 누적 MIN으로 구한다. 현재 점수까지 포함해 최저점을 구하면, 점수가 계속 하락하는 경우에도 최대 개선 폭은 0이 된다.',
 `WITH lows AS (/* 회원·강좌별 누적 최저 채점 */) SELECT member_id,course_id,/* 최고 개선 */ AS max_improvement FROM lows GROUP BY member_id,course_id ORDER BY member_id,course_id`,[[1,1,30],[1,2,0],[2,1,0],[2,3,0],[3,1,0],[3,2,0],[4,3,0]]);
 add('academy',41,'최초 학습 코호트의 일주일 재방문','구간 리텐션','activity','cohort_date,learners,returned_learners',
 '회원별 첫 study 날짜를 코호트로 삼아 인원과 첫 학습일+1일부터 +7일까지 양 끝을 포함해 다시 study한 회원 수를 구한다. login은 무시하며 0분 study도 인정한다. 같은 날짜 여러 기록은 한 번, 첫날 추가 기록은 재방문이 아니다. 미활동 회원 제외, 재방문 없으면 0이다. 코호트 날짜 오름차순이다.',
@@ -170,10 +170,10 @@ add('academy',46,'달력 기준 주간 학습일 비율','빈 날짜와 고유 �
 add('academy',47,'학습 시간 가중 중심 날짜','가중 평균 날짜','members,activity','member_id,weighted_day_offset',
 '모든 회원에 대해 study 날짜와 가입일의 날짜 차이를 duration으로 가중 평균하여 소수 둘째 자리로 구한다. 가입 전 학습도 음수 차이로 포함한다. 중복 study는 모두 시간에 반영하고 login 제외. 총 study 시간이 0이면 NULL이며 기록 없는 회원도 NULL이다. 회원 번호 오름차순이다.',
 `WITH weighted AS (SELECT m.member_id,SUM(DATEDIFF(a.activity_date,m.joined_at)*a.duration) AS numerator,SUM(a.duration) AS denominator FROM members m LEFT JOIN activity a ON a.member_id=m.member_id AND a.kind='study' GROUP BY m.member_id) SELECT member_id,ROUND(numerator/NULLIF(denominator,0),2) AS weighted_day_offset FROM weighted ORDER BY member_id`,
-'가입일로부터 날짜 차이에 학습 시간을 곱한 합을 구한다. 이를 총시간으로 나누며 0분 기록은 무게를 갖지 않는다.',
+'가입일로부터 날짜 차이에 학습 시간을 곱한 합을 구한다. 이를 총 학습 시간으로 나눈다. 0분 기록의 가중치는 0이다.',
 `WITH weighted AS (/* 회원별 날짜차×시간 합과 시간 합 */) SELECT member_id,/* 가중 평균 */ AS weighted_day_offset FROM weighted ORDER BY member_id`);
 add('academy',48,'강좌별 점수의 최빈값','동점 보존 분포','courses,attempts','course_id,score,frequency',
-'각 강좌의 채점 응시 점수 빈도를 구하고 가장 자주 나온 점수를 모두 출력한다. 같은 회원의 재응시도 각각 한 건이다. NULL 점수는 제외하며 채점 없는 강좌는 출력하지 않는다. 최빈 빈도가 동점이면 모든 점수를 보존한다. 강좌 번호, 점수 오름차순이다.',
+'각 강좌의 채점 응시 점수 빈도를 구하고 가장 자주 나온 점수를 모두 출력한다. 같은 회원의 재응시도 각각 한 건이다. NULL 점수는 제외하며 채점 없는 강좌는 출력하지 않는다. 최대 빈도가 같은 점수가 여러 개이면 모두 출력한다. 강좌 번호, 점수 오름차순이다.',
 `WITH counts AS (SELECT course_id,score,COUNT(*) AS frequency FROM attempts WHERE score IS NOT NULL GROUP BY course_id,score), ranked AS (SELECT *,DENSE_RANK() OVER(PARTITION BY course_id ORDER BY frequency DESC) AS rnk FROM counts) SELECT course_id,score,frequency FROM ranked WHERE rnk=1 ORDER BY course_id,score`,
 '점수별 빈도를 먼저 계산한 뒤 강좌 안에서 빈도 순위를 매긴다. DENSE_RANK의 1위를 모두 남겨 복수 최빈값을 보존한다.',
 `WITH counts AS (/* 채점 점수별 빈도 */), ranked AS (/* 빈도 내림차순 순위 */) SELECT course_id,score,frequency FROM ranked WHERE /* 최빈 */ ORDER BY course_id,score`);
@@ -205,7 +205,7 @@ add('academy',53,'등록 이력의 겹치는 수강 기간','구간 교집합','
 add('academy',54,'일별 진행 중 등록 수','날짜별 구간 스냅샷','enrollments','day,active_enrollments',
 '2024-01-01~2024-01-07 매일 등록일이 해당 날짜 이하이고 완료일이 해당 날짜보다 뒤이거나 NULL인 등록 건수를 구한다. 완료 당일은 진행 중에서 제외한다. 재등록은 별도 건이며 같은 회원·강좌도 모두 센다. 등록 없으면 0이다. 날짜 오름차순이다.',
 `WITH RECURSIVE calendar AS (SELECT CAST('2024-01-01' AS DATE) AS day UNION ALL SELECT DATE_ADD(day,INTERVAL 1 DAY) FROM calendar WHERE day<'2024-01-07') SELECT c.day,COUNT(e.enrollment_id) AS active_enrollments FROM calendar c LEFT JOIN enrollments e ON e.enrolled_at<=c.day AND (e.completed_at>c.day OR e.completed_at IS NULL) GROUP BY c.day ORDER BY c.day`,
-'달력 날짜를 기준으로 시작일은 닫고 완료일은 연 반개구간 조건을 사용한다. COUNT에 등록 식별자를 넣어 빈 날짜를 0으로 센다.',
+'등록일은 진행 중인 기간에 포함하고 완료일은 제외하는 조건을 사용한다. COUNT에 등록 식별자를 넣어 빈 날짜를 0으로 센다.',
 `WITH RECURSIVE calendar AS (/* 7일 */) SELECT c.day,COUNT(e.enrollment_id) AS active_enrollments FROM calendar c LEFT JOIN enrollments e ON /* 등록일 이하·완료일 초과 또는 NULL */ GROUP BY c.day ORDER BY c.day`);
 add('academy',55,'회원별 학습 시간의 절반 도달일','자기 총량 기준 누적 경계','members,activity','member_id,halfway_date',
 '모든 회원의 전체 study 총시간 중 절반 이상을 최초로 누적한 날짜를 구한다. 날짜별 중복 study 시간을 합친 뒤 날짜 순으로 누적한다. login 제외, 총시간 0 또는 study 없으면 NULL이다. 정확히 절반인 날도 도달로 인정한다. 회원 번호 오름차순이다.',
@@ -217,7 +217,7 @@ add('academy',56,'첫 합격 이후 재응시 악화','성공 이후 실패 사�
 `WITH sequenced AS (SELECT *,ROW_NUMBER() OVER(PARTITION BY member_id,course_id ORDER BY attempted_at,attempt_id) AS seq FROM attempts), first_pass AS (SELECT member_id,course_id,MIN(seq) AS passed_seq FROM sequenced WHERE score>=80 GROUP BY member_id,course_id), first_fail AS (SELECT p.member_id,p.course_id,p.passed_seq,MIN(s.seq) AS failed_seq FROM first_pass p LEFT JOIN sequenced s ON s.member_id=p.member_id AND s.course_id=p.course_id AND s.seq>p.passed_seq AND s.score<80 GROUP BY p.member_id,p.course_id,p.passed_seq) SELECT f.member_id,f.course_id,p.attempt_id AS passed_attempt,s.attempt_id AS failed_attempt FROM first_fail f JOIN sequenced p ON p.member_id=f.member_id AND p.course_id=f.course_id AND p.seq=f.passed_seq LEFT JOIN sequenced s ON s.member_id=f.member_id AND s.course_id=f.course_id AND s.seq=f.failed_seq ORDER BY f.member_id,f.course_id`,
 '먼저 모든 응시에 시간 순번을 부여한다. 최초 합격 순번보다 큰 실패 중 가장 이른 순번을 찾아 실제 응시 번호로 되돌린다.',
 `WITH sequenced AS (/* 응시 순번 */), first_pass AS (/* 최초 합격 순번 */), first_fail AS (/* 그 뒤 최초 실패 순번 */) SELECT /* 실제 응시 번호 */ FROM first_fail f JOIN sequenced p ON /* 합격 순번 */ LEFT JOIN sequenced s ON /* 실패 순번 */ ORDER BY f.member_id,f.course_id`);
-add('academy',57,'연속 날짜의 학습량 자기상관 재료','일별 패널의 곱 모멘트','members,activity','member_id,pair_count,mean_product',
+add('academy',57,'인접 날짜 학습 시간의 곱 평균','일별 패널의 곱 모멘트','members,activity','member_id,pair_count,mean_product',
 '2024-01-01~2024-01-07 날짜별 study 시간에서 인접한 달력 날짜 6쌍의 시간 곱 평균을 모든 회원에 대해 소수 둘째 자리로 구한다. 미학습일은 0이며 같은 날 study는 합산하고 login 제외한다. pair_count는 각 회원 6이며 학습 없는 회원 mean_product는 0이다. 회원 번호 오름차순이다.',
 `WITH RECURSIVE calendar AS (SELECT CAST('2024-01-01' AS DATE) AS day UNION ALL SELECT DATE_ADD(day,INTERVAL 1 DAY) FROM calendar WHERE day<'2024-01-07'), daily AS (SELECT member_id,activity_date,SUM(duration) AS minutes FROM activity WHERE kind='study' GROUP BY member_id,activity_date), panel AS (SELECT m.member_id,c.day,COALESCE(d.minutes,0) AS minutes FROM members m CROSS JOIN calendar c LEFT JOIN daily d ON d.member_id=m.member_id AND d.activity_date=c.day), pairs AS (SELECT *,LAG(minutes) OVER(PARTITION BY member_id ORDER BY day) AS previous_minutes FROM panel) SELECT member_id,COUNT(previous_minutes) AS pair_count,ROUND(AVG(minutes*previous_minutes),2) AS mean_product FROM pairs GROUP BY member_id ORDER BY member_id`,
 '빈 날짜를 0으로 채운 회원·날짜 패널을 먼저 만든다. LAG로 인접 날짜 시간을 붙이면 첫날만 NULL이 되어 정확히 여섯 쌍이 평균된다.',

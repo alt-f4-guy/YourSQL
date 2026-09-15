@@ -26,6 +26,9 @@ async function main(){
       }
     }
     const today=(await page.evaluate(()=>window.practice.learning())).today.date;
+    // 화면의 현지 날짜에서 다음 날을 구해 빈칸·SQL 재오답의 실제 예약을 확인한다.
+    const nextDate=new Date(`${today}T12:00:00`);nextDate.setDate(nextDate.getDate()+1);
+    const tomorrow=`${nextDate.getFullYear()}-${String(nextDate.getMonth()+1).padStart(2,'0')}-${String(nextDate.getDate()).padStart(2,'0')}`;
     assert.equal(await page.locator('#start-extra').isVisible(),false);
     assert.equal(await page.locator('#today-screen #calendar-days').count(),0);
     assert.equal(await page.locator('#daily-count span').first().evaluate(el=>getComputedStyle(el).fontSize),'28px');
@@ -196,9 +199,13 @@ async function main(){
     await page.locator('#blank-input').fill('WRONG');await page.locator('#blank-check').click();
     await page.locator('#blank-feedback').waitFor({state:'visible'});
     await page.locator('#blank-input').fill('SELECT');await page.locator('#blank-check').click();
+    await page.locator('#next-blank').waitFor({state:'visible'});
+    assert.ok((await page.locator('#blank-feedback').textContent()).includes(tomorrow.replaceAll('-','.')));
+    await page.screenshot({path:path.join(root,'artifacts','review-blank-next-day.png')});
     await page.locator('#next-blank').click();
     const blankReview=(await page.evaluate(()=>window.practice.learning())).records.blank1;
     assert.equal(blankReview.reviewCount,1);assert.equal(blankReview.reviewTotal,4);
+    assert.equal(blankReview.due,tomorrow);
     await page.locator('#review-list .review-item').filter({hasText:reviewQueries[0].title}).getByRole('button',{name:'다시 풀기'}).click();
     // 다른 복습 문제를 열고 돌아오거나 앱을 재시작해도 진행 중인 초안을 복원한다.
     await page.locator('#editor').fill('SELECT 123 AS review_draft');
@@ -225,6 +232,11 @@ async function main(){
       await page.waitForFunction(()=>document.getElementById('grade-panel').textContent.includes('정답입니다'),null,{timeout:60000});
       await page.locator('#next-daily-query').waitFor({state:'visible'});
       assert.equal((await page.evaluate(id=>window.practice.learning().then(d=>d.records[id]),query.id)).reviewCount,1);
+      if(index===0){
+        assert.equal((await page.evaluate(id=>window.practice.learning().then(d=>d.records[id]),query.id)).due,tomorrow);
+        assert.ok((await page.locator('#grade-panel').textContent()).includes(tomorrow.replaceAll('-','.')));
+        await page.screenshot({path:path.join(root,'artifacts','review-query-next-day.png')});
+      }
       await page.locator('#editor').focus();
       if(index===0)await page.locator('#editor').evaluate(el=>el.dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',ctrlKey:true,altKey:true,bubbles:true})));
       else await page.keyboard.press(process.platform==='darwin'?'Meta+Alt+Enter':'Control+Alt+Enter');

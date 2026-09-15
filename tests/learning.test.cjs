@@ -70,7 +70,7 @@ test('해설 열람과 정답은 복습을 만들지 않고 실제 오답만 다
 });
 
 // 빈칸·쿼리는 같은 간격을 쓰고, 같은 회차의 오답은 재시작해도 한 번만 추가한다.
-for(const kind of ['blank','query'])test(`${kind}: 복습 3회와 오답 추가 회차를 1·3·7일 간격으로 저장한다`,()=>{
+for(const kind of ['blank','query'])test(`${kind}: 복습 중 재오답은 다음 날, 정답 회차는 기본 간격으로 예약한다`,()=>{
   const dir=fs.mkdtempSync(path.join(os.tmpdir(),'sql-review-spacing-'));
   try{
     let now=new Date(2026,8,6),store=new Learning(dir,()=>now);
@@ -85,18 +85,44 @@ for(const kind of ['blank','query'])test(`${kind}: 복습 3회와 오답 추가 
     store=new Learning(dir,()=>now);answer(false,true);
     assert.equal(record().reviewTotal,4);assert.equal(record().due,'2026-09-07');
     answer(true,true);answer(true,true);
-    assert.equal(record().reviewCount,1);assert.equal(record().due,'2026-09-10');
-    store.reveal('blank1');assert.equal(record().due,'2026-09-10');
+    assert.equal(record().reviewCount,1);assert.equal(record().due,'2026-09-08');
+    store.reveal('blank1');assert.equal(record().due,'2026-09-08');
     now=new Date(2026,8,10);answer(true,true);
     assert.equal(record().reviewCount,2);assert.equal(record().due,'2026-09-17');
     // 늦게 완료한 회차는 실제 완료일로부터 다음 간격을 계산한다.
     now=new Date(2026,8,19);answer(false,true);answer(true,true);
-    assert.equal(record().reviewTotal,5);assert.equal(record().reviewCount,3);assert.equal(record().due,'2026-09-26');
+    assert.equal(record().reviewTotal,5);assert.equal(record().reviewCount,3);assert.equal(record().due,'2026-09-20');
     now=new Date(2026,8,26);answer(true,true);
     assert.equal(record().reviewCount,4);assert.equal(record().due,'2026-10-03');
     now=new Date(2026,9,3);answer(true,true);answer(true,true);
     assert.equal(record().reviewCount,5);assert.equal(record().due,null);assert.deepEqual(store.snapshot().due,[]);
     assert.equal(new Learning(dir,()=>now).snapshot().records[id].due,null);
+  }finally{fs.rmSync(dir,{recursive:true,force:true});}
+});
+
+// 마지막 회차의 재오답도 종료하지 않으며, 중단·재시작·연말을 지나 실제 완료 다음 날에 다시 푼다.
+for(const kind of ['blank','query'])test(`${kind}: 마지막 복습 재오답 후 중단해도 다음 날 재복습을 보존한다`,()=>{
+  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'sql-review-retry-'));
+  try{
+    let now=new Date(2026,11,20),store=new Learning(dir,()=>now);
+    const id=kind==='blank'?'blank1':'level1_01';
+    const answer=correct=>kind==='blank'?store.answer({id,answer:correct?'SELECT':'오답',review:true}):store.queryResult(id,{status:correct?'correct':'error',answerError:!correct},true);
+    answer(false);
+    now=new Date(2026,11,21);answer(true);
+    now=new Date(2026,11,24);answer(true);
+    now=new Date(2026,11,31);answer(false);answer(false);
+    store=new Learning(dir,()=>now);
+    assert.equal(store.snapshot().records[id].reviewTotal,4);
+    now=new Date(2027,0,1);
+    assert.ok(store.snapshot().due.some(r=>r.id===id),'틀린 채 중단한 복습은 다음 날에도 풀 수 있어야 한다');
+    answer(true);answer(true);
+    const record=store.snapshot().records[id];
+    assert.equal(record.reviewCount,3);assert.equal(record.due,'2027-01-02');
+    assert.equal(record.reviewFailed,false);
+    store=new Learning(dir,()=>now);
+    assert.equal(store.snapshot().records[id].due,'2027-01-02');
+    now=new Date(2027,0,2);answer(true);
+    assert.equal(store.snapshot().records[id].due,null);
   }finally{fs.rmSync(dir,{recursive:true,force:true});}
 });
 

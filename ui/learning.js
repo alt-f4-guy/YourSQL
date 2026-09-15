@@ -15,11 +15,11 @@
   const reviews=()=>data.due;
   // 당일 복습 없음과 학습 기록 없음을 구분한다.
   const reviewEmpty=()=>{const next=Object.values(data.records).filter(r=>r.kind&&r.due>data.today.date).map(r=>r.due).sort()[0];return next?`오늘 복습할 문제는 없어요. 다음 복습: ${next.replaceAll('-','.')}`:'예정된 복습이 없어요. 풀이 중 틀린 문제만 복습에 등록됩니다.';};
-  const reviewDetail=item=>`${item.reviewCount}/${item.reviewTotal}회 완료 · 복습일 ${item.due}${item.reviewFailed?' · 이번 오답으로 1회 추가됨':''}`;
+  const reviewDetail=item=>`${item.reviewCount}/${item.reviewTotal}회 완료 · 복습일 ${item.due}${item.reviewFailed?' · 정답으로 마무리하면 다음 날 다시 복습':''}`;
   const reviewNotice=id=>{
     const r=data.records[id];if(!r?.due)return '';
     const date=r.due.replaceAll('-','.');
-    return !r.reviewCount&&!r.reviewFailed?`복습에 등록되었습니다. 첫 복습: ${date} · 기본 ${r.reviewTotal}회`:`복습 일정: ${date} · 총 ${r.reviewTotal}회${r.reviewFailed?' · 이번 회차 오답으로 1회 추가됨':''}`;
+    return !r.reviewCount&&!r.reviewFailed?`복습에 등록되었습니다. 첫 복습: ${date} · 기본 ${r.reviewTotal}회`:`복습 일정: ${date} · 총 ${r.reviewTotal}회${r.reviewFailed?' · 1회 추가됨. 정답으로 마무리하면 다음 날 다시 복습합니다.':''}`;
   };
   // 완료로 바뀐 순간만 알리고 표시 날짜를 저장해 추가 학습·재시작 중복을 막는다.
   function showReviewReminder(){
@@ -220,7 +220,7 @@
     e.preventDefault();if(working)return;working=true;$('blank-check').disabled=true;
     try{
       const result=await api.blankAnswer({id:card.id,answer:$('blank-input').value,review:sessionKind==='review'});data=result.snapshot;render();
-      const feedback=$('blank-feedback');feedback.hidden=false;feedback.dataset.correct=String(result.correct);feedback.textContent=(result.correct?'정답이에요. ':'')+result.explanation+(result.correct?'':` ${reviewNotice(card.id)}`);
+      const feedback=$('blank-feedback');feedback.hidden=false;feedback.dataset.correct=String(result.correct);feedback.textContent=(result.correct?'정답이에요. ':'')+result.explanation+(result.correct&&sessionKind!=='review'?'':` ${reviewNotice(card.id)}`);
       if(result.correct){$('blank-input').disabled=true;$('blank-reveal').disabled=true;$('next-blank').hidden=false;$('next-blank').textContent=sessionIndex+1<session.length?'다음 문제 →':sessionKind==='daily'&&!data.today.queryDone?'전체 쿼리 작성으로 →':'학습 마치기';$('next-blank').focus();}else $('blank-input').focus();
     }finally{working=false;$('blank-check').disabled=$('blank-input').disabled;}
   }));

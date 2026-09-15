@@ -31,4 +31,4 @@ IPC 실패는 예외로 전달되므로 화면은 오류를 표시한다. 제출
 
 일일 6+2 미완료→완료 전환 시 복습 알림을 표시한다. 표시한 현지 날짜는 앱의 로컬 저장소 `review-reminder-date`에 보관하여 같은 날 추가 학습·재시작 시 중복 표시하지 않는다. 이미 완료된 상태로 앱을 시작하면 알림을 다시 띄우지 않는다.
 
-`blankAnswer({id,answer,review=false})`와 `submit({id,sql,review=false})`는 예정일이 된 문제의 복습 제출에만 회차를 반영한다. 기록의 `reviewCount`는 완료 회차, `reviewTotal`은 기본 3회와 오답 회차별 추가분의 합, `reviewFailed`는 현재 회차에서 이미 횟수를 추가했는지 나타낸다. `due`는 다음 복습일이며 복습 대상이 아니거나 종료하면 `null`이다. `learning().due`는 오늘까지 예정된 미완료 복습만 반환한다. 답안 실행 오류에는 `answerError:true`를 전달하고 서버 준비·기준 쿼리 오류는 오답 복습에서 제외한다.
+`blankAnswer({id,answer,review=false})`와 `submit({id,sql,review=false})`는 예정일이 된 문제의 복습 제출에만 회차를 반영한다. 기록의 `reviewCount`는 완료 회차, `reviewTotal`은 기본 3회와 오답 회차별 추가분의 합, `reviewFailed`는 현재 회차에서 이미 횟수를 추가했는지 나타낸다. 복습 정답 제출 시 `reviewFailed`가 참이면 실제 완료일의 다음 날을 예약한 뒤 플래그를 초기화한다. 틀린 채 중단하면 기존 예정일을 유지하여 다음 날에도 미완료 복습으로 제공한다. 오답이 없는 회차는 첫 완료 후 3일, 이후 7일 간격을 적용한다. `due`는 다음 복습일이며 복습 대상이 아니거나 종료하면 `null`이다. `learning().due`는 오늘까지 예정된 미완료 복습만 반환한다. 답안 실행 오류에는 `answerError:true`를 전달하고 서버 준비·기준 쿼리 오류는 오답 복습에서 제외한다.
