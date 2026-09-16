@@ -21,6 +21,15 @@ test('캘린더는 여러 사이클의 누적 문제 수를 표시한다',()=>{
   assert.equal(month.days[6].total,5);assert.equal(month.days[6].status,'complete');
   assert.equal(month.completed,2);
 });
+
+test('캘린더는 날짜별 목표 사이클과 완료 사이클을 보존한다',()=>{
+  const history={'2026-09-07':{blankCount:6,queryCount:2,goalCycles:3,completedCycles:1,complete:false}};
+  const month=calendarMonth(2026,8,'2026-09-07',history);
+  const day=month.days[6];
+  assert.equal(day.goalCycles,3);
+  assert.equal(day.completedCycles,1);
+  assert.equal(day.status,'partial');
+});
 // 연간 히트맵은 기존 월별 기록 해석과 윤년 처리를 재사용한다.
 test('연간 히트맵은 윤년과 연말, 누적 완료 수를 보존한다',()=>{
   const {calendarYear}=require('../ui/calendar.js');

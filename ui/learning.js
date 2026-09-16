@@ -21,6 +21,18 @@
     const date=r.due.replaceAll('-','.');
     return !r.reviewCount&&!r.reviewFailed?`복습에 등록되었습니다. 첫 복습: ${date} · 기본 ${r.reviewTotal}회`:`복습 일정: ${date} · 총 ${r.reviewTotal}회${r.reviewFailed?' · 1회 추가됨. 정답으로 마무리하면 다음 날 다시 복습합니다.':''}`;
   };
+  const dailyGoal=()=>data.dailyGoal||{cycles:data.today.goalCycles||data.settings?.dailyCycles||1,blankCount:(data.today.goalCycles||1)*6,queryCount:(data.today.goalCycles||1)*2,total:(data.today.goalCycles||1)*8};
+  function renderGoalPreview(value){
+    const summary=$('daily-goal-summary');
+    if(!Number.isSafeInteger(value)||value<1){summary.textContent='1 이상의 정수로 입력하세요.';return false;}
+    summary.textContent=`${value}사이클 · 빈칸 ${value*6}개 + 쿼리 ${value*2}개 · 총 ${value*8}문제`;
+    return true;
+  }
+  function renderGoalSettings(){
+    const input=$('daily-goal-cycles'),cycles=data.settings?.dailyCycles||data.today.goalCycles||1;
+    if(document.activeElement!==input)input.value=String(cycles);
+    renderGoalPreview(Number(input.value));
+  }
   // 완료로 바뀐 순간만 알리고 표시 날짜를 저장해 추가 학습·재시작 중복을 막는다.
   function showReviewReminder(){
     if(reminderPending!==data.today.date||!workspace||document.querySelector('dialog[open]'))return;
@@ -32,22 +44,23 @@
   }
   async function refresh(){data=await api.learning();render();}
   function render(){
-    const t=data.today,total=t.done.length+t.queriesDone.length,due=reviews();
-    if(lastDailyState?.date===t.date&&!lastDailyState.complete&&total===8)reminderPending=t.date;
-    lastDailyState={date:t.date,complete:total===8};
+    const t=data.today,total=t.done.length+t.queriesDone.length,due=reviews(),goal=dailyGoal(),goalCycles=goal.cycles,completedCycles=t.completedCycleCount??0,currentComplete=Boolean(t.currentCycleComplete),goalComplete=Boolean(t.goalComplete??data.history[t.date]?.complete),courseComplete=Boolean(t.courseComplete),cycleNumber=(t.completedCycles?.length||0)+1,extraCycles=Math.max(0,completedCycles-goalCycles),goalProgress=Math.min(completedCycles,goalCycles);
+    if(lastDailyState?.date===t.date&&!lastDailyState.complete&&goalComplete)reminderPending=t.date;
+    lastDailyState={date:t.date,complete:goalComplete};
     $('today-date').textContent=`${t.date.replaceAll('-','.')} · 오늘의 루틴`;
-    $('daily-cycle').textContent=`${(t.completedCycles?.length||0)+1}번째 사이클 · 빈칸 6 + 쿼리 2`;
+    $('daily-cycle').textContent=courseComplete&&!t.blanks.length?'새로 배정할 사이클 없음':`${cycleNumber}번째 사이클 · 빈칸 6 + 쿼리 2`;
     $('completed-days').textContent=`하루 목표 달성 ${data.completedDays}일`;
-    $('daily-title').textContent=total===8?'오늘의 학습을 모두 마쳤어요!':data.units.find(u=>u.id===t.unit||u.queries.includes(t.queries[0]))?.title||'오늘의 SQL 연습';
-    $('daily-copy').textContent=total===8?data.hasMore?'잘했어요. 복습하거나 다음 6+2 문제를 이어서 학습해 보세요.':'모든 개념 과정을 마쳤어요. 복습으로 기억을 다져 보세요.':'빈칸 여섯 문제, 쿼리 두 문제. 오늘도 차근차근 쌓아가요.';
+    $('daily-goal-detail').textContent=extraCycles?`오늘 목표 ${goalProgress} / ${goalCycles}사이클 달성 · 추가 ${extraCycles}사이클 완료`:`오늘 목표 ${goalProgress} / ${goalCycles}사이클 ${goalComplete?'달성':'완료'}`;
+    $('daily-title').textContent=courseComplete?'전체 과정을 완료했어요':goalComplete?'오늘의 목표를 모두 마쳤어요!':currentComplete?'사이클을 마쳤어요':data.units.find(u=>u.id===t.unit||u.queries.includes(t.queries[0]))?.title||'오늘의 SQL 연습';
+    $('daily-copy').textContent=courseComplete?'모든 개념 과정을 마쳤어요. 복습과 단원별 다시 풀기로 기억을 다져 보세요.':goalComplete?(due.length?`오늘 복습할 문제 ${due.length}개가 있어요.`:'오늘 목표를 달성했어요. 복습하거나 추가 학습을 이어서 해 보세요.'):currentComplete?'이 사이클을 마쳤어요. 다음 사이클을 시작하면 오늘 목표에 계속 반영됩니다.':'빈칸 여섯 문제, 쿼리 두 문제. 오늘도 차근차근 쌓아가요.';
     $('daily-count').replaceChildren(node('span',String(total)),node('span','/ 8'));
     $('daily-progress').value=total;$('daily-detail').textContent=`빈칸 ${t.done.length}/6 · 쿼리 ${t.queriesDone.length}/2 · 오늘 총 ${data.history[t.date].total}문제 완료`;
-    $('start-daily').disabled=!workspace;$('start-daily').hidden=total===8&&!due.length&&data.hasMore;$('start-daily').textContent=total===8?due.length?'복습 시작':'개념 목록 보기':total?'오늘 학습 이어하기':'오늘의 학습 시작';
-    $('start-extra').hidden=total!==8||!data.hasMore;$('start-extra').disabled=!workspace||!data.hasMore;
+    $('start-daily').disabled=!workspace;$('start-daily').hidden=currentComplete&&!due.length&&data.hasMore;$('start-daily').textContent=due.length?'복습 시작':courseComplete||currentComplete?'개념 목록 보기':total?'오늘 학습 이어하기':'오늘의 학습 시작';
+    $('start-extra').hidden=!currentComplete||!data.hasMore;$('start-extra').disabled=!workspace||!data.hasMore;
     $('start-extra').classList.toggle('secondary',due.length>0);
-    if(total===8)$('daily-copy').textContent=due.length?`오늘 복습할 문제 ${due.length}개가 있어요.`:reviewEmpty();
-    $('start-extra').textContent=data.hasMore?'추가 학습하기':'전체 과정 완료';
+    $('start-extra').textContent=completedCycles<goalCycles?'다음 사이클 시작':'추가 학습하기';
     $('review-badge').textContent=due.length;
+    renderGoalSettings();
     renderHome(t,due);
     renderQueryMission();
     renderCalendar();
@@ -116,7 +129,8 @@
       b.addEventListener('click',()=>{selectedDate=d.date;renderCalendar();$('calendar-days').querySelector(`[data-date="${selectedDate}"]`).focus({preventScroll:true});});$('calendar-days').append(b);
     }
     const selected=month.days.find(d=>d.date===selectedDate)||month.days[0];
-    $('calendar-detail').replaceChildren(node('h2',`${selected.date.replaceAll('-','.')}의 기록`),node('p',selected.status==='complete'?'하루 목표 달성!':selected.recorded?'조금씩 쌓는 중':'저장된 학습 기록이 없어요'),node('strong',`${selected.total}문제 완료`),node('p',`빈칸 ${selected.blankCount}개 · 쿼리 ${selected.queryCount}개`));
+    const cycleDetail=selected.goalCycles===null?'사이클 상세를 확인할 수 없는 기존 기록입니다.':`목표 ${selected.goalCycles}사이클 · ${selected.completedCycles??0}사이클 완료`;
+    $('calendar-detail').replaceChildren(node('h2',`${selected.date.replaceAll('-','.')}의 기록`),node('p',selected.status==='complete'?'하루 목표 달성!':selected.recorded?'조금씩 쌓는 중':'저장된 학습 기록이 없어요'),node('strong',`${selected.total}문제 완료`),node('p',`빈칸 ${selected.blankCount}개 · 쿼리 ${selected.queryCount}개`),node('p',cycleDetail));
   }
   for(const [id,offset] of [['calendar-prev',-1],['calendar-next',1]])$(id).addEventListener('click',()=>{calendarDate=new Date(calendarDate.getFullYear()+offset,0,1);selectedDate=null;renderCalendar();});
   // 한 번의 탭으로 진입하고 방향키로 일·주 단위 이동한다.
@@ -208,7 +222,7 @@
     $('blank-code').replaceChildren(document.createTextNode(before),input,document.createTextNode(after));
     $('blank-feedback').hidden=true;$('next-blank').hidden=true;$('blank-check').disabled=false;$('blank-reveal').disabled=false;input.focus();
   }
-  async function daily(){await refresh();const ids=data.today.blanks.filter(id=>!data.today.done.includes(id));if(ids.length)await startSession(ids,'daily');else if(!data.today.queryDone)await openQuery();else if(reviews().length)await startReview();else await show('concept');}
+  async function daily(){await refresh();const ids=data.today.blanks.filter(id=>!data.today.done.includes(id));if(ids.length)await startSession(ids,'daily');else if(!data.today.queryDone)await openQuery();else if(reviews().length)await startReview();else if(data.today.courseComplete||data.today.currentCycleComplete)await show('concept');else await show('today');}
   async function startReview(){const items=reviews(),ids=items.filter(r=>r.kind==='blank').map(r=>r.id);if(ids.length)await startSession(ids,'review');else if(items.length)await openQuery(items[0].id,true);}
   async function next(){
     drafts.delete(card.id);
@@ -269,7 +283,16 @@
   $('open-daily-query').addEventListener('click',safely(()=>openQuery()));
   $('query-return').addEventListener('click',safely(async()=>{await refresh();await show('today');}));
   document.querySelectorAll('.learning-nav [data-mode], [data-open]').forEach(b=>b.addEventListener('click',safely(async()=>{await refresh();const next=b.dataset.mode||b.dataset.open;await show(next==='query'?'catalog':next);}))); 
-  $('open-settings').addEventListener('click',()=>$('settings-dialog').showModal());
+  $('daily-goal-cycles').addEventListener('input',()=>{const valid=renderGoalPreview(Number($('daily-goal-cycles').value));$('daily-goal-status').hidden=valid;});
+  $('save-daily-goal').addEventListener('click',safely(async()=>{
+    const input=$('daily-goal-cycles'),value=Number(input.value),status=$('daily-goal-status');
+    if(!renderGoalPreview(value)){status.textContent='하루 목표 사이클은 1 이상의 정수로 입력해 주세요.';status.hidden=false;input.focus();return;}
+    const button=$('save-daily-goal');button.disabled=true;
+    try{data=await api.setDailyGoal(value);render();status.textContent='하루 목표를 저장했어요. 오늘부터 적용됩니다.';status.hidden=false;}
+    catch(error){status.textContent=error.message||'하루 목표를 저장하지 못했습니다.';status.hidden=false;}
+    finally{button.disabled=false;}
+  }));
+  $('open-settings').addEventListener('click',safely(async()=>{await refresh();$('settings-dialog').showModal();}));
   for(const id of ['hint','solution'])$(id).addEventListener('click',safely(async()=>{if(workspace?.current())await api.learningAssist(workspace.current());}));
   window.learningUI={
     ready(value){workspace=value;void safely(refresh)();},

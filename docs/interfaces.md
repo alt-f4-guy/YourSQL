@@ -16,6 +16,10 @@ problems: `{id,level,title,topic,description,tables:[테이블명],columns:[결�
 - `exportLog(id)` → `{canceled:boolean,path?:string}` (네이티브 저장 대화상자)
 - `importPack()` → `{canceled:boolean,count?:number,error?:string}` (네이티브 열기 대화상자)
 - `solution(id)` → `{sql,explanation}`
+- `learning()` → 오늘 배정, 날짜별 기록, 복습 대상, 하루 목표 설정을 포함한 학습 스냅샷
+- `learningSettings()` → `{dailyCycles:number}`. 저장된 하루 목표 사이클이며 기본값은 1이다.
+- `setDailyGoal(cycles)` → 갱신된 학습 스냅샷. `cycles`는 1 이상의 안전한 정수만 허용하며, 잘못된 값은 저장하지 않는다.
+- `startExtra()` → 현재 6+2 사이클이 완료됐고 새 문제가 남아 있을 때 다음 배정을 만든 뒤 학습 스냅샷을 반환한다. 진행 중 배정, 중복 호출, 전체 과정 종료 상태에서는 배정을 바꾸지 않는다.
 - `retryEngine()` → `{ready,message,missing}`. `bootstrap().engine`와 `onEngineChanged`에도 같은 미설치 여부를 전달한다.
 - `openMySQLPage()` → 고정된 공식 MySQL 8.4 설치 페이지를 외부 브라우저로 연다. 주소 입력은 받지 않는다.
 IPC 실패는 예외로 전달되므로 화면은 오류를 표시한다. 제출의 wrong·error는 자동으로 로그 파일에 기록한다. 연결 실패 등의 인프라 오류도 error로 기록하되 오답과 구별한다.
@@ -29,6 +33,8 @@ IPC 실패는 예외로 전달되므로 화면은 오류를 표시한다. 제출
 
 `saveDraft`와 `submit`에 선택 불리언 `review`를 전달하면 복습 초안 `reviewSql`을 저장하고 원래 `sql`은 보존한다. 선택 필드 `reviewDue`는 현재 복습 예정일(YYYY-MM-DD 또는 null)로, 같은 예정일의 초안만 복원한다. 문제별 진행 기록의 `studyDays`는 제출 시점의 현지 날짜 배열이다. `practice:study`는 현재·최장 연속일수, 전체 학습일, 오늘 제출 여부와 날짜 목록을 반환한다. 과거 기록을 추정하여 채우지 않는다.
 
-일일 6+2 미완료→완료 전환 시 복습 알림을 표시한다. 표시한 현지 날짜는 앱의 로컬 저장소 `review-reminder-date`에 보관하여 같은 날 추가 학습·재시작 시 중복 표시하지 않는다. 이미 완료된 상태로 앱을 시작하면 알림을 다시 띄우지 않는다.
+일일 학습의 한 사이클은 배정된 빈칸 6개와 쿼리 2개를 모두 완료해야 끝난다. `learning().settings.dailyCycles`는 현재 설정값이고 `dailyGoal`은 오늘 목표의 사이클·빈칸·쿼리·전체 문제 수다. 오늘 배정의 `goalCycles`는 해당 날짜에 적용된 목표를 보존한다. `completedCycleCount`, `currentCycleComplete`, `goalComplete`, `courseComplete`로 오늘 상태를 구분하며, 날짜별 `history`도 `goalCycles`, `completedCycleCount`, `goalComplete`를 저장한다. 구형 기록에서 목표 사이클을 확인할 수 없으면 사이클 상세를 임의로 만들지 않는다.
+
+하루 목표 전체의 미달성→달성 전환 시 복습 알림을 표시한다. 표시한 현지 날짜는 앱의 로컬 저장소 `review-reminder-date`에 보관하여 같은 날 목표 변경·추가 학습·재시작 시 중복 표시하지 않는다. 이미 달성된 상태로 앱을 시작하면 알림을 다시 띄우지 않는다. 자유 연습과 복습 완료 수는 목표 사이클 계산에 포함하지 않는다. 모든 단원의 새 문제를 마친 뒤에는 빈 배정과 `courseComplete:true`를 반환하며 문제를 자동 반복하지 않는다.
 
 `blankAnswer({id,answer,review=false})`와 `submit({id,sql,review=false})`는 예정일이 된 문제의 복습 제출에만 회차를 반영한다. 기록의 `reviewCount`는 완료 회차, `reviewTotal`은 기본 3회와 오답 회차별 추가분의 합, `reviewFailed`는 현재 회차에서 이미 횟수를 추가했는지 나타낸다. 복습 정답 제출 시 `reviewFailed`가 참이면 실제 완료일의 다음 날을 예약한 뒤 플래그를 초기화한다. 틀린 채 중단하면 기존 예정일을 유지하여 다음 날에도 미완료 복습으로 제공한다. 오답이 없는 회차는 첫 완료 후 3일, 이후 7일 간격을 적용한다. `due`는 다음 복습일이며 복습 대상이 아니거나 종료하면 `null`이다. `learning().due`는 오늘까지 예정된 미완료 복습만 반환한다. 답안 실행 오류에는 `answerError:true`를 전달하고 서버 준비·기준 쿼리 오류는 오답 복습에서 제외한다.

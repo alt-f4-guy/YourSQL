@@ -254,10 +254,11 @@ test('추가 6+2 사이클은 순서대로 배정하고 일별 누적과 재시�
 });
 
 // 전체 과정을 하루에 끝내도 중복 배정 없이 종료되고 기존 일일 기록을 읽는다.
-test('하루 40사이클 종료 후 추가 배정을 멈춘다',()=>{
+test('하루 40사이클 종료 후 다음 날에도 자동 반복 배정을 만들지 않는다',()=>{
   const dir=fs.mkdtempSync(path.join(os.tmpdir(),'sql-extra-course-'));
   try{
-    const store=new Learning(dir,()=>new Date(2026,8,7)),seen=new Set();
+    let now=new Date(2026,8,7);const store=new Learning(dir,()=>now),seen=new Set();
+    store.setDailyGoal(41);
     assert.equal(typeof store.startExtra,'function');
     for(let cycle=0;cycle<40;cycle++){
       const t=store.snapshot().today;
@@ -266,9 +267,18 @@ test('하루 40사이클 종료 후 추가 배정을 멈춘다',()=>{
       if(cycle<39)store.startExtra();
     }
     const final=store.snapshot();assert.equal(final.history['2026-09-07'].total,320);
-    assert.equal(final.hasMore,false);assert.equal(final.completedDays,1);
+    assert.equal(final.hasMore,false);assert.equal(final.today.courseComplete,true);
+    assert.equal(final.today.completedCycleCount,40);assert.equal(final.today.goalComplete,false);
+    assert.equal(final.completedDays,0);
     assert.deepEqual(store.startExtra().today,final.today);
     assert.equal(new Learning(dir,()=>new Date(2026,8,7)).snapshot().history['2026-09-07'].total,320);
+    now=new Date(2026,8,8);
+    const next=store.snapshot();
+    assert.equal(next.today.courseComplete,true);
+    assert.deepEqual(next.today.blanks,[]);
+    assert.deepEqual(next.today.queries,[]);
+    assert.equal(next.today.goalComplete,false);
+    assert.equal(next.history['2026-09-08'].total,0);
   }finally{fs.rmSync(dir,{recursive:true,force:true});}
 });
 
@@ -321,5 +331,65 @@ test('배정 밖 정답은 일별 누적에 반영하고 재시작과 다음날�
     now=new Date(2026,8,8);store.answer({id,answer:store.card(id).answer});
     assert.equal(store.snapshot().history[today.date].total,2);
     assert.equal(store.snapshot().history['2026-09-08'].total,1);
+  }finally{fs.rmSync(dir,{recursive:true,force:true});}
+});
+
+// 하루 목표는 저장하고 현재 날짜에만 적용하며, 첫 사이클만으로 높은 목표를 달성하지 않는다.
+test('하루 목표 사이클을 저장하고 사이클 완료 수로 목표 달성을 판정한다',()=>{
+  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'sql-daily-goal-'));
+  try{
+    let now=new Date(2026,8,7),store=new Learning(dir,()=>now);
+    assert.equal(store.snapshot().settings.dailyCycles,1);
+    const changed=store.setDailyGoal(2);
+    assert.equal(changed.settings.dailyCycles,2);
+    assert.equal(changed.today.goalCycles,2);
+    assert.deepEqual(changed.dailyGoal,{cycles:2,blankCount:12,queryCount:4,total:16});
+    assert.throws(()=>store.setDailyGoal(0),/1 이상의 정수/);
+    assert.throws(()=>store.setDailyGoal(1.5),/1 이상의 정수/);
+    assert.equal(store.snapshot().settings.dailyCycles,2);
+
+    const finish=()=>{
+      const today=store.snapshot().today;
+      for(const id of today.blanks)store.answer({id,answer:store.card(id).answer});
+      for(const id of today.queries)store.queryResult(id,{status:'correct'});
+    };
+    const freeId=require('../content/lessons.cjs')[1].cards[0].id;
+    store.answer({id:freeId,answer:store.card(freeId).answer});
+    finish();
+    let progress=store.snapshot();
+    assert.equal(progress.today.completedCycleCount,1);
+    assert.equal(progress.today.currentCycleComplete,true);
+    assert.equal(progress.today.goalComplete,false);
+    assert.equal(progress.history['2026-09-07'].completedCycles,1);
+    assert.equal(progress.history['2026-09-07'].complete,false);
+    assert.equal(progress.history['2026-09-07'].total,9);
+
+    const firstDone=[...progress.today.done],firstQueries=[...progress.today.queriesDone];
+    progress=store.setDailyGoal(1);
+    assert.equal(progress.today.goalComplete,true);
+    progress=store.setDailyGoal(3);
+    assert.equal(progress.today.goalComplete,false);
+    assert.deepEqual(progress.today.done,firstDone);
+    assert.deepEqual(progress.today.queriesDone,firstQueries);
+    store.setDailyGoal(2);
+
+    const second=store.startExtra();
+    assert.equal(second.today.completedCycles.length,1);
+    assert.equal(second.today.goalCycles,2);
+    finish();
+    progress=store.snapshot();
+    assert.equal(progress.today.completedCycleCount,2);
+    assert.equal(progress.today.goalComplete,true);
+    assert.equal(progress.history['2026-09-07'].complete,true);
+
+    store=new Learning(dir,()=>now);
+    assert.equal(store.snapshot().settings.dailyCycles,2);
+    assert.equal(store.snapshot().today.completedCycleCount,2);
+    assert.equal(store.snapshot().today.goalComplete,true);
+
+    now=new Date(2026,8,8);
+    store.setDailyGoal(3);
+    assert.equal(store.snapshot().today.goalCycles,3);
+    assert.equal(store.snapshot().history['2026-09-07'].goalCycles,2);
   }finally{fs.rmSync(dir,{recursive:true,force:true});}
 });

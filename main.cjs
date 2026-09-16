@@ -63,6 +63,8 @@ else {
     handle('run',value=>service.run(value));
     handle('submit',async value=>{const result=await service.submit(value);learning.queryResult(value.id,result,value.review);return result;});
     handle('learning',()=>learning.snapshot());
+    handle('learningSettings',()=>learning.snapshot().settings);
+    handle('setDailyGoal',value=>learning.setDailyGoal(value));
     handle('startExtra',()=>learning.startExtra());
     handle('blankAnswer',value=>learning.answer(value));
     handle('blankReveal',id=>learning.reveal(id));
@@ -90,7 +92,7 @@ else {
     ipcMain.on('practice:closeReady',event=>{
       if (event.sender === window?.webContents) {closing=true;window.close();}
     });
-    window=new BrowserWindow({width:1440,height:940,minWidth:1100,minHeight:750,title:appName,backgroundColor:'#15141b',
+    window=new BrowserWindow({width:1440,height:940,minWidth:1100,minHeight:750,title:appName,backgroundColor:'#15141b',show:process.env.YOURSQL_TEST_HIDDEN!=='1',
       webPreferences:{preload:path.join(__dirname,'preload.cjs'),nodeIntegration:false,contextIsolation:true,sandbox:true}});
     window.webContents.setWindowOpenHandler(()=>({action:'deny'}));
     window.webContents.on('will-navigate',event=>event.preventDefault());

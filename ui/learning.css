@@ -27,7 +27,8 @@ progress{width:100%;height:9px;appearance:none;border:0;border-radius:10px;overf
 @media(max-width:1150px){.learning-nav{padding:0 18px}.learning-nav>span{display:none}#learning-screen{padding:26px}.daily-hero{padding:25px}.learning-heading h1{font-size:25px}.lesson-card{padding:28px}.mode-card{padding:18px}}
 @media(prefers-reduced-motion:reduce){progress::-webkit-progress-value{transition:none}}
 /* 테마 관리와 상태 메시지는 설정창 안에만 표시한다. */
-#settings-dialog{max-width:560px}.settings-controls{padding:8px 20px 26px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}#settings-dialog #theme-status{position:static;margin:0 20px 20px;max-width:none}#settings-dialog .theme-select{min-width:190px}
+#settings-dialog{max-width:560px;overflow:auto}.settings-controls{padding:8px 20px 26px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}#settings-dialog #theme-status{position:static;margin:0 20px 20px;max-width:none}#settings-dialog .theme-select{min-width:190px}
+.learning-settings,.theme-settings{margin:0 20px 20px;padding:16px 0;border-top:1px solid var(--line)}.learning-settings h2,.theme-settings h2{font-size:16px;margin:0 0 8px}.learning-settings .dialog-copy,.theme-settings .dialog-copy{padding:0;margin-bottom:12px}.daily-goal-controls{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.daily-goal-controls label{font-weight:600}.daily-goal-controls input{width:90px;padding:7px 9px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--text);font-variant-numeric:tabular-nums}.daily-goal-controls input:invalid{border-color:var(--red)}.settings-summary{margin:12px 0 5px;color:var(--learn-accent);font-weight:600}.settings-hint{margin:0;color:var(--muted);font-size:11px;line-height:1.6}.learning-settings #daily-goal-status{margin:12px 0 0;box-shadow:none}
 /* 창 안에서 홈·목록이 스크롤되도록 높이를 고정하고 상단 메뉴는 유지한다. */
 html,body{height:100%}body{height:100dvh;min-height:0}.topbar{flex-shrink:0}
 #learning-screen{min-height:0;overflow-y:scroll;scrollbar-gutter:stable;overscroll-behavior:contain}
@@ -53,6 +54,7 @@ html,body{height:100%}body{height:100dvh;min-height:0}.topbar{flex-shrink:0}
 .daily-progress>strong{letter-spacing:0;font-variant-numeric:tabular-nums}
 .daily-progress strong span:first-child{font-size:28px;color:var(--learn-accent);margin-left:0}
 .daily-progress>span,.section-heading span,.home-row small,.home-row-action,.home-row-meta,.unit-card .unit-state{font-size:12px}
+#daily-goal-detail{font-weight:600;color:var(--learn-accent)}
 .unit-card>span:nth-child(2){min-width:0}.unit-card strong{overflow-wrap:anywhere}.unit-state{flex-shrink:0}
 .learning-calendar{padding:16px 0;border:0;border-top:1px solid var(--line);border-radius:0}
 .learning-calendar>summary{cursor:pointer;font-weight:600;padding:8px 4px}

@@ -10,12 +10,14 @@ const rootCopy=process.argv.includes('--root-copy');
 const packaged=rootCopy||process.argv.includes('--packaged');
 // 각 운영체제에서 동일한 화면·채점 검사를 실행한다.
 const executable=process.platform==='win32'?path.join(root,'dist','YourSQL-win32-x64','YourSQL.exe'):rootCopy?path.join(root,'YourSQL.app','Contents','MacOS','YourSQL'):path.join(root,'dist','YourSQL-darwin-arm64','YourSQL.app','Contents','MacOS','YourSQL');
-const launch=()=>electron.launch({...(process.env.YOURSQL_TEST_EXECUTABLE||packaged?{executablePath:process.env.YOURSQL_TEST_EXECUTABLE||executable,args:[]}:{args:[root]}),env:{...process.env,SQL_PRACTICE_DATA_DIR:data},timeout:60000});
+const launch=()=>electron.launch({...(process.env.YOURSQL_TEST_EXECUTABLE||packaged?{executablePath:process.env.YOURSQL_TEST_EXECUTABLE||executable,args:[]}:{args:[root]}),env:{...process.env,SQL_PRACTICE_DATA_DIR:data,YOURSQL_TEST_HIDDEN:'1'},timeout:60000});
 async function main(){
-  let app=await launch();
+  let app;
   const errors=[];
   try{
+    app=await launch();
     let page=await app.firstWindow();page.on('pageerror',e=>errors.push(e.message));
+    assert.equal(await app.evaluate(({BrowserWindow})=>BrowserWindow.getAllWindows()[0].isVisible()),false);
     assert.equal(await page.locator('.brand small').textContent(),require('../package.json').version);
     await page.waitForFunction(()=>!document.getElementById('start-daily').disabled,null,{timeout:60000});
     await page.waitForFunction(()=>document.getElementById('engine-text').textContent.includes('로컬 전용'),null,{timeout:60000});
@@ -65,6 +67,12 @@ async function main(){
     assert.equal(await page.locator('#theme-select').isVisible(),false);
     await page.locator('#open-settings').click();
     assert.equal(await page.locator('#theme-select').isVisible(),true);
+    assert.equal(await page.locator('#daily-goal-cycles').inputValue(),'1');
+    await page.locator('#daily-goal-cycles').fill('0');await page.locator('#save-daily-goal').click();
+    assert.match(await page.locator('#daily-goal-status').textContent(),/1 이상의 정수/);
+    assert.equal((await page.evaluate(()=>window.practice.learning())).settings.dailyCycles,1);
+    await page.locator('#daily-goal-cycles').fill('1');await page.locator('#save-daily-goal').click();
+    assert.match(await page.locator('#daily-goal-summary').textContent(),/1사이클 · 빈칸 6개 \+ 쿼리 2개 · 총 8문제/);
     await page.locator('#theme-select').selectOption('macos-dark');
     await page.screenshot({path:path.join(root,'artifacts','0.0.2-settings-dark.png')});
     await page.locator('#theme-select').selectOption('macos-light');
@@ -256,6 +264,10 @@ async function main(){
     assert.equal(await page.locator('#theme-select').inputValue(),'macos-light');
     assert.equal(await page.locator(`[data-date="${today}"]`).getAttribute('data-status'),'complete');
     // 완료 버튼 옆에서 두 사이클을 더 풀고 중간 재시작·누적 달력을 확인한다.
+    await page.locator('#open-settings').click();
+    await page.locator('#daily-goal-cycles').fill('3');await page.locator('#save-daily-goal').click();
+    assert.match(await page.locator('#daily-goal-detail').textContent(),/오늘 목표 1 \/ 3사이클 완료/);
+    await page.locator('[aria-label="설정 닫기"]').click();
     const answers=new Map(require('../content/lessons.cjs').flatMap(u=>u.cards).map(c=>[c.id,c.answer]));
     for(let cycle=2;cycle<=3;cycle++){
       assert.equal(await page.locator('#start-extra').isVisible(),true);
@@ -272,7 +284,8 @@ async function main(){
           await page.waitForFunction(()=>!document.getElementById('start-daily').disabled,null,{timeout:60000});
           assert.equal(await page.locator('#start-extra').isVisible(),false);
           assert.match(await page.locator('#calendar-detail').textContent(),/9문제 완료/);
-          assert.equal(await page.locator(`[data-date="${today}"]`).getAttribute('data-status'),'complete');
+          assert.equal(await page.locator(`[data-date="${today}"]`).getAttribute('data-status'),'partial');
+          assert.match(await page.locator('#daily-goal-detail').textContent(),/오늘 목표 1 \/ 3사이클 완료/);
           await page.locator('#start-daily').click();
           await page.locator('#begin-blanks').click();
         }else await page.locator('#next-blank').click();
@@ -285,8 +298,8 @@ async function main(){
       }
       await page.locator('#query-return').click();
       await page.waitForFunction(total=>document.getElementById('calendar-detail').textContent.includes(`${total}문제 완료`),cycle*8);
-      assert.equal(await page.locator(`[data-date="${today}"] small`).textContent(),`${cycle*8} ✓`);
-      assert.equal((await page.evaluate(()=>window.practice.learning())).completedDays,1);
+      assert.equal(await page.locator(`[data-date="${today}"] small`).textContent(),cycle===3?`${cycle*8} ✓`:`${cycle*8}`);
+      assert.equal((await page.evaluate(()=>window.practice.learning())).completedDays,cycle===3?1:0);
     }
     await page.screenshot({path:path.join(root,'artifacts','extra-calendar-24.png')});
     await app.close();app=await launch();page=await app.firstWindow();
@@ -330,11 +343,14 @@ async function main(){
     console.log(`버전 ${require('../package.json').version} 화면·설정창·6+2 학습·복습·MySQL 채점·재시작 검사 통과`);
   }catch(error){
     // Windows 재시작 실패 시 검사 전용 서버 상태를 남겨 시간 초과의 원인을 확인한다.
-    const page=await app.firstWindow().catch(()=>null);
+    const page=app?await app.firstWindow().catch(()=>null):null;
     if(page)console.error('검사 중 엔진 상태:',await page.locator('#engine-text').textContent().catch(()=>''));
     const log=path.join(data,'engine','mysql.log');
     if(fs.existsSync(log))console.error('검사 전용 MySQL 로그:',fs.readFileSync(log,'utf8').slice(-8000));
     throw error;
-  }finally{await app.close();}
+  }finally{
+    if(app)await app.close().catch(()=>{});
+    fs.rmSync(data,{recursive:true,force:true});
+  }
 }
 main().catch(e=>{console.error(e);process.exitCode=1;});

@@ -1,4 +1,4 @@
-// 임시 기록으로 마지막 빈칸 정답·복습 이동·재시작 후 중복 방지를 확인한다.
+// 2사이클 목표의 마지막 정답·복습 이동·재시작 후 중복 방지를 확인한다.
 const {_electron:electron}=require('@playwright/test');
 const assert=require('node:assert/strict');
 const fs=require('node:fs');
@@ -16,12 +16,17 @@ async function main(){
       fs.writeFileSync(path.join(directory,'updates.json'),JSON.stringify({repository:''}));
       const now=new Date(),yesterday=new Date(now);yesterday.setDate(now.getDate()-1);
       if(kind==='due')new Learning(directory,()=>yesterday).answer({id:'blank1',answer:'오답'});
-      const learning=new Learning(directory,()=>now),today=learning.snapshot().today;
+      const learning=new Learning(directory,()=>now);learning.setDailyGoal(2);
+      const first=learning.snapshot().today;
       if(kind==='upcoming')learning.answer({id:'blank1',answer:'오답'});
+      for(const id of first.blanks)learning.answer({id,answer:learning.card(id).answer});
+      for(const id of first.queries)learning.queryResult(id,{status:'correct'});
+      learning.startExtra();
+      const today=learning.snapshot().today;
       for(const id of today.blanks.slice(0,-1))learning.answer({id,answer:learning.card(id).answer});
       for(const id of today.queries)learning.queryResult(id,{status:'correct'});
       const last=learning.card(today.blanks.at(-1));
-      const launch=()=>electron.launch({...(executable?{executablePath:executable,args:[]}:{args:[root]}),env:{...process.env,SQL_PRACTICE_DATA_DIR:directory},timeout:60000});
+      const launch=()=>electron.launch({...(executable?{executablePath:executable,args:[]}:{args:[root]}),env:{...process.env,SQL_PRACTICE_DATA_DIR:directory,YOURSQL_TEST_HIDDEN:'1'},timeout:60000});
       app=await launch();let page=await app.firstWindow();
       await page.waitForFunction(()=>!document.getElementById('start-daily').disabled);
       assert.equal(await page.locator('#review-reminder-dialog').isVisible(),false);
