@@ -26,7 +26,7 @@ async function main(){
       for(const id of today.blanks.slice(0,-1))learning.answer({id,answer:learning.card(id).answer});
       for(const id of today.queries)learning.queryResult(id,{status:'correct'});
       const last=learning.card(today.blanks.at(-1));
-      const launch=()=>electron.launch({...(executable?{executablePath:executable,args:[]}:{args:[root]}),env:{...process.env,SQL_PRACTICE_DATA_DIR:directory,YOURSQL_TEST_HIDDEN:'1'},timeout:60000});
+      const launch=()=>electron.launch({...(executable?{executablePath:executable,args:[]}:{args:[root]}),env:{...process.env,SQL_PRACTICE_DATA_DIR:directory,YOURSQL_TEST_HIDDEN:process.platform==='darwin'?'1':'0'},timeout:60000});
       app=await launch();let page=await app.firstWindow();
       await page.waitForFunction(()=>!document.getElementById('start-daily').disabled);
       assert.equal(await page.locator('#review-reminder-dialog').isVisible(),false);
