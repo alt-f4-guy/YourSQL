@@ -155,3 +155,18 @@ try{
 $process=Start-Process -FilePath (Join-Path $install 'Uninstall.exe') -ArgumentList '/S' -Wait -PassThru
 if($process.ExitCode -ne 0 -or (Test-Path $install)){throw '파일 잠금 해제 후 제거 재시도 실패'}
 Write-Host '예약 삭제 거부·파일 잠금 실패·재시도 PASS'
+
+# 마지막 설치 키 삭제가 거부되어도 제거 프로그램과 제어판 진입점을 복원한다.
+Install-YourSQL
+$oldAcl=Get-Acl -LiteralPath $appKey
+$denyDelete=[Security.AccessControl.RegistryAccessRule]::new([Security.Principal.SecurityIdentifier]::new($sid),[Security.AccessControl.RegistryRights]::Delete,[Security.AccessControl.AccessControlType]::Deny)
+$deniedAcl=Get-Acl -LiteralPath $appKey;$deniedAcl.AddAccessRule($denyDelete)
+try{
+  Set-Acl -LiteralPath $appKey -AclObject $deniedAcl
+  $process=Start-Process -FilePath (Join-Path $install 'Uninstall.exe') -ArgumentList '/S' -Wait -PassThru
+  if($process.ExitCode -eq 0){throw '마지막 등록 삭제 거부를 성공으로 표시했습니다.'}
+  if(-not(Test-Path (Join-Path $install 'Uninstall.exe')) -or -not(Test-Path $uninstallKey)){throw '마지막 등록 삭제 실패 후 재시도 진입점이 없습니다.'}
+}finally{Set-Acl -LiteralPath $appKey -AclObject $oldAcl}
+$process=Start-Process -FilePath (Join-Path $install 'Uninstall.exe') -ArgumentList '/S' -Wait -PassThru
+if($process.ExitCode -ne 0 -or (Test-Path $install)){throw '레지스트리 권한 복원 후 제거 재시도 실패'}
+Write-Host '마지막 레지스트리 삭제 실패 후 재시도 PASS'

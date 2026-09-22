@@ -124,7 +124,7 @@ uninstall_cleaned:
   DeleteRegKey HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\YourSQL"
   IfErrors uninstall_restore
   DeleteRegKey HKCU "Software\YourSQL"
-  IfErrors uninstall_failed
+  IfErrors uninstall_restore
   SetErrorLevel 0
   Goto uninstall_done
 uninstall_restore:

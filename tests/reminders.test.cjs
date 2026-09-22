@@ -59,3 +59,15 @@ test('알림 전용 읽기는 누락된 기본 파일의 백업을 신규 사용
  const f=fixture(t);await f.r.setEnabled(true);fs.writeFileSync(path.join(f.directory,'learning.json.bak'),JSON.stringify({days:{},records:{}}));
  assert.equal((await f.r.check()).reason,'error');assert.equal(f.calls(),0);assert.equal(fs.existsSync(path.join(f.directory,'learning.json')),false);
 });
+for(const suffix of ['.new-','.restore-'])test(`알림 복원 ${suffix} 저장 실패 후 재시작도 과거 enabled 백업을 활성화하지 않는다`,async t=>{
+ const f=fixture(t),vm=require('node:vm');await f.r.setEnabled(true);
+ fs.writeFileSync(f.r.file+'.bak',JSON.stringify({enabled:true,attemptedDates:[]}));fs.writeFileSync(f.r.file,'{');
+ const fake=Object.create(fs);fake.writeFileSync=(file,...args)=>{if(String(file).includes('reminders.json'+suffix))throw Object.assign(new Error('full'),{code:'ENOSPC'});return fs.writeFileSync(file,...args);};
+ const storageFile=path.join(__dirname,'../lib/storage.cjs'),storageModule={exports:{}};
+ vm.runInNewContext(fs.readFileSync(storageFile,'utf8'),{module:storageModule,process,Buffer,require:n=>n==='node:fs'?fake:require(n)});
+ const reminderFile=path.join(__dirname,'../lib/reminders.cjs'),reminderModule={exports:{}},actual=require('node:module').createRequire(reminderFile);
+ vm.runInNewContext(fs.readFileSync(reminderFile,'utf8'),{module:reminderModule,process,require:n=>n==='./storage.cjs'?storageModule.exports:actual(n)});
+ new reminderModule.exports.Reminders({directory:f.directory,scheduler:f.scheduler,notify:f.r.notify,clock:f.r.clock});
+ const {Reminders}=require('../lib/reminders.cjs');const restarted=new Reminders({directory:f.directory,scheduler:f.scheduler,notify:f.r.notify,clock:f.r.clock,recover:false});
+ assert.equal(restarted.state().enabled,false);assert.notEqual((await restarted.check()).requested,true);assert.equal(f.calls(),0);
+});

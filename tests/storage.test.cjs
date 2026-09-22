@@ -48,3 +48,11 @@ test('잘못된 학습 구조는 차단하고 오답 한 파일은 정상 오답
  const store=new PracticeStore(path.dirname(file));store.record({id:'level1_01',title:'test',level:1},'SELECT',{status:'wrong'});fs.writeFileSync(path.join(store.logDirectory,'bad.json'),'null');
  assert.equal(store.logs().length,1);assert.equal(store.logIssues.length,1);
 });
+for(const invalidDate of [undefined,'',null,'2026-09-21'])test(`학습 날짜 ${String(invalidDate)} 누락·불일치는 백업 복원 대상으로 검증한다`,t=>{
+ const file=fixture(t),{readStore,validateLearning}=storage();
+ const valid={days:{'2026-09-22':{date:'2026-09-22',blanks:[],done:[],queries:[],queriesDone:[]}},records:{}};
+ const bad=JSON.parse(JSON.stringify(valid));bad.days['2026-09-22'].date=invalidDate;
+ fs.writeFileSync(file,JSON.stringify(bad));fs.writeFileSync(file+'.bak',JSON.stringify(valid));
+ const result=readStore(file,{validate:validateLearning});assert.equal(result.status,'recovered');assert.equal(result.value.days['2026-09-22'].date,'2026-09-22');
+ assert.deepEqual(JSON.parse(fs.readFileSync(file+'.bak')),valid);
+});
