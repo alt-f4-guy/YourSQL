@@ -26,6 +26,22 @@ function Install-YourSQL {
   if (-not (Test-Path $shortcut)) { throw '시작 메뉴 바로가기가 없습니다.' }
 }
 
+# NSIS 기본 실행기는 임시 제거 프로세스를 띄운 뒤 0으로 끝난다.
+# 임시 복사본에 _?=를 전달하여 실제 제거 프로세스의 종료 코드를 검사한다.
+function Invoke-YourSQLUninstall {
+  param([switch]$Force)
+  $temporary=Join-Path $env:RUNNER_TEMP ('yoursql-uninstall-'+[Guid]::NewGuid().ToString('N'))
+  New-Item -ItemType Directory -Path $temporary | Out-Null
+  $copy=Join-Path $temporary 'Uninstall.exe'
+  Copy-Item -LiteralPath (Join-Path $install 'Uninstall.exe') -Destination $copy
+  $arguments='/S'
+  if($Force){$arguments+=' /FORCE'}
+  # NSIS의 _?= 경로는 마지막 인수이며 따옴표로 감싸지 않는다.
+  $arguments+=' _?='+$install
+  try { Start-Process -FilePath $copy -ArgumentList $arguments -WorkingDirectory $temporary -Wait -PassThru }
+  finally { Remove-Item -LiteralPath $temporary -Recurse -Force }
+}
+
 Install-YourSQL
 # 실행 중인 앱과 창 없이 남은 프로세스 모두 재설치 전에 종료되어야 합니다.
 $env:SQL_PRACTICE_DATA_DIR = Join-Path $env:RUNNER_TEMP 'yoursql-installer-running'
@@ -94,12 +110,12 @@ try {
       $sid=[Security.Principal.WindowsIdentity]::GetCurrent().User.Value
       $action=New-ScheduledTaskAction -Execute (Join-Path $install 'YourSQL.exe') -Argument '--reminder-check'
       Register-ScheduledTask -TaskName 'YourSQL Daily Reminder' -Action $action -Principal (New-ScheduledTaskPrincipal -UserId $sid -LogonType Interactive) -Force | Out-Null
-      $process=Start-Process -FilePath (Join-Path $install 'Uninstall.exe') -ArgumentList '/S' -Wait -PassThru
+      $process=Invoke-YourSQLUninstall
       if($scenario -eq 'unresponsive') {
         if($process.ExitCode -eq 0){throw '강제 옵션 없는 무인 제거가 성공으로 표시되었습니다.'}
         if(-not(Test-Path (Join-Path $install 'YourSQL.exe')) -or -not(Test-Path $uninstallKey)){throw '실패한 제거가 앱 또는 등록을 삭제했습니다.'}
         if((Get-ScheduledTask -TaskName 'YourSQL Daily Reminder').State -eq 'Disabled'){throw '종료 보류 후 예약을 복원하지 않았습니다.'}
-        $process=Start-Process -FilePath (Join-Path $install 'Uninstall.exe') -ArgumentList '/S /FORCE' -Wait -PassThru
+        $process=Invoke-YourSQLUninstall -Force
       }
       if($process.ExitCode -ne 0){throw "실행 중 제거 실패: $scenario"}
       if(-not $running.WaitForExit(5000)){throw '대상 프로세스가 남아 있습니다.'}
@@ -123,7 +139,7 @@ try {
   $env:SQL_PRACTICE_DATA_DIR=Join-Path $env:RUNNER_TEMP 'yoursql-stale-uninstall'
   $restarted=Start-Process -FilePath (Join-Path $install 'YourSQL.exe') -ArgumentList '--no-sandbox' -PassThru
   Start-Sleep -Seconds 3;$restarted.Refresh();if($restarted.HasExited){throw '중단된 제거 표식이 앱을 영구 차단했습니다.'}
-  $process=Start-Process -FilePath (Join-Path $install 'Uninstall.exe') -ArgumentList '/S' -Wait -PassThru
+  $process=Invoke-YourSQLUninstall
   if($process.ExitCode -ne 0){throw '표식 복구 후 제거 실패'}
 }finally{
   Remove-Item Env:SQL_PRACTICE_DATA_DIR -ErrorAction SilentlyContinue
@@ -139,7 +155,7 @@ $schedule=New-Object -ComObject 'Schedule.Service';$schedule.Connect();$folder=$
 $originalSecurity=$protectedTask.GetSecurityDescriptor(4)
 try {
   $protectedTask.SetSecurityDescriptor("D:(D;;SD;;;$sid)(A;;FA;;;$sid)(A;;FA;;;SY)(A;;FA;;;BA)",0)
-  $process=Start-Process -FilePath (Join-Path $install 'Uninstall.exe') -ArgumentList '/S' -Wait -PassThru
+  $process=Invoke-YourSQLUninstall
   if($process.ExitCode -eq 0){throw '예약 삭제 권한 거부를 성공으로 표시했습니다.'}
   if(-not(Test-Path (Join-Path $install 'YourSQL.exe')) -or -not(Test-Path $uninstallKey)){throw '예약 삭제 실패 전에 앱을 삭제했습니다.'}
   if(-not $folder.GetTask('YourSQL Daily Reminder').Enabled){throw '예약 삭제 실패 후 원래 활성 상태를 복원하지 않았습니다.'}
@@ -148,11 +164,11 @@ try {
 $lockedFile=Join-Path $install 'locked-removal-check.txt';Set-Content -LiteralPath $lockedFile -Value 'held'
 $held=[IO.File]::Open($lockedFile,[IO.FileMode]::Open,[IO.FileAccess]::ReadWrite,[IO.FileShare]::None)
 try{
-  $process=Start-Process -FilePath (Join-Path $install 'Uninstall.exe') -ArgumentList '/S' -Wait -PassThru
+  $process=Invoke-YourSQLUninstall
   if($process.ExitCode -eq 0){throw '삭제 도중 실패를 성공으로 표시했습니다.'}
   if(-not(Test-Path (Join-Path $install 'Uninstall.exe')) -or -not(Test-Path $uninstallKey)){throw '삭제 실패 후 재시도 정보를 잃었습니다.'}
 }finally{$held.Dispose()}
-$process=Start-Process -FilePath (Join-Path $install 'Uninstall.exe') -ArgumentList '/S' -Wait -PassThru
+$process=Invoke-YourSQLUninstall
 if($process.ExitCode -ne 0 -or (Test-Path $install)){throw '파일 잠금 해제 후 제거 재시도 실패'}
 Write-Host '예약 삭제 거부·파일 잠금 실패·재시도 PASS'
 
@@ -163,11 +179,11 @@ $denyDelete=[Security.AccessControl.RegistryAccessRule]::new([Security.Principal
 $deniedAcl=Get-Acl -LiteralPath $appKey;$deniedAcl.AddAccessRule($denyDelete)
 try{
   Set-Acl -LiteralPath $appKey -AclObject $deniedAcl
-  $process=Start-Process -FilePath (Join-Path $install 'Uninstall.exe') -ArgumentList '/S' -Wait -PassThru
+  $process=Invoke-YourSQLUninstall
   if($process.ExitCode -eq 0){throw '마지막 등록 삭제 거부를 성공으로 표시했습니다.'}
   if(-not(Test-Path (Join-Path $install 'Uninstall.exe')) -or -not(Test-Path $uninstallKey)){throw '마지막 등록 삭제 실패 후 재시도 진입점이 없습니다.'}
   if((Get-ItemProperty -LiteralPath $uninstallKey).UninstallString -ne ('"'+(Join-Path $install 'Uninstall.exe')+'"')){throw '복원한 제거 명령이 올바르지 않습니다.'}
 }finally{Set-Acl -LiteralPath $appKey -AclObject $oldAcl}
-$process=Start-Process -FilePath (Join-Path $install 'Uninstall.exe') -ArgumentList '/S' -Wait -PassThru
+$process=Invoke-YourSQLUninstall
 if($process.ExitCode -ne 0 -or (Test-Path $install)){throw '레지스트리 권한 복원 후 제거 재시도 실패'}
 Write-Host '마지막 레지스트리 삭제 실패 후 재시도 PASS'
