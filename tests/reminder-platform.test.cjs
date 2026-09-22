@@ -8,3 +8,16 @@ test('Windows 제거는 x64 알림 등록과 Electron 자동 바로가기를 정
  assert.match(source,/SetRegView 64[\s\S]*DeleteRegKey HKCU "Software\\Classes\\CLSID\\\{C00C9F0B-5698-4B7D-9845-487475797391\}"[\s\S]*SetRegView 32/);
  assert.ok(source.includes('Delete "$SMPROGRAMS\\YourSQL.lnk"'));
 });
+test('중복 monitor·dispose와 실행 중 dispose는 타이머와 resume 리스너를 남기지 않는다',async()=>{
+ const vm=require('node:vm'),{EventEmitter}=require('node:events'),file=path.join(__dirname,'../lib/reminder-runtime.cjs'),module={exports:{}};
+ const actual=require('node:module').createRequire(file),powerMonitor=new EventEmitter(),timers=new Set();let reconcile=async()=>{},checks=0;
+ class Reminders{async reconcile(){await reconcile();}async check(){checks++;return {};}state(){return {};}}
+ vm.runInNewContext(fs.readFileSync(file,'utf8'),{module,process:{platform:'darwin',env:{}},require:n=>n==='./reminders.cjs'?{Reminders}:n==='./reminder-scheduler.cjs'?{createScheduler:()=>({})}:actual(n),setInterval:fn=>{timers.add(fn);return fn;},clearInterval:id=>timers.delete(id),setTimeout,clearTimeout});
+ const r=module.exports.createReminderRuntime({app:{getPath:()=>'/tmp'},Notification:{},powerMonitor});
+ await Promise.all([r.monitor(),r.monitor()]);assert.equal(timers.size,1);assert.equal(powerMonitor.listenerCount('resume'),1);
+ powerMonitor.emit('resume');await Promise.resolve();assert.ok(checks>=2);
+ r.dispose();r.dispose();assert.equal(timers.size,0);assert.equal(powerMonitor.listenerCount('resume'),0);
+ await r.monitor();assert.equal(timers.size,1);r.dispose();
+ let release;reconcile=()=>new Promise(resolve=>release=resolve);const pending=r.monitor();r.dispose();release();await pending;
+ assert.equal(timers.size,0);assert.equal(powerMonitor.listenerCount('resume'),0);
+});

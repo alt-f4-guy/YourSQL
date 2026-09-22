@@ -235,3 +235,17 @@ test('일반 서버가 SIGTERM을 무시하면 동시 stop은 강제 종료 확�
     assert.equal(timers.size,0);
   } finally {allowExit();fs.rmSync(directory,{recursive:true,force:true});}
 });
+
+test('창 닫기 보류는 알림 감시를 유지하고 종료 확정 때 한 번만 정리한다',async()=>{
+ const fs=require('node:fs'),vm=require('node:vm'),{EventEmitter}=require('node:events');
+ const app=new EventEmitter(),file=path.join(__dirname,'../main.cjs'),actualRequire=require('node:module').createRequire(file);
+ let finish,stops=0,disposals=0,closes=0,exits=0;
+ Object.assign(app,{setName(){},setPath(){},getPath:()=>'/검사용',requestSingleInstanceLock:()=>true,whenReady:()=>new Promise(()=>{}),exit(){exits++;}});
+ const context=vm.createContext({require:n=>n==='electron'?{app}:actualRequire(n),__dirname:path.dirname(file),process:{env:{},argv:[]},clearTimeout,
+  fakeEngine:{stop(){stops++;return new Promise(r=>finish=r);}},fakeRuntime:{dispose(){disposals++;}},fakeWindow:{isDestroyed:()=>false,close(){closes++;}}});
+ vm.runInContext(fs.readFileSync(file,'utf8')+'\nengine=fakeEngine;reminderRuntime=fakeRuntime;window=fakeWindow;',context);
+ app.emit('before-quit',{preventDefault(){}});app.emit('before-quit',{preventDefault(){}});
+ assert.equal(closes,2);assert.equal(stops,0);assert.equal(disposals,0);
+ vm.runInContext('closing=true;',context);app.emit('before-quit',{preventDefault(){}});app.emit('before-quit',{preventDefault(){}});
+ assert.equal(stops,1);assert.equal(disposals,1);assert.equal(exits,0);finish();await Promise.resolve();assert.equal(exits,1);
+});

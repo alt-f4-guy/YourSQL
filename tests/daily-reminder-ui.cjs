@@ -41,6 +41,31 @@ fs.writeFileSync(path.join(directory,'updates.json'),JSON.stringify({repository:
  await page.locator('.learning-nav [data-mode="query"]').click();
  await page.locator('#catalog-rows button').first().click();
  assert.equal(await page.locator('#editor').inputValue(),'SELECT 987 AS reminder_draft');
- console.log('학습 알림 설정·등록 실패 표시·백그라운드 단일 인스턴스·클릭 화면 이동 PASS');
+ // 실제 종료 이벤트를 보류하는 동안 resume 감시가 계속 동작한다.
+ await page.evaluate(()=>{window.reminderEvents=0;window.practice.onReminderChanged(()=>window.reminderEvents++);});
+ await app.evaluate(({ipcMain})=>{
+   globalThis.originalRun=ipcMain._invokeHandlers.get('practice:run');ipcMain.removeHandler('practice:run');
+   ipcMain.handle('practice:run',async(...args)=>{await new Promise(resolve=>globalThis.releaseRun=resolve);return globalThis.originalRun(...args);});
+ });
+ await page.waitForFunction(()=>!document.getElementById('run').disabled);
+ await page.locator('#run').click();
+ await app.evaluate(({app})=>{app.quit();app.quit();});
+ assert.equal(await app.evaluate(({BrowserWindow})=>BrowserWindow.getAllWindows().length),1);
+ const listeners=await app.evaluate(({powerMonitor})=>powerMonitor.listenerCount('resume'));assert.equal(listeners,1);
+ const count=await page.evaluate(()=>window.reminderEvents);
+ await app.evaluate(({powerMonitor})=>powerMonitor.emit('resume'));
+ await page.waitForFunction(n=>window.reminderEvents>n,count);
+ await app.evaluate(()=>globalThis.releaseRun());await page.waitForFunction(()=>!document.getElementById('run').disabled);
+ await app.evaluate(({ipcMain})=>{
+   ipcMain.removeHandler('practice:run');ipcMain.handle('practice:run',globalThis.originalRun);
+   globalThis.originalSave=ipcMain._invokeHandlers.get('practice:saveDraft');ipcMain.removeHandler('practice:saveDraft');
+   ipcMain.handle('practice:saveDraft',()=>{throw new Error('검사용 초안 저장 실패');});
+ });
+ await page.locator('#editor').fill('SELECT 456 AS unsaved_draft');
+ await app.evaluate(({app})=>app.quit());await page.waitForFunction(()=>document.getElementById('save-status').textContent.includes('실패'));
+ assert.equal(await app.evaluate(({powerMonitor})=>powerMonitor.listenerCount('resume')),1);
+ assert.equal(await page.locator('#editor').inputValue(),'SELECT 456 AS unsaved_draft');
+ await app.evaluate(({ipcMain})=>{ipcMain.removeHandler('practice:saveDraft');ipcMain.handle('practice:saveDraft',globalThis.originalSave);});
+ console.log('학습 알림·SQL 실행/초안 저장 실패 종료 보류·resume 감시·초안 보존 PASS');
  }finally{if(app)await app.close();fs.rmSync(directory,{recursive:true,force:true});}
 })().catch(e=>{console.error(e);process.exitCode=1;});

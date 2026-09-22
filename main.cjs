@@ -179,14 +179,16 @@ else {
   }).catch(error=>{if(!reminderMode&&!hidden)dialog.showErrorBox('앱 시작 실패',error.message);else console.error(error);closing=true;app.quit();});
   app.on('window-all-closed',()=>{clearTimeout(themeTimer);themeWatcher?.close();app.quit();});
   app.on('before-quit',event=>{
-    clearTimeout(exitTimer);reminderRuntime?.dispose();
     if (engine) {
       event.preventDefault();
-      // 창 닫기와 종료 요청이 겹쳐도 MySQL 종료 완료 전에는 앱을 끝내지 않는다.
+      // 종료가 보류되면 감시와 엔진을 유지한다. 정리는 확정된 종료에만 실행한다.
       if (stopped) return;
       if (!closing && window && !window.isDestroyed()) {window.close();return;}
       stopped=true;
+      clearTimeout(exitTimer);reminderRuntime?.dispose();
       engine.stop().finally(()=>app.exit(0));
+    }else if(!stopped){
+      stopped=true;clearTimeout(exitTimer);reminderRuntime?.dispose();
     }
   });
 }
