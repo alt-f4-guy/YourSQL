@@ -32,9 +32,11 @@ function startNormal(){
 const page = path.join(__dirname,'ui/index.html');
 const pageURL = pathToFileURL(page).href;
 
-if (!app.requestSingleInstanceLock()) app.quit();
+const uninstallExit=process.argv.includes('--quit-for-uninstall');
+if ((!uninstallExit&&require('./lib/uninstall-guard.cjs').isUninstalling(process.execPath))||!app.requestSingleInstanceLock({executable:process.execPath})||uninstallExit) app.quit();
 else {
-  app.on('second-instance',(_event,argv)=>{
+  app.on('second-instance',(_event,argv,_cwd,extra)=>{
+    if(argv.includes('--quit-for-uninstall')){if(extra?.executable===process.execPath)app.quit();return;}
     void app.whenReady().then(async()=>{
       if(argv.includes('--reminder-check')){await reminderRuntime.check();return;}
       await startNormal();

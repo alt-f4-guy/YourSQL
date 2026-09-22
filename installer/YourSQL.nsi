@@ -1,5 +1,7 @@
 Unicode true
 !include "MUI2.nsh"
+!include "FileFunc.nsh"
+Var UninstallForce
 
 !ifndef APP_VERSION
   !error "APP_VERSION is required"
@@ -42,7 +44,7 @@ Section "YourSQL" MainSection
   StrCpy $2 "$SYSDIR\WindowsPowerShell\v1.0\powershell.exe"
   IfFileExists "$WINDIR\Sysnative\WindowsPowerShell\v1.0\powershell.exe" 0 +2
   StrCpy $2 "$WINDIR\Sysnative\WindowsPowerShell\v1.0\powershell.exe"
-  nsExec::ExecToStack '"$2" -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "$PLUGINSDIR\close-app.ps1" -InstallDirectory "$INSTDIR"'
+  nsExec::ExecToStack '"$2" -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "$PLUGINSDIR\close-app.ps1" -InstallDirectory "$INSTDIR" -Force'
   Pop $0
   Pop $1
   StrCmp $0 "0" app_closed
@@ -79,17 +81,61 @@ FunctionEnd
 
 Section "Uninstall"
   SetShellVarContext current
-  ; 알림 작업과 이 앱의 알림 등록만 제거하며 학습 기록은 보존합니다.
-  nsExec::ExecToLog '"$SYSDIR\schtasks.exe" /Delete /TN "YourSQL Daily Reminder" /F'
-  Delete "$SMPROGRAMS\YourSQL\YourSQL Reminders.lnk"
-  Delete "$SMPROGRAMS\YourSQL.lnk"
-  SetRegView 64
-  DeleteRegKey HKCU "Software\Classes\CLSID\{C00C9F0B-5698-4B7D-9845-487475797391}"
-  DeleteRegKey HKCU "Software\Classes\AppUserModelId\local.yoursql.practice"
-  SetRegView 32
-  Delete "$SMPROGRAMS\YourSQL\YourSQL.lnk"
-  RMDir "$SMPROGRAMS\YourSQL"
+  InitPluginsDir
+  File /oname=$PLUGINSDIR\close-app.ps1 "${__FILEDIR__}\close-app.ps1"
+  File /oname=$PLUGINSDIR\uninstall-app.ps1 "${__FILEDIR__}\uninstall-app.ps1"
+  StrCpy $2 "$SYSDIR\WindowsPowerShell\v1.0\powershell.exe"
+  IfFileExists "$WINDIR\Sysnative\WindowsPowerShell\v1.0\powershell.exe" 0 +2
+  StrCpy $2 "$WINDIR\Sysnative\WindowsPowerShell\v1.0\powershell.exe"
+  StrCpy $UninstallForce ""
+  ${GetParameters} $3
+  ClearErrors
+  ${GetOptions} $3 "/FORCE" $4
+  IfErrors uninstall_retry
+  StrCpy $UninstallForce "-Force"
+uninstall_retry:
+  nsExec::ExecToStack '"$2" -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "$PLUGINSDIR\uninstall-app.ps1" -InstallDirectory "$INSTDIR" $UninstallForce'
+  Pop $0
+  Pop $1
+  StrCmp $0 "0" uninstall_cleaned
+  DetailPrint "$1"
+  IfSilent uninstall_failed
+  StrCmp $0 "2" 0 uninstall_error
+  MessageBox MB_ABORTRETRYIGNORE|MB_ICONEXCLAMATION "YourSQL이 종료를 보류했습니다. 강제 종료하면 저장되지 않은 내용이 사라질 수 있습니다.$\r$\n재시도: 정상 종료 다시 요청$\r$\n무시: 강제 종료 후 제거$\r$\n중단: 제거 취소" IDRETRY uninstall_retry IDIGNORE uninstall_force
+  Goto uninstall_failed
+uninstall_force:
+  StrCpy $UninstallForce "-Force"
+  Goto uninstall_retry
+uninstall_error:
+  MessageBox MB_OK|MB_ICONSTOP "제거를 완료하지 못했습니다. 오류를 확인한 뒤 다시 실행해 주세요.$\r$\n$1" /SD IDOK
+uninstall_failed:
+  SetErrorLevel 1
+  Abort
+uninstall_cleaned:
+  ClearErrors
+  CopyFiles /SILENT "$INSTDIR\Uninstall.exe" "$PLUGINSDIR\uninstall-retry.exe"
+  IfErrors uninstall_failed
+  ClearErrors
+  Delete "$INSTDIR\Uninstall.exe"
+  IfErrors uninstall_restore
+  Delete "$INSTDIR\.yoursql-install"
+  RMDir "$INSTDIR"
+  IfErrors uninstall_restore
   DeleteRegKey HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\YourSQL"
+  IfErrors uninstall_restore
   DeleteRegKey HKCU "Software\YourSQL"
-  RMDir /r "$INSTDIR"
+  IfErrors uninstall_failed
+  SetErrorLevel 0
+  Goto uninstall_done
+uninstall_restore:
+  CreateDirectory "$INSTDIR"
+  CopyFiles /SILENT "$PLUGINSDIR\uninstall-retry.exe" "$INSTDIR\Uninstall.exe"
+  FileOpen $0 "$INSTDIR\.yoursql-install" w
+  FileWrite $0 "YourSQL"
+  FileClose $0
+  WriteRegStr HKCU "Software\YourSQL" "InstallLocation" "$INSTDIR"
+  WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\YourSQL" "DisplayName" "YourSQL"
+  WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\YourSQL" "UninstallString" '$"$INSTDIR\Uninstall.exe$"'
+  Goto uninstall_failed
+uninstall_done:
 SectionEnd

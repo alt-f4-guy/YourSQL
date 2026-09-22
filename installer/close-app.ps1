@@ -1,27 +1,28 @@
-﻿param([Parameter(Mandatory = $true)][string]$InstallDirectory)
+﻿param([Parameter(Mandatory = $true)][string]$InstallDirectory, [switch]$Force)
 $ErrorActionPreference = 'Stop'
-
 try {
-  # 설치 대상 경로만 종료하여 다른 폴더의 앱은 보호합니다.
-  $executable = Join-Path $InstallDirectory 'YourSQL.exe'
-  $running = @(Get-Process -Name YourSQL -ErrorAction SilentlyContinue | Where-Object { $_.Path -eq $executable })
-  foreach ($process in $running) {
-    if (-not $process.HasExited) { [void]$process.CloseMainWindow() }
+  $executable = [IO.Path]::GetFullPath((Join-Path $InstallDirectory 'YourSQL.exe'))
+  function Get-TargetProcesses {
+    @(Get-Process -Name YourSQL -ErrorAction SilentlyContinue | Where-Object {
+      $_.Path -and [IO.Path]::GetFullPath($_.Path).Equals($executable, [StringComparison]::OrdinalIgnoreCase)
+    })
   }
-  # 정상 종료 시 기존 앱의 초안 저장과 엔진 정리가 먼저 실행됩니다.
-  $deadline = (Get-Date).AddSeconds(10)
-  foreach ($process in $running) {
-    $remaining = [Math]::Max(0, [int]($deadline - (Get-Date)).TotalMilliseconds)
-    if (-not $process.HasExited -and -not $process.WaitForExit($remaining)) {
-      & "$env:SystemRoot\System32\taskkill.exe" /PID $process.Id /T /F | Out-Null
-      if (-not $process.WaitForExit(5000)) { throw 'YourSQL 프로세스가 종료되지 않았습니다.' }
-    }
+  $running = @(Get-TargetProcesses)
+  if ($running.Count -gt 0) {
+    # 창 없는 알림 실행에도 동일 설치 경로의 단일 인스턴스로 정상 종료를 요청한다.
+    Start-Process -FilePath $executable -ArgumentList '--quit-for-uninstall' | Out-Null
+    foreach ($target in $running) { if (-not $target.HasExited) { [void]$target.CloseMainWindow() } }
+    $deadline = (Get-Date).AddSeconds(15)
+    do { if (@(Get-TargetProcesses).Count -eq 0) { exit 0 }; Start-Sleep -Milliseconds 200 } while ((Get-Date) -lt $deadline)
   }
-  if (Get-Process -Name YourSQL -ErrorAction SilentlyContinue | Where-Object { $_.Path -eq $executable }) {
-    throw 'YourSQL이 아직 실행 중입니다.'
+  $remaining = @(Get-TargetProcesses)
+  if ($remaining.Count -gt 0 -and -not $Force) { Write-Output 'YourSQL이 종료를 보류했습니다. 저장되지 않은 내용이 있을 수 있습니다.'; exit 2 }
+  foreach ($target in $remaining) {
+    # 재조회한 대상 PID와 그 자식만 종료한다. 다른 설치 경로와 MySQL 서버는 건드리지 않는다.
+    & "$env:SystemRoot\System32\taskkill.exe" /PID $target.Id /T /F | Out-Null
+    if ($LASTEXITCODE -ne 0 -and -not $target.HasExited) { throw '강제 종료 요청에 실패했습니다.' }
+    if (-not $target.WaitForExit(5000)) { throw 'YourSQL 프로세스가 종료되지 않았습니다.' }
   }
+  if (@(Get-TargetProcesses).Count -gt 0) { throw 'YourSQL이 아직 실행 중입니다.' }
   exit 0
-} catch {
-  Write-Output $_.Exception.Message
-  exit 1
-}
+} catch { Write-Output $_.Exception.Message; exit 1 }
