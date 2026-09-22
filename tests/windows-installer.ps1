@@ -152,14 +152,14 @@ Install-YourSQL
 $action=New-ScheduledTaskAction -Execute (Join-Path $install 'YourSQL.exe') -Argument '--reminder-check'
 Register-ScheduledTask -TaskName 'YourSQL Daily Reminder' -Action $action -Principal (New-ScheduledTaskPrincipal -UserId $sid -LogonType Interactive) -Force | Out-Null
 $schedule=New-Object -ComObject 'Schedule.Service';$schedule.Connect();$folder=$schedule.GetFolder('\');$protectedTask=$folder.GetTask('YourSQL Daily Reminder')
-$originalSecurity=$protectedTask.GetSecurityDescriptor(4)
-try {
-  $protectedTask.SetSecurityDescriptor("D:(D;;SD;;;$sid)(A;;FA;;;$sid)(A;;FA;;;SY)(A;;FA;;;BA)",0)
-  $process=Invoke-YourSQLUninstall
-  if($process.ExitCode -eq 0){throw '예약 삭제 권한 거부를 성공으로 표시했습니다.'}
-  if(-not(Test-Path (Join-Path $install 'YourSQL.exe')) -or -not(Test-Path $uninstallKey)){throw '예약 삭제 실패 전에 앱을 삭제했습니다.'}
-  if(-not $folder.GetTask('YourSQL Daily Reminder').Enabled){throw '예약 삭제 실패 후 원래 활성 상태를 복원하지 않았습니다.'}
-}finally{$folder.GetTask('YourSQL Daily Reminder').SetSecurityDescriptor($originalSecurity,0)}
+# 관리자 CI의 DACL 삭제 거부가 재현되지 않아 삭제 API만 오류를 주입한다.
+# 실제 작업의 조회·비활성화·실패 후 활성화는 Task Scheduler에서 수행한다.
+$denialOutput=& "$env:SystemRoot\System32\WindowsPowerShell\v1.0\powershell.exe" -NoProfile -NonInteractive -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot 'fixtures\deny-task-delete.ps1') -Helper (Join-Path $root 'installer\uninstall-app.ps1') -InstallDirectory $install
+if($LASTEXITCODE -eq 0){throw '예약 삭제 API 권한 오류를 성공으로 표시했습니다.'}
+if(($denialOutput -join ' ') -notmatch 'Injected task deletion denied'){throw ('삭제 경계까지 도달하지 못했습니다: '+($denialOutput -join ' '))}
+if(-not(Test-Path (Join-Path $install 'YourSQL.exe')) -or -not(Test-Path $uninstallKey)){throw '예약 삭제 실패 전에 앱을 삭제했습니다.'}
+if(-not $folder.GetTask('YourSQL Daily Reminder').Enabled){throw '예약 삭제 실패 후 원래 활성 상태를 복원하지 않았습니다.'}
+Write-Host '예약 삭제 API 오류 주입·실제 예약 활성 상태 복원 PASS'
 # 삭제 중 파일 잠금 실패도 다시 실행할 수 있는 제거 프로그램과 등록을 남긴다.
 $lockedFile=Join-Path $install 'locked-removal-check.txt';Set-Content -LiteralPath $lockedFile -Value 'held'
 $held=[IO.File]::Open($lockedFile,[IO.FileMode]::Open,[IO.FileAccess]::ReadWrite,[IO.FileShare]::None)
@@ -170,7 +170,7 @@ try{
 }finally{$held.Dispose()}
 $process=Invoke-YourSQLUninstall
 if($process.ExitCode -ne 0 -or (Test-Path $install)){throw '파일 잠금 해제 후 제거 재시도 실패'}
-Write-Host '예약 삭제 거부·파일 잠금 실패·재시도 PASS'
+Write-Host '예약 삭제 API 오류·실제 파일 잠금 실패·재시도 PASS'
 
 # 마지막 설치 키 삭제가 거부되어도 제거 프로그램과 제어판 진입점을 복원한다.
 Install-YourSQL
