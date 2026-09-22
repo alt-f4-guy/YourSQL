@@ -2,6 +2,8 @@
 const {contextBridge,ipcRenderer} = require('electron');
 const invoke = channel => argument => ipcRenderer.invoke(channel,argument);
 contextBridge.exposeInMainWorld('practice',{
+  storageState:invoke('practice:storageState'),retryStorage:invoke('practice:retryStorage'),openStorageFolder:invoke('practice:openStorageFolder'),
+  onStorageChanged:callback=>{ipcRenderer.on('practice:storageChanged',(_event,value)=>callback(value));},
   reminderState:invoke('practice:reminderState'),setReminderEnabled:invoke('practice:setReminderEnabled'),testReminder:invoke('practice:testReminder'),
   onReminderChanged:callback=>{ipcRenderer.on('practice:reminderChanged',(_event,value)=>callback(value));},
   onReminderOpen:callback=>{ipcRenderer.on('practice:reminderOpen',()=>callback());},

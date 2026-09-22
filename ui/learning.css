@@ -87,3 +87,6 @@ html,body{height:100%}body{height:100dvh;min-height:0}.topbar{flex-shrink:0}
 .reminder-toggle input{width:18px;height:18px;accent-color:var(--accent);cursor:pointer}
 .reminder-toggle input:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
 #reminder-status{max-width:65ch;overflow-wrap:anywhere}
+
+.storage-notice{padding:20px 28px;max-height:45vh;overflow:auto;background:var(--panel);border-bottom:1px solid var(--line);color:var(--text)}
+.storage-notice[hidden]{display:none}.storage-notice h2{margin:0 0 8px;font-size:20px}.storage-notice p{margin:0 0 12px;max-width:75ch}.storage-notice ul{padding-left:20px;overflow-wrap:anywhere;line-height:1.6}.storage-notice button+button{margin-left:12px}.storage-blocked .learning-nav,.storage-blocked #learning-screen,.storage-blocked .workspace{opacity:.45}

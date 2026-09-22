@@ -9,6 +9,7 @@ const {readThemes,deleteTheme,seedThemes} = require('./lib/themes.cjs');
 const {themeDirectories} = require('./lib/platform.cjs');
 const {Updater}=require('./lib/updates.cjs');
 const {createReminderRuntime}=require('./lib/reminder-runtime.cjs');
+const {assertAvailable}=require('./lib/storage.cjs');
 const appName='YourSQL';
 app.setName(appName);
 app.setPath('userData',path.join(app.getPath('appData'),'YourSQL')); 
@@ -23,9 +24,9 @@ async function openToday(){
   window.webContents.send('practice:reminderOpen');
 }
 function startNormal(){
-  reminderMode=false;clearTimeout(exitTimer);
+  const wasReminder=reminderMode;reminderMode=false;clearTimeout(exitTimer);
   if(!hidden&&process.platform==='darwin')app.setActivationPolicy('regular');
-  if(!normalStarting)normalStarting=createWindow().then(()=>{void reminderRuntime.monitor();});
+  if(!normalStarting){if(wasReminder)reminderRuntime.reminders.reload(true);normalStarting=createWindow().then(()=>{void reminderRuntime.monitor();});}
   return normalStarting;
 }
 const page = path.join(__dirname,'ui/index.html');
@@ -49,17 +50,46 @@ else {
     if(app.isPackaged) seedThemes(themeDirectory,[packagedThemes.legacy,process.resourcesPath]);
     else fs.mkdirSync(themeDirectory,{recursive:true});
     engine=new Engine(path.join(directory,'engine'));
-    service=new PracticeService(path.join(__dirname,'content'),directory,engine);
-    const learning=new (require('./lib/learning.cjs').Learning)(directory,undefined,service.store.logs());
+    let learning,storageFailure;
+    const loadStores=()=>{
+      storageFailure=null;
+      try{
+        service=new PracticeService(path.join(__dirname,'content'),directory,engine);
+        learning=new (require('./lib/learning.cjs').Learning)(directory,undefined,service.store.logs());
+      }catch(error){storageFailure={status:'blocked',issues:[{file:directory,code:error.code||'EREAD',message:error.message}]};}
+    };
+    const storageState=()=>{
+      const stores=[storageFailure,service?.store.storage,learning?.storage,reminderRuntime.reminders.storage].filter(Boolean);
+      return {status:stores.some(s=>s.status==='blocked')?'blocked':stores.some(s=>s.status==='recovered')?'recovered':'ok',
+        issues:[...stores.flatMap(s=>s.issues),...(service?.store.logIssues||[])],directory};
+    };
+    loadStores();
     const updater=new Updater(app,value=>{
       if (window && !window.isDestroyed()) window.webContents.send('practice:updateChanged',value);
     },url=>shell.openExternal(url));
-    const starting=engine.start().catch(()=>{});
+    const starting=storageState().status==='blocked'?Promise.resolve():engine.start().catch(()=>{});
     session.defaultSession.setPermissionRequestHandler((_wc,_permission,callback)=>callback(false));
     session.defaultSession.setPermissionCheckHandler(()=>false);
     const handle=(name,callback)=>ipcMain.handle(`practice:${name}`,async(event,arg)=>{
       if (event.sender !== window?.webContents || event.senderFrame?.url !== pageURL) throw new Error('허용되지 않은 요청입니다.');
-      return callback(arg);
+      const safe=['storageState','retryStorage','openStorageFolder','themes','updateState','checkUpdates','openUpdatePage','openMySQLPage','reminderState'];
+      if(!safe.includes(name))assertAvailable(storageState());
+      try{return await callback(arg);}catch(error){
+        if(['EACCES','ENOSPC','EPERM','EIO','EROFS','EINVALID'].includes(error.code)){
+          storageFailure={status:'blocked',issues:[{file:error.path||directory,code:error.code,message:error.message}]};
+          window.webContents.send('practice:storageChanged',storageState());
+        }
+        throw error;
+      }
+    });
+    handle('storageState',storageState);
+    handle('openStorageFolder',async()=>{const error=await shell.openPath(directory);if(error)throw new Error(error);});
+    handle('retryStorage',async()=>{
+      if(service?.busy)throw new Error('현재 실행이 끝난 뒤 복구를 다시 시도해 주세요.');
+      await reminderRuntime.reminders.exclusive(()=>reminderRuntime.reminders.reload(true));
+      loadStores();
+      if(storageState().status!=='blocked'&&!engine.ready)await engine.start().catch(()=>{});
+      return storageState();
     });
     handle('bootstrap',()=>service.bootstrap());
     handle('updateState',()=>({...updater.state}));
@@ -140,7 +170,7 @@ else {
     void starting.then(()=>{if(window&&!window.isDestroyed())window.webContents.send('practice:engineChanged',{ready:engine.ready,message:engine.message,missing:engine.missing});});
   };
   app.whenReady().then(async()=>{
-    reminderRuntime=createReminderRuntime({app,Notification,powerMonitor,shell,onOpen:()=>void openToday(),onChanged:value=>{if(window&&!window.isDestroyed())window.webContents.send('practice:reminderChanged',value);}});
+    reminderRuntime=createReminderRuntime({app,Notification,powerMonitor,shell,recover:!reminderMode,onOpen:()=>void openToday(),onChanged:value=>{if(window&&!window.isDestroyed())window.webContents.send('practice:reminderChanged',value);}});
     await reminderRuntime.start();
     if(reminderMode){
       const result=await reminderRuntime.check();

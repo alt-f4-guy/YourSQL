@@ -16,6 +16,11 @@
     <div class="engine"><span id="engine-dot" class="status-dot"></span><span id="engine-text">엔진 확인 중</span><button id="retry-engine" class="link-button" type="button">재연결</button></div>
     <div class="top-actions"><button id="open-settings" class="button ghost" type="button">설정</button><span id="save-status" aria-live="polite">초안 불러오는 중</span><button id="import-pack" class="button ghost" type="button">문제팩 가져오기</button><button id="open-study" class="button ghost" type="button">연속 학습일수</button><button id="open-history" class="button ghost" type="button">오답 기록</button></div>
   </header>
+  <section id="storage-notice" class="storage-notice" role="status" hidden>
+    <h2 id="storage-title">기록 복구가 필요해요</h2>
+    <p id="storage-copy"></p><ul id="storage-issues"></ul>
+    <div><button id="open-storage-folder" class="button ghost" type="button">기록 폴더 열기</button><button id="retry-storage" class="button" type="button">복구 다시 시도</button></div>
+  </section>
   <section id="mysql-notice" class="mysql-notice" role="status" hidden><p>MySQL Server를 찾을 수 없습니다. 설치 후 ‘재연결’을 눌러 주세요. 빈칸 학습은 지금도 이용할 수 있습니다.</p><button id="open-mysql-page" class="button ghost" type="button">MySQL 설치 페이지 열기</button></section>
 
   <nav class="learning-nav" aria-label="학습 모드">

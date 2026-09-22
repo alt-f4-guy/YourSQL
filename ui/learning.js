@@ -325,6 +325,6 @@
     refresh:safely(refresh)
   };
   // 빈칸 학습은 MySQL 시작을 기다리지 않아도 표시한다. 자정 이후에는 새 배정을 읽는다.
-  void safely(refresh)();
+  void api.storageState().then(s=>{if(s.status!=='blocked')void safely(refresh)();});
   window.addEventListener('focus',safely(refresh));
 })();

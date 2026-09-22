@@ -1,7 +1,7 @@
 (() => {
   'use strict';
   const $ = (id) => document.getElementById(id);
-  const state = { problems: [], progress: {}, current: null, level: 'all', query: '', timer: null, saving: false, busy: false, engineReady: false, reviewOnly: false, reviewId: null, reviewDue: null, hintCounts: {} };
+  const state = { storageBlocked:false, problems: [], progress: {}, current: null, level: 'all', query: '', timer: null, saving: false, busy: false, engineReady: false, reviewOnly: false, reviewId: null, reviewDue: null, hintCounts: {} };
   const api = window.practice;
   // Windows에서는 실제 동작과 같은 Ctrl 단축키를 표시한다.
   if (!navigator.platform.startsWith('Mac')) {
@@ -43,7 +43,7 @@
     $('mysql-notice').hidden=engine?.missing!==true;
     if(engine?.missing===true&&!mysqlPageOpened){mysqlPageOpened=true;void openMySQLPage();}
   }
-  function updateActions() { const enabled = Boolean(state.current && state.engineReady && !state.busy); el.editor.disabled = !state.current; el.run.disabled = !enabled; el.submit.disabled = !enabled; el.solution.disabled = !state.current || state.busy; el.retry.disabled = state.busy; $('import-pack').disabled = state.busy; $('hint').disabled = !state.current || !state.current.hints || state.busy; $('end-review').disabled = state.busy; $('reset-sql').disabled = !state.current || state.busy; }
+  function updateActions() { const enabled = Boolean(state.current && state.engineReady && !state.busy && !state.storageBlocked); el.editor.disabled = !state.current || state.storageBlocked; el.run.disabled = !enabled; el.submit.disabled = !enabled; el.solution.disabled = !state.current || state.busy; el.retry.disabled = state.busy; $('import-pack').disabled = state.busy; $('hint').disabled = !state.current || !state.current.hints || state.busy; $('end-review').disabled = state.busy; $('reset-sql').disabled = !state.current || state.busy; }
   // 입력·문제 전환·초안/오답 복원·리셋이 같은 표시 갱신 경로를 사용한다.
   function syncHighlightScroll() { $('sql-highlight').style.width = `${el.editor.clientWidth}px`; $('sql-highlight').style.height = `${el.editor.clientHeight}px`; $('sql-highlight').scrollTop = el.editor.scrollTop; $('sql-highlight').scrollLeft = el.editor.scrollLeft; }
   function syncLines() { highlightSQL($('sql-highlight'), el.editor.value); syncHighlightScroll(); const count = Math.max(1, el.editor.value.split('\n').length); el.lines.textContent = Array.from({ length: count }, (_, i) => i + 1).join('\n'); el.lines.scrollTop = el.editor.scrollTop; }
@@ -105,7 +105,7 @@
   }
 
   async function saveDraft(id = state.current?.id, sql = el.editor.value) {
-    clearTimeout(state.timer); if (!id || !api) return true;
+    clearTimeout(state.timer); if (!id || !api) return true; if(state.storageBlocked)return false;
     state.saving = true; el.save.textContent = '초안 저장 중…';
     try { const review = state.reviewId === id,reviewDue=review?state.reviewDue:null; await api.saveDraft({ id, sql, review, reviewDue }); state.progress[id] = { ...progressFor(id), ...(review?{reviewSql:sql,reviewDue}:{sql}) }; el.save.textContent = '초안 자동 저장됨'; return true; }
     catch (error) { el.save.textContent = '초안 저장 실패'; toast(error.message || '초안을 저장하지 못했습니다.', true); return false; }
@@ -263,10 +263,28 @@
   $('import-pack').addEventListener('click', async () => { if (!api) return toast('앱 연결이 필요합니다.', true); if (state.busy) return; state.busy = true; updateActions(); try { if (!await saveDraft()) return; const r = await api.importPack(); if (!r.canceled) { toast(`${r.count || 0}개 문제를 가져왔습니다.`); await bootstrap(); } else if (r.error) toast(r.error, true); } catch (e) { toast(e.message || '문제팩을 가져오지 못했습니다.', true); } finally { state.busy = false; updateActions(); } });
   el.retry.addEventListener('click', async () => { if (!api) return setEngine({ ready: false, message: '앱 연결이 필요합니다' }); if (state.busy) return; state.busy = true; updateActions(); try { setEngine(await api.retryEngine()); } catch (e) { setEngine({ ready: false, message: e.message || '재연결 실패' }); } finally { state.busy = false; updateActions(); } });
   enableResize($('sidebar-resizer'), 'x', $('sidebar'), '--sidebar', 218, () => 390); enableResize($('main-resizer'), 'x', $('brief-panel'), '--brief', 280, () => window.innerWidth * .62); enableResize($('horizontal-resizer'), 'y', document.querySelector('.editor-wrap'), '--editor', 170, () => window.innerHeight - 270);
-  if (api?.onBeforeClose && api?.closeReady) api.onBeforeClose(async () => { if (state.busy) return toast('실행이 끝난 뒤 창을 닫아 주세요.'); if (await saveDraft(state.current?.id, el.editor.value)) api.closeReady(); });
+  if (api?.onBeforeClose && api?.closeReady) api.onBeforeClose(async () => { if (state.busy) return toast('실행이 끝난 뒤 창을 닫아 주세요.'); if(state.storageBlocked&&!state.current){api.closeReady();return;} if (await saveDraft(state.current?.id, el.editor.value)) api.closeReady(); });
 
+  function renderStorage(info){
+    state.storageBlocked=info.status==='blocked';
+    const notice=$('storage-notice');notice.hidden=!state.storageBlocked&&!info.issues.length;
+    $('storage-title').textContent=state.storageBlocked?'기록 복구가 필요해요':info.status==='recovered'?'백업에서 기록을 복원했어요':'일부 오답 기록을 읽지 못했어요';
+    $('storage-copy').textContent=state.storageBlocked?'기존 기록을 보호하기 위해 학습과 자동 저장을 멈췄어요. 기록 폴더의 원본과 백업을 확인한 뒤 다시 시도해 주세요.':info.status==='recovered'?'원본 파일은 보존했어요. 백업 복원 시 일부 최신 기록이 없을 수 있어요.':'읽지 못한 오답 파일은 그대로 보존했어요. 나머지 학습 기록은 계속 사용할 수 있어요.';
+    $('storage-issues').replaceChildren(...info.issues.map(issue=>node('li','',`${issue.file} · ${issue.recoveredAt?`복원 시각 ${new Date(issue.recoveredAt).toLocaleString('ko-KR')} · 백업 시각 ${new Date(issue.backupAt).toLocaleString('ko-KR')}`:({EINVALID:'파일 내용이 손상되었거나 형식이 맞지 않아요.',EACCES:'파일을 읽거나 쓸 권한이 없어요.',EPERM:'파일이 잠겨 있거나 권한이 없어요.',ENOSPC:'저장 공간이 부족해요.'}[issue.code]||issue.message)} · ${issue.backup?'백업 있음':'백업 없음'}`)));
+    document.body.classList.toggle('storage-blocked',state.storageBlocked);
+    for(const selector of ['.learning-nav','#learning-screen','.workspace','.top-actions']){const element=document.querySelector(selector);if(element)element.inert=state.storageBlocked;}
+    if(state.storageBlocked){clearTimeout(state.timer);$('start-daily').disabled=true;el.editor.disabled=true;el.save.textContent='기록 보호 중';}
+  }
+  $('open-storage-folder').addEventListener('click',async()=>{try{await api.openStorageFolder();}catch(e){toast(e.message,true);}});
+  $('retry-storage').addEventListener('click',async()=>{
+    $('retry-storage').disabled=true;
+    try{const info=await api.retryStorage();renderStorage(info);if(info.status!=='blocked'){await bootstrap();await window.learningUI?.refresh();}}
+    catch(e){toast(e.message,true);}finally{$('retry-storage').disabled=false;}
+  });
+  api?.onStorageChanged?.(renderStorage);
   async function bootstrap() {
     if (!api) { setEngine({ ready: false, message: '앱 연결이 필요합니다' }); el.save.textContent = '연결되지 않음'; clear(el.list); el.list.append(node('div', 'output-empty', 'Electron 앱에서 열어 주세요.')); return; }
+    const storage=await api.storageState();renderStorage(storage);if(storage.status==='blocked')return;
     const selectedId = state.current?.id; if (selectedId && !await saveDraft(selectedId, el.editor.value)) return;
     try { const data = await api.bootstrap(); state.problems = data.problems || []; state.progress = data.progress || {}; state.current = null; setEngine(data.engine); el.save.textContent = '초안 자동 저장'; renderList(); const next = state.problems.find(p => p.id === selectedId) || state.problems[0]; if (next) await selectProblem(next.id, false, true); window.learningUI?.ready({renderTables,selectProblem,saveDraft,busy:()=>state.busy, current:()=>state.current?.id, progress:()=>state.progress, levels, problems:state.problems}); }
     catch (error) { setEngine({ ready: false, message: '초기 연결 실패' }); el.save.textContent = '연결 실패'; toast(error.message || '앱 데이터를 불러오지 못했습니다.', true); }

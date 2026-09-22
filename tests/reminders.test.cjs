@@ -33,7 +33,7 @@ test('등록 실패는 설정을 보존하고 해제 실패도 꺼짐을 먼저 
 test('알림 요청 실패도 당일 재시도하지 않고 재시작에 보존한다',async t=>{const f=fixture(t);await f.r.setEnabled(true);f.r.notify=async()=>{throw new Error('차단됨');};await f.r.check();assert.equal(f.r.state().lastAttemptDate,date);assert.match(f.r.state().lastError,/차단됨/);const {Reminders}=require('../lib/reminders.cjs');const r=new Reminders({directory:f.directory,scheduler:f.scheduler,notify:async()=>{throw new Error('반복 호출');},clock:()=>new Date(2026,8,22,21)});assert.equal((await r.check()).reason,'already-attempted');});
 test('JSON null과 읽을 수 없는 최신 기록은 기본 미학습으로 바꾸지 않는다',async t=>{const f=fixture(t);await f.r.setEnabled(true);const file=path.join(f.directory,'learning.json');fs.writeFileSync(file,'null');assert.equal((await f.r.check()).reason,'error');assert.equal(f.calls(),0);fs.rmSync(file);fs.mkdirSync(file);assert.equal((await f.r.check()).reason,'error');assert.equal(f.calls(),0);});
 test('날짜를 되돌린 경우에도 같은 현지 날짜는 다시 알리지 않는다',async t=>{const f=fixture(t);await f.r.setEnabled(true);await f.r.check();f.time(new Date(2026,8,23,20));await f.r.check();f.time(new Date(2026,8,22,21));await f.r.check();assert.equal(f.calls(),2);});
-test('상태 저장 실패 시 활성화 성공으로 남기지 않는다',async t=>{const f=fixture(t);fs.mkdirSync(path.join(f.directory,'reminders.json.tmp'));await assert.rejects(f.r.setEnabled(true));assert.equal(f.r.state().enabled,false);await f.r.check();assert.equal(f.calls(),0);});
+test('상태 저장 실패 시 활성화 성공으로 남기지 않는다',async t=>{const f=fixture(t);fs.writeFileSync(path.join(f.directory,'blocked-parent'),'file');f.r.file=path.join(f.directory,'blocked-parent','reminders.json');await assert.rejects(f.r.setEnabled(true));assert.equal(f.r.state().enabled,false);await f.r.check();assert.equal(f.calls(),0);});
 test('오늘 구버전 3+1 배정은 화면과 같은 6+2 판정이며 원본과 과거 사이클은 유지한다',()=>{
  const {Learning}=require('../lib/learning.cjs'),unit=require('../content/lessons.cjs')[0];
  const legacy={date,blanks:unit.cards.slice(0,3).map(c=>c.id),done:unit.cards.slice(0,3).map(c=>c.id),query:unit.queries[0],queryDone:true};
@@ -45,4 +45,17 @@ test('오늘 구버전 3+1 배정은 화면과 같은 6+2 판정이며 원본과
  assert.equal(result.completedCycleCount,1);
  assert.equal(JSON.stringify(data),raw);
  assert.deepEqual(data.days[date].completedCycles[0],{...legacy,date:'2026-09-21'});
+});
+test('알림 설정 백업 복원은 끄고 복구 당일 시도를 보류하며 재활성화해도 중복하지 않는다',async t=>{
+ const f=fixture(t),{Reminders}=require('../lib/reminders.cjs');await f.r.setEnabled(true);
+ fs.writeFileSync(f.r.file+'.bak',JSON.stringify({enabled:true,attemptedDates:[],lastAttemptDate:null}));fs.writeFileSync(f.r.file,'{');
+ const readonly=new Reminders({directory:f.directory,scheduler:f.scheduler,notify:f.r.notify,clock:f.r.clock,recover:false});
+ assert.equal((await readonly.check()).reason,'invalid-settings');assert.equal(fs.readFileSync(f.r.file,'utf8'),'{');
+ const recovered=new Reminders({directory:f.directory,scheduler:f.scheduler,notify:f.r.notify,clock:f.r.clock});
+ assert.equal(recovered.state().enabled,false);assert.ok(recovered.state().attemptedDates.includes(date));
+ await recovered.setEnabled(true);assert.equal((await recovered.check()).reason,'already-attempted');assert.equal(f.calls(),0);
+});
+test('알림 전용 읽기는 누락된 기본 파일의 백업을 신규 사용자로 오인하지 않는다',async t=>{
+ const f=fixture(t);await f.r.setEnabled(true);fs.writeFileSync(path.join(f.directory,'learning.json.bak'),JSON.stringify({days:{},records:{}}));
+ assert.equal((await f.r.check()).reason,'error');assert.equal(f.calls(),0);assert.equal(fs.existsSync(path.join(f.directory,'learning.json')),false);
 });
