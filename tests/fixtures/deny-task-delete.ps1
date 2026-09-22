@@ -12,12 +12,12 @@ $folder | Add-Member -MemberType ScriptMethod -Name DeleteTask -Value {
   if($name -ne 'YourSQL Daily Reminder' -or $this.Backend.GetTask($name).Enabled){throw 'Expected the target task to be disabled before deletion'}
   throw [UnauthorizedAccessException]::new('Injected task deletion denied')
 }
-$script:deniedScheduler=[pscustomobject]@{Folder=$folder}
-$script:deniedScheduler | Add-Member -MemberType ScriptMethod -Name Connect -Value {}
-$script:deniedScheduler | Add-Member -MemberType ScriptMethod -Name GetFolder -Value {param($name) $this.Folder}
+$global:YourSQLDeniedScheduler=[pscustomobject]@{Folder=$folder}
+$global:YourSQLDeniedScheduler | Add-Member -MemberType ScriptMethod -Name Connect -Value {}
+$global:YourSQLDeniedScheduler | Add-Member -MemberType ScriptMethod -Name GetFolder -Value {param($name) $this.Folder}
 function New-Object {
   param([string]$ComObject)
-  if($ComObject -eq 'Schedule.Service'){return $script:deniedScheduler}
+  if($ComObject -eq 'Schedule.Service'){return $global:YourSQLDeniedScheduler}
   Microsoft.PowerShell.Utility\New-Object -ComObject $ComObject
 }
 & $Helper -InstallDirectory $InstallDirectory
