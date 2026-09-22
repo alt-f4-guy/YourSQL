@@ -135,7 +135,7 @@ uninstall_restore:
   FileClose $0
   WriteRegStr HKCU "Software\YourSQL" "InstallLocation" "$INSTDIR"
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\YourSQL" "DisplayName" "YourSQL"
-  WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\YourSQL" "UninstallString" '$"$INSTDIR\Uninstall.exe$"'
+  WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\YourSQL" "UninstallString" '"$INSTDIR\Uninstall.exe"'
   Goto uninstall_failed
 uninstall_done:
 SectionEnd

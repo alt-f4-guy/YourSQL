@@ -249,3 +249,26 @@ test('창 닫기 보류는 알림 감시를 유지하고 종료 확정 때 한 �
  vm.runInContext('closing=true;',context);app.emit('before-quit',{preventDefault(){}});app.emit('before-quit',{preventDefault(){}});
  assert.equal(stops,1);assert.equal(disposals,1);assert.equal(exits,0);finish();await Promise.resolve();assert.equal(exits,1);
 });
+
+test('Windows 시작 중 종료는 늦게 연결된 서버도 SHUTDOWN하고 종료를 기다린다',async()=>{
+  const fs=require('node:fs'),vm=require('node:vm'),{EventEmitter}=require('node:events');
+  const file=path.join(__dirname,'../lib/engine.cjs'),module={exports:{}};
+  vm.runInNewContext(fs.readFileSync(file,'utf8'),{module,process:{platform:'win32'},Buffer,setTimeout,clearTimeout,require:require('node:module').createRequire(file)});
+  const engine=new module.exports.Engine('/검사용'),child=new EventEmitter(),signals=[];
+  child.exitCode=null;child.signalCode=null;
+  child.kill=signal=>{signals.push(signal);child.signalCode=signal;child.emit('exit');};
+  let connected,shutdown=0,destroyed=0,stopped=false;
+  engine.initialize=async()=>{
+    engine.child=child;
+    await new Promise(resolve=>{connected=resolve;});
+    engine.admin={query:async({sql})=>{assert.equal(sql,'SHUTDOWN');shutdown++;setImmediate(()=>{child.exitCode=0;child.emit('exit',0);});},destroy(){destroyed++;}};
+    engine.ready=true;
+  };
+  const starting=engine.start(),stopping=engine.stop().then(()=>{stopped=true;});
+  await new Promise(resolve=>setImmediate(resolve));
+  const stoppedBeforeConnection=stopped;
+  connected();await Promise.all([starting,stopping]);
+  assert.equal(stoppedBeforeConnection,false,'연결 대기 중 stop이 먼저 완료되면 서버가 남는다');
+  assert.equal(shutdown,1);assert.equal(destroyed,1);assert.deepEqual(signals,[]);
+  assert.equal(engine.ready,false);assert.equal(engine.admin,null);assert.equal(engine.child,null);
+});

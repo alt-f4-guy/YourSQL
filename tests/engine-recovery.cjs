@@ -21,11 +21,21 @@ async function main(){
     await original.start();
     assert.deepEqual((await original.query("SELECT '재시작 성공' AS value")).rows,[['재시작 성공']]);
     console.log('정상 종료 직후 서버 재시작 확인');
+    await original.stop();
+    const starting=original.start();
+    await Promise.all([starting,original.stop()]);
+    assert.equal(original.ready,false);
+    assert.equal(original.admin,null);
+    assert.equal(original.child,null);
+    await original.start();
+    assert.deepEqual((await original.query("SELECT '시작 중 종료 확인' AS value")).rows,[['시작 중 종료 확인']]);
+    console.log('서버 시작 중 종료 및 재시작 확인');
   }finally{
     clearTimeout(timer);
     await original.stop();
     if(recovering)await recovering.catch(()=>{});
     await recovered.stop();
+    fs.rmSync(directory,{recursive:true,force:true});
   }
 }
 main().catch(e=>{console.error(e);process.exitCode=1;});

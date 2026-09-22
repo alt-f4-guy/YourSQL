@@ -166,6 +166,7 @@ try{
   $process=Start-Process -FilePath (Join-Path $install 'Uninstall.exe') -ArgumentList '/S' -Wait -PassThru
   if($process.ExitCode -eq 0){throw '마지막 등록 삭제 거부를 성공으로 표시했습니다.'}
   if(-not(Test-Path (Join-Path $install 'Uninstall.exe')) -or -not(Test-Path $uninstallKey)){throw '마지막 등록 삭제 실패 후 재시도 진입점이 없습니다.'}
+  if((Get-ItemProperty -LiteralPath $uninstallKey).UninstallString -ne ('"'+(Join-Path $install 'Uninstall.exe')+'"')){throw '복원한 제거 명령이 올바르지 않습니다.'}
 }finally{Set-Acl -LiteralPath $appKey -AclObject $oldAcl}
 $process=Start-Process -FilePath (Join-Path $install 'Uninstall.exe') -ArgumentList '/S' -Wait -PassThru
 if($process.ExitCode -ne 0 -or (Test-Path $install)){throw '레지스트리 권한 복원 후 제거 재시도 실패'}
