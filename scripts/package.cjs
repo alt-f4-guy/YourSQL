@@ -19,7 +19,7 @@ async function main() {
       ...(platform==='darwin'?{osxSign:{identity:'-',identityValidation:false,preAutoEntitlements:false,preEmbedProvisioningProfile:false,continueOnError:false,optionsForFile:()=>({hardenedRuntime:false,timestamp:'none'})}}:{}),
       extraResource:['macos-light.json','macos-dark.json'].map(file=>path.join(root,'theme',file)),
       icon:path.join(root,'assets',icon),
-      ignore:[/^\/AGENTS\.md$/,/^\/\.(impeccable|vscode)(\/|$)/,/^\/yoursql-(design-improvement-report|redesign-spec)\.md$/,/^\/[^/]+\.app(\/|$)/,/^\/(dist|artifacts|tests|scripts|docs|examples|theme)(\/|$)/,/^\/assets\/icon\.iconset/,/^\/\..*runtime/,/^\/\.yoursql-update-/,/^\/content\/(build-content\.cjs|extra-[a-z]+\.cjs|hints\.cjs|mutants\.cjs|checks\.json)$/],
+      ignore:[/^\/AGENTS\.md$/,/^\/\.(impeccable|vscode|superpowers|agents|codex|worktrees)(\/|$)/,/^\/yoursql-(design-improvement-report|redesign-spec)\.md$/,/^\/[^/]+\.app(\/|$)/,/^\/(dist|artifacts|tests|scripts|docs|examples|theme)(\/|$)/,/^\/assets\/icon\.iconset/,/^\/\..*runtime/,/^\/\.yoursql-update-/,/^\/content\/(build-content\.cjs|extra-[a-z]+\.cjs|hints\.cjs|mutants\.cjs|checks\.json)$/],
       extendInfo:{NSHumanReadableCopyright:'로컬 SQL 코딩 테스트 연습장'}}));
     }
     for (const output of paths) {
@@ -32,6 +32,7 @@ async function main() {
         fs.cpSync(path.join(output,file),destination,{recursive:true,verbatimSymlinks:true});
       }
       console.log('앱 생성:',destinationDirectory);
+      if(path.basename(output)==='YourSQL-win32-x64'){require('./windows-zip.cjs').createWindowsZip(destinationDirectory,path.join(root,'dist/YourSQL-Windows-x64.zip'));console.log('Windows 전체 폴더 ZIP 검증 완료');}
     }
   } finally { fs.rmSync(staging,{recursive:true,force:true}); }
 }

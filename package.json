@@ -7,7 +7,7 @@
   "main": "main.cjs",
   "scripts": {
     "start": "electron .",
-    "test": "node --test tests/core.test.cjs tests/storage.test.cjs tests/themes.test.cjs tests/sql-highlight.test.cjs tests/learning.test.cjs tests/calendar.test.cjs tests/platform.test.cjs tests/updates.test.cjs tests/reminders.test.cjs tests/reminder-platform.test.cjs",
+    "test": "node --test tests/core.test.cjs tests/zip.test.cjs tests/storage.test.cjs tests/themes.test.cjs tests/sql-highlight.test.cjs tests/learning.test.cjs tests/calendar.test.cjs tests/platform.test.cjs tests/updates.test.cjs tests/reminders.test.cjs tests/reminder-platform.test.cjs",
     "test:mysql": "node tests/mysql-check.cjs",
     "test:engine": "node tests/engine-recovery.cjs",
     "test:ui": "node tests/ui-check.cjs",
@@ -20,6 +20,7 @@
     "test:packaged": "node tests/ui-check.cjs --packaged",
     "test:updates": "node tests/updates-ui.cjs",
     "release": "node scripts/release.cjs",
+    "test:recovery": "node tests/recovery-ui.cjs",
     "test:daily-reminder": "node tests/daily-reminder-ui.cjs",
     "test:reminder-native": "node tests/reminder-native.cjs"
   },

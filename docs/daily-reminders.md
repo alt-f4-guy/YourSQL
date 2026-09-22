@@ -54,3 +54,15 @@ Windows 설치 제거는 `YourSQL Daily Reminder` 작업과 YourSQL 전용 알�
 - [Electron 고정 Toast Activator CLSID](https://www.electronjs.org/docs/latest/api/app#appsettoastactivatorclsidid-windows)
 - [Apple 사용자 LaunchAgent](https://developer.apple.com/library/archive/documentation/MacOSX/Conceptual/BPSystemStartup/Chapters/CreatingLaunchdJobs.html)
 - [Microsoft 작업 실행 보안 컨텍스트](https://learn.microsoft.com/en-us/windows/win32/taskschd/security-contexts-for-running-tasks)
+
+## 안정성 보완 (통합 배포 대기)
+
+전체 과정 완료는 40개 단원 각각의 빈칸 6개와 필수 쿼리 2개 이력으로 판단합니다. 빈칸만 끝내고 쿼리를 남겼다면 다음 날 같은 단원의 6+2를 새로 배정하며, 전날 완료 수를 오늘 수치로 복사하지 않습니다. SQL 초안과 과거 달력은 보존합니다.
+
+`learning.json`, `progress.json`, `reminders.json`은 검증된 직전 정상본을 `.bak`에 보존합니다. 손상 기록은 고유한 `.corrupt-…` 파일로 남긴 뒤 정상 백업으로 복원합니다. 복구할 수 없으면 기록을 초기화하지 않고 복구 안내와 기록 폴더 열기·재시도를 제공합니다. 개별 오답 파일 오류는 다른 정상 오답과 분리합니다.
+
+알림 설정을 백업에서 복원한 경우에는 알림을 끄고 복구 당일의 자동 알림을 보류합니다. 설정에서 다시 켤 수 있지만 그날의 중복 방지 표식은 유지합니다. 알림 전용 실행은 학습·설정 파일을 복구하지 않으며 불확실한 학습 상태에는 알리지 않습니다.
+
+종료가 SQL 실행이나 초안 저장 실패로 보류되어도 감시는 계속 유지됩니다. Windows 제거는 정상 종료를 먼저 요청하고 응답하지 않으면 재시도·강제 종료·취소를 제공합니다. 무인 제거의 강제 종료는 `/S /FORCE`를 명시한 경우에만 허용합니다. Windows의 실제 설치·제거·알림 지원 검증은 아직 완료하지 않았습니다.
+
+정식 서명은 추가하지 않았습니다. 현재 상태와 남은 실기 항목은 [검증 기록](reminder-acceptance.md)과 [통합 배포 대기 기록](pending-release.md)을 확인하세요.

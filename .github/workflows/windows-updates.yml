@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       build_only:
-        description: '알려진 문제를 수용한 배포: 전체 화면·설치 검사 생략'
+        description: '로컬 검증용 빌드만 생성 (화면·설치 검증 미완료)'
         type: boolean
         default: false
 permissions:
@@ -37,12 +37,17 @@ jobs:
         if: ${{ !inputs.build_only }}
         shell: pwsh
         run: ./tests/windows-installer.ps1
-      - name: 새 Windows 폴더 압축
-        shell: pwsh
-        run: Compress-Archive -Path dist/YourSQL-win32-x64 -DestinationPath dist/YourSQL-Windows-x64.zip -Force
+      - name: 새 배포 폴더·ZIP 검사
+        run: node tests/distribution-themes.cjs release windows
+      - name: 배포 앱과 알림·복구 검사
+        if: ${{ !inputs.build_only }}
+        run: |
+          npm run test:packaged
+          npm run test:daily-reminder
+          npm run test:recovery
       - uses: actions/upload-artifact@v4
         with:
-          name: YourSQL-Setup-x64
+          name: YourSQL-local-${{ inputs.build_only && 'build-only' || 'tested' }}-x64
           path: |
             dist/YourSQL-Setup-x64.exe
             dist/YourSQL-Windows-x64.zip

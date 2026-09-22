@@ -21,6 +21,7 @@ if(target==='all'||target==='windows'){
   assert.equal(fs.existsSync(path.join(windows,'theme')),false);
   assert.deepEqual(expected.map(name=>path.join(windows,'resources',name)).filter(fs.existsSync).map(file=>path.basename(file)).sort(),expected);
   assert.equal(fs.existsSync(path.join(root,'dist/YourSQL-win32-x64/update.json')),false);
+  require('../scripts/windows-zip.cjs').verifyWindowsZip(windows,path.join(root,'dist/YourSQL-Windows-x64.zip'));
 }
 
 if(mode==='release'&&(target==='all'||target==='windows')){
@@ -36,7 +37,7 @@ if(mode==='release'&&(target==='all'||target==='windows')){
   assert.match(script,/MessageBox MB_ICONSTOP/);
   const setup=path.join(root,'dist/YourSQL-Setup-x64.exe');
   assert.equal(fs.existsSync(setup),true,'Windows Setup EXE가 필요합니다.');
-  assert.equal(fs.existsSync(path.join(root,'dist/YourSQL-Windows-x64.zip')),false,'Windows ZIP을 배포하면 안 됩니다.');
+  assert.equal(fs.existsSync(path.join(root,'dist/YourSQL-Windows-x64.zip')),true,'새 Windows 전체 폴더 ZIP이 필요합니다.');
 }
 
 console.log(`${mode} ${target} 배포 자산 검사 통과`);

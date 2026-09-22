@@ -37,7 +37,7 @@ function releaseWindows(){
   ],{cwd:root,stdio:'inherit'});
   fs.rmSync(final,{force:true});
   fs.renameSync(temporary,final);
-  fs.rmSync(path.join(root,'dist','YourSQL-Windows-x64.zip'),{force:true});
+  require('./windows-zip.cjs').verifyWindowsZip(path.join(root,'dist/YourSQL-win32-x64'),path.join(root,'dist/YourSQL-Windows-x64.zip'));
   execFileSync(process.execPath,[path.join(root,'tests','distribution-themes.cjs'),'release','windows'],{cwd:root,stdio:'inherit'});
 }
 

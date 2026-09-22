@@ -98,3 +98,5 @@ npm start
 ```
 
 [문제팩 형식](docs/interfaces.md) · [테마 안내](theme/README.md) · [출처 안내](NOTICE.md)
+
+기록 백업·복구, 필수 쿼리를 포함한 완료 판정, 종료 보류와 Windows 제거 보완은 [통합 배포 대기 기록](docs/pending-release.md)에 정리합니다. 복구 화면 검사는 `npm run test:recovery`, 실제 알림·플랫폼별 미검증 항목은 [검증 기록](docs/reminder-acceptance.md)을 참고하세요. 정식 서명은 추가하지 않고 기존 로컬 임시 서명을 유지합니다.
