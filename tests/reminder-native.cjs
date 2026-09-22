@@ -33,7 +33,14 @@ const executable=process.platform==='darwin'?path.join(root,'dist/YourSQL-darwin
      assert.match(stdout,/--reminder-check/);
      await scheduler.unregister();
      assert.equal(fs.existsSync(scheduler.file),false);
-     await assert.rejects(exec('/bin/launchctl',['print',`gui/${process.getuid()}/${scheduler.label}`]));
+     // bootout 응답 이후에도 launchd 조회에는 종료 중인 작업이 잠시 남을 수 있다.
+     let removed=false;
+     for(let attempt=0;attempt<50;attempt++){
+       try{await exec('/bin/launchctl',['print',`gui/${process.getuid()}/${scheduler.label}`]);}
+       catch{removed=true;break;}
+       await new Promise(resolve=>setTimeout(resolve,100));
+     }
+     assert.equal(removed,true,'전용 테스트 LaunchAgent가 해제되지 않았습니다.');
      scheduler=null;
      console.log('전용 테스트 LaunchAgent 등록·조회·해제 PASS');
    }

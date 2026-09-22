@@ -10,7 +10,7 @@ test('중복 종료 요청은 MySQL 종료 대기를 건너뛰지 않는다',asy
   let finish,stops=0,prevented=0,exits=0;
   Object.assign(app,{setName(){},setPath(){},getPath:()=>'/검사용',requestSingleInstanceLock:()=>true,whenReady:()=>new Promise(()=>{}),exit(){exits++;}});
   const fakeEngine={stop:()=>{stops++;return new Promise(resolve=>{finish=resolve;});}};
-  const context=vm.createContext({require:name=>name==='electron'?{app}:actualRequire(name),__dirname:path.dirname(file),process:{env:{},argv:[]},clearTimeout,fakeEngine});
+  const context=vm.createContext({require:name=>name==='electron'?{app}:actualRequire(name),__dirname:path.dirname(file),process:{env:{},argv:[],execPath:process.execPath},clearTimeout,fakeEngine});
   vm.runInContext(fs.readFileSync(file,'utf8')+'\nengine=fakeEngine;closing=true;',context);
   const event={preventDefault(){prevented++;}};
   app.emit('before-quit',event);app.emit('before-quit',event);
@@ -241,7 +241,7 @@ test('창 닫기 보류는 알림 감시를 유지하고 종료 확정 때 한 �
  const app=new EventEmitter(),file=path.join(__dirname,'../main.cjs'),actualRequire=require('node:module').createRequire(file);
  let finish,stops=0,disposals=0,closes=0,exits=0;
  Object.assign(app,{setName(){},setPath(){},getPath:()=>'/검사용',requestSingleInstanceLock:()=>true,whenReady:()=>new Promise(()=>{}),exit(){exits++;}});
- const context=vm.createContext({require:n=>n==='electron'?{app}:actualRequire(n),__dirname:path.dirname(file),process:{env:{},argv:[]},clearTimeout,
+ const context=vm.createContext({require:n=>n==='electron'?{app}:actualRequire(n),__dirname:path.dirname(file),process:{env:{},argv:[],execPath:process.execPath},clearTimeout,
   fakeEngine:{stop(){stops++;return new Promise(r=>finish=r);}},fakeRuntime:{dispose(){disposals++;}},fakeWindow:{isDestroyed:()=>false,close(){closes++;}}});
  vm.runInContext(fs.readFileSync(file,'utf8')+'\nengine=fakeEngine;reminderRuntime=fakeRuntime;window=fakeWindow;',context);
  app.emit('before-quit',{preventDefault(){}});app.emit('before-quit',{preventDefault(){}});
