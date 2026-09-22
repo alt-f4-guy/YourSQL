@@ -79,6 +79,14 @@ FunctionEnd
 
 Section "Uninstall"
   SetShellVarContext current
+  ; 알림 작업과 이 앱의 알림 등록만 제거하며 학습 기록은 보존합니다.
+  nsExec::ExecToLog '"$SYSDIR\schtasks.exe" /Delete /TN "YourSQL Daily Reminder" /F'
+  Delete "$SMPROGRAMS\YourSQL\YourSQL Reminders.lnk"
+  Delete "$SMPROGRAMS\YourSQL.lnk"
+  SetRegView 64
+  DeleteRegKey HKCU "Software\Classes\CLSID\{C00C9F0B-5698-4B7D-9845-487475797391}"
+  DeleteRegKey HKCU "Software\Classes\AppUserModelId\local.yoursql.practice"
+  SetRegView 32
   Delete "$SMPROGRAMS\YourSQL\YourSQL.lnk"
   RMDir "$SMPROGRAMS\YourSQL"
   DeleteRegKey HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\YourSQL"

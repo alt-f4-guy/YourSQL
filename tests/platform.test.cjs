@@ -10,7 +10,7 @@ test('중복 종료 요청은 MySQL 종료 대기를 건너뛰지 않는다',asy
   let finish,stops=0,prevented=0,exits=0;
   Object.assign(app,{setName(){},setPath(){},getPath:()=>'/검사용',requestSingleInstanceLock:()=>true,whenReady:()=>new Promise(()=>{}),exit(){exits++;}});
   const fakeEngine={stop:()=>{stops++;return new Promise(resolve=>{finish=resolve;});}};
-  const context=vm.createContext({require:name=>name==='electron'?{app}:actualRequire(name),__dirname:path.dirname(file),process:{env:{}},fakeEngine});
+  const context=vm.createContext({require:name=>name==='electron'?{app}:actualRequire(name),__dirname:path.dirname(file),process:{env:{},argv:[]},clearTimeout,fakeEngine});
   vm.runInContext(fs.readFileSync(file,'utf8')+'\nengine=fakeEngine;closing=true;',context);
   const event={preventDefault(){prevented++;}};
   app.emit('before-quit',event);app.emit('before-quit',event);

@@ -1,5 +1,5 @@
 // 앱 창, 네이티브 파일 대화상자, 로컬 엔진의 생명주기를 연결한다.
-const {app,BrowserWindow,ipcMain,dialog,Menu,session,shell} = require('electron');
+const {app,BrowserWindow,ipcMain,dialog,Menu,session,shell,Notification,powerMonitor} = require('electron');
 const path = require('node:path');
 const fs = require('node:fs');
 const {pathToFileURL} = require('node:url');
@@ -8,18 +8,40 @@ const {PracticeService} = require('./lib/service.cjs');
 const {readThemes,deleteTheme,seedThemes} = require('./lib/themes.cjs');
 const {themeDirectories} = require('./lib/platform.cjs');
 const {Updater}=require('./lib/updates.cjs');
+const {createReminderRuntime}=require('./lib/reminder-runtime.cjs');
 const appName='YourSQL';
 app.setName(appName);
 app.setPath('userData',path.join(app.getPath('appData'),'YourSQL')); 
 if (process.env.SQL_PRACTICE_DATA_DIR) app.setPath('userData',path.resolve(process.env.SQL_PRACTICE_DATA_DIR));
 let window,engine,service,themeWatcher,themeTimer,closing=false,stopped=false;
+let reminderMode=process.argv.includes('--reminder-check'),reminderRuntime,normalStarting,exitTimer,createWindow;
+const hidden=process.env.YOURSQL_TEST_HIDDEN==='1';
+if((reminderMode||hidden)&&process.platform==='darwin')app.setActivationPolicy('accessory');
+async function openToday(){
+  await startNormal();
+  if(!hidden){window.show();window.focus();}
+  window.webContents.send('practice:reminderOpen');
+}
+function startNormal(){
+  reminderMode=false;clearTimeout(exitTimer);
+  if(!hidden&&process.platform==='darwin')app.setActivationPolicy('regular');
+  if(!normalStarting)normalStarting=createWindow().then(()=>{void reminderRuntime.monitor();});
+  return normalStarting;
+}
 const page = path.join(__dirname,'ui/index.html');
 const pageURL = pathToFileURL(page).href;
 
 if (!app.requestSingleInstanceLock()) app.quit();
 else {
-  app.on('second-instance',()=>{window?.show();window?.focus();});
-  app.whenReady().then(async()=>{
+  app.on('second-instance',(_event,argv)=>{
+    void app.whenReady().then(async()=>{
+      if(argv.includes('--reminder-check')){await reminderRuntime.check();return;}
+      await startNormal();
+      if(!hidden){window?.show();window?.focus();}
+    });
+  });
+  app.on('activate',()=>{if(reminderRuntime)void startNormal();});
+  createWindow=async function(){
     const directory=app.getPath('userData');
     const packagedThemes=app.isPackaged?themeDirectories(process.execPath,directory):null;
     const themeDirectory=process.env.SQL_PRACTICE_DATA_DIR ? path.join(directory,'theme') :
@@ -64,6 +86,9 @@ else {
     handle('submit',async value=>{const result=await service.submit(value);learning.queryResult(value.id,result,value.review);return result;});
     handle('learning',()=>learning.snapshot());
     handle('learningSettings',()=>learning.snapshot().settings);
+    handle('reminderState',()=>reminderRuntime.reminders.state());
+    handle('setReminderEnabled',value=>reminderRuntime.reminders.setEnabled(value));
+    handle('testReminder',()=>reminderRuntime.check({test:true}));
     handle('setDailyGoal',value=>learning.setDailyGoal(value));
     handle('startExtra',()=>learning.startExtra());
     handle('blankAnswer',value=>learning.answer(value));
@@ -113,9 +138,18 @@ else {
     ]));
     await window.loadFile(page);
     void starting.then(()=>{if(window&&!window.isDestroyed())window.webContents.send('practice:engineChanged',{ready:engine.ready,message:engine.message,missing:engine.missing});});
-  }).catch(error=>{dialog.showErrorBox('앱 시작 실패',error.message);closing=true;app.quit();});
+  };
+  app.whenReady().then(async()=>{
+    reminderRuntime=createReminderRuntime({app,Notification,powerMonitor,shell,onOpen:()=>void openToday(),onChanged:value=>{if(window&&!window.isDestroyed())window.webContents.send('practice:reminderChanged',value);}});
+    await reminderRuntime.start();
+    if(reminderMode){
+      const result=await reminderRuntime.check();
+      if(reminderMode)exitTimer=setTimeout(()=>{if(reminderMode)app.quit();},result.requested?10000:0);
+    }else await startNormal();
+  }).catch(error=>{if(!reminderMode&&!hidden)dialog.showErrorBox('앱 시작 실패',error.message);else console.error(error);closing=true;app.quit();});
   app.on('window-all-closed',()=>{clearTimeout(themeTimer);themeWatcher?.close();app.quit();});
   app.on('before-quit',event=>{
+    clearTimeout(exitTimer);reminderRuntime?.dispose();
     if (engine) {
       event.preventDefault();
       // 창 닫기와 종료 요청이 겹쳐도 MySQL 종료 완료 전에는 앱을 끝내지 않는다.

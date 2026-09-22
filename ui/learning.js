@@ -292,7 +292,32 @@
     catch(error){status.textContent=error.message||'하루 목표를 저장하지 못했습니다.';status.hidden=false;}
     finally{button.disabled=false;}
   }));
-  $('open-settings').addEventListener('click',safely(async()=>{await refresh();$('settings-dialog').showModal();}));
+  let reminderState,reminderBusy=false;
+  function renderReminder(value){
+    reminderState=value;$('reminder-enabled').checked=value.enabled;
+    const status=value.status==='registration-error'?'등록 실패':value.enabled?'권한 확인 필요 · 오후 8시 검사 사용 중':'꺼짐';
+    $('reminder-status').textContent=value.lastError?`${status} · ${value.lastError}`:value.enabled?`${status} · 시스템 설정에서 YourSQL 알림을 허용해 주세요.`:status;
+    $('retry-reminder').hidden=value.status!=='registration-error';
+  }
+  async function reminderAction(action){
+    if(reminderBusy)return;reminderBusy=true;
+    for(const id of ['reminder-enabled','test-reminder','retry-reminder'])$(id).disabled=true;
+    try{await action();}catch(e){if(reminderState)$('reminder-enabled').checked=reminderState.enabled;$('reminder-status').textContent=`알림 설정을 확인하지 못했어요. ${e.message}`;}
+    finally{reminderBusy=false;for(const id of ['reminder-enabled','test-reminder','retry-reminder'])$(id).disabled=false;}
+  }
+  $('reminder-enabled').addEventListener('change',()=>void reminderAction(async()=>renderReminder(await api.setReminderEnabled($('reminder-enabled').checked))));
+  $('retry-reminder').addEventListener('click',()=>void reminderAction(async()=>renderReminder(await api.setReminderEnabled(reminderState?.enabled||!reminderState?.registeredPath))));
+  $('test-reminder').addEventListener('click',()=>void reminderAction(async()=>{
+    $('reminder-status').textContent='테스트 알림을 요청하고 있어요…';
+    const result=await api.testReminder();renderReminder(await api.reminderState());
+    if(result.requested)$('reminder-status').textContent='테스트 알림을 요청했어요. 보이지 않으면 시스템 알림 설정과 집중 모드를 확인해 주세요.';
+  }));
+  api.onReminderChanged(renderReminder);
+  api.onReminderOpen(safely(async()=>{
+    await refresh();
+    if(await show('today'))for(const dialog of document.querySelectorAll('dialog[open]'))dialog.close();
+  }));
+  $('open-settings').addEventListener('click',safely(async()=>{await refresh();renderReminder(await api.reminderState());$('settings-dialog').showModal();}));
   for(const id of ['hint','solution'])$(id).addEventListener('click',safely(async()=>{if(workspace?.current())await api.learningAssist(workspace.current());}));
   window.learningUI={
     ready(value){workspace=value;void safely(refresh)();},

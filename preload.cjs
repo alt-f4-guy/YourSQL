@@ -2,6 +2,9 @@
 const {contextBridge,ipcRenderer} = require('electron');
 const invoke = channel => argument => ipcRenderer.invoke(channel,argument);
 contextBridge.exposeInMainWorld('practice',{
+  reminderState:invoke('practice:reminderState'),setReminderEnabled:invoke('practice:setReminderEnabled'),testReminder:invoke('practice:testReminder'),
+  onReminderChanged:callback=>{ipcRenderer.on('practice:reminderChanged',(_event,value)=>callback(value));},
+  onReminderOpen:callback=>{ipcRenderer.on('practice:reminderOpen',()=>callback());},
   updateState:invoke('practice:updateState'),checkUpdates:invoke('practice:checkUpdates'),openUpdatePage:invoke('practice:openUpdatePage'),
   onUpdateChanged:callback=>{ipcRenderer.on('practice:updateChanged',(_event,value)=>callback(value));},
   learning:invoke('practice:learning'),learningSettings:invoke('practice:learningSettings'),setDailyGoal:invoke('practice:setDailyGoal'),startExtra:invoke('practice:startExtra'),blankAnswer:invoke('practice:blankAnswer'),blankReveal:invoke('practice:blankReveal'),learningAssist:invoke('practice:learningAssist'),
