@@ -52,7 +52,7 @@
     $('completed-days').textContent=`하루 목표 달성 ${data.completedDays}일`;
     $('daily-goal-detail').textContent=extraCycles?`오늘 목표 ${goalProgress} / ${goalCycles}사이클 달성 · 추가 ${extraCycles}사이클 완료`:`오늘 목표 ${goalProgress} / ${goalCycles}사이클 ${goalComplete?'달성':'완료'}`;
     $('daily-title').textContent=courseComplete?'전체 과정을 완료했어요':goalComplete?'오늘의 목표를 모두 마쳤어요!':currentComplete?'사이클을 마쳤어요':data.units.find(u=>u.id===t.unit||u.queries.includes(t.queries[0]))?.title||'오늘의 SQL 연습';
-    $('daily-copy').textContent=courseComplete?'모든 개념 과정을 마쳤어요. 복습과 단원별 다시 풀기로 기억을 다져 보세요.':goalComplete?(due.length?`오늘 복습할 문제 ${due.length}개가 있어요.`:'오늘 목표를 달성했어요. 복습하거나 추가 학습을 이어서 해 보세요.'):currentComplete?'이 사이클을 마쳤어요. 다음 사이클을 시작하면 오늘 목표에 계속 반영됩니다.':'빈칸 여섯 문제, 쿼리 두 문제. 오늘도 차근차근 쌓아가요.';
+    $('daily-copy').textContent=courseComplete?'모든 단원의 빈칸과 필수 쿼리를 마쳤어요. 복습과 단원별 다시 풀기로 기억을 다져 보세요.':goalComplete?(due.length?`오늘 복습할 문제 ${due.length}개가 있어요.`:'오늘 목표를 달성했어요. 복습하거나 추가 학습을 이어서 해 보세요.'):currentComplete?'이 사이클을 마쳤어요. 다음 사이클을 시작하면 오늘 목표에 계속 반영됩니다.':'빈칸 여섯 문제, 쿼리 두 문제. 오늘도 차근차근 쌓아가요.';
     $('daily-count').replaceChildren(node('span',String(total)),node('span','/ 8'));
     $('daily-progress').value=total;$('daily-detail').textContent=`빈칸 ${t.done.length}/6 · 쿼리 ${t.queriesDone.length}/2 · 오늘 총 ${data.history[t.date].total}문제 완료`;
     $('start-daily').disabled=!workspace;$('start-daily').hidden=currentComplete&&!due.length&&data.hasMore;$('start-daily').textContent=due.length?'복습 시작':courseComplete||currentComplete?'개념 목록 보기':total?'오늘 학습 이어하기':'오늘의 학습 시작';
@@ -66,7 +66,7 @@
     renderCalendar();
     renderCatalog();
     const cards=allCards(),passed=cards.filter(c=>data.records[c.id]?.passed).length,finished=data.units.filter(u=>u.cards.every(c=>data.records[c.id]?.passed)).length;
-    $('concept-progress-summary').textContent=`전체 진도 ${Math.round(passed/cards.length*100)}%`;
+    $('concept-progress-summary').textContent=`빈칸 진도 ${Math.round(passed/cards.length*100)}%`;
     $('concept-progress-bar').max=cards.length;$('concept-progress-bar').value=passed;
     $('concept-progress-detail').textContent=`${cards.length}문제 중 ${passed}문제 완료 · ${data.units.length}단원 중 ${finished}단원 완료`;
     for(const target of ['concept-units']){

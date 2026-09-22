@@ -393,3 +393,40 @@ test('하루 목표 사이클을 저장하고 사이클 완료 수로 목표 달
     assert.equal(store.snapshot().history['2026-09-07'].goalCycles,2);
   }finally{fs.rmSync(dir,{recursive:true,force:true});}
 });
+
+for(const queryCount of [0,1])test(`쿼리 ${queryCount}/2 후 자정·미접속·재시작은 같은 단원 6+2와 초안을 보존한다`,()=>{
+  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'sql-unfinished-'));
+  try{
+    const {PracticeStore}=require('../lib/core.cjs'),unit=require('../content/lessons.cjs')[0];
+    let now=new Date(2026,8,22,23,59),learning=new Learning(dir,()=>now);
+    const progress=new PracticeStore(dir);progress.saveDraft(unit.queries[1],'SELECT 123 AS saved_draft');
+    for(const c of unit.cards)learning.answer({id:c.id,answer:c.answer});
+    for(const id of unit.queries.slice(0,queryCount))learning.queryResult(id,{status:'correct'});
+    const history=learning.snapshot().history['2026-09-22'];
+    for(const d of [23,27]){
+      now=new Date(2026,8,d);learning=new Learning(dir,()=>now);const s=learning.snapshot();
+      assert.equal(s.today.unit,unit.id);assert.equal(s.today.blanks.length,6);assert.equal(s.today.queries.length,2);
+      assert.deepEqual(s.today.done,[]);assert.deepEqual(s.today.queriesDone,[]);assert.equal(s.history[s.today.date].total,0);
+      assert.deepEqual(s.history['2026-09-22'],history);assert.equal(s.today.courseComplete,false);
+      assert.equal(new PracticeStore(dir).progress[unit.queries[1]].sql,'SELECT 123 AS saved_draft');
+    }
+  }finally{fs.rmSync(dir,{recursive:true,force:true});}
+});
+test('과거 정답 증거를 합쳐 중간 미완료 단원을 찾고 잘못된 오늘 완료만 보정한다',()=>{
+  const units=require('../content/lessons.cjs'),{unitComplete,courseComplete}=require('../lib/learning.cjs');
+  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'sql-legacy-completion-'));
+  try{
+    const days={},records={};
+    for(const [i,u] of units.entries())days[`2026-07-${String(i%28+1).padStart(2,'0')}`]??={date:`2026-07-${String(i%28+1).padStart(2,'0')}`,blanks:[],done:[],queries:[],queriesDone:[],completedCycles:[]};
+    const d=days['2026-07-01'];
+    d.completedCycles=units.map(u=>({blanks:u.cards.map(c=>c.id),done:u.cards.map(c=>c.id),queries:u.queries,queriesDone:[...u.queries]}));
+    d.completedCycles[17].queriesDone.pop();
+    days['2026-09-22']={date:'2026-09-22',blanks:[],done:[],queries:[],queriesDone:[],courseComplete:true,goalCycles:2};
+    const prior=JSON.stringify(d),data={days,records},raw=JSON.stringify(data);
+    assert.equal(typeof unitComplete,'function');assert.equal(unitComplete(data,units[0]),true);assert.equal(courseComplete(data),false);assert.equal(JSON.stringify(data),raw);
+    fs.writeFileSync(path.join(dir,'learning.json'),raw);const learning=new Learning(dir,()=>new Date(2026,8,22));
+    const s=learning.snapshot();assert.equal(s.today.unit,units[17].id);assert.equal(s.today.goalCycles,2);assert.equal(s.today.completedCycleCount,0);assert.equal(JSON.stringify(learning.data.days['2026-07-01']),prior);
+    learning.queryResult(units[17].queries[1],{status:'correct'});assert.equal(learning.snapshot().today.courseComplete,true);
+    assert.equal(learning.snapshot().hasMore,false);
+  }finally{fs.rmSync(dir,{recursive:true,force:true});}
+});

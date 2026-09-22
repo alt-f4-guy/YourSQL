@@ -15,7 +15,16 @@ test('과정 끝의 미완료 쿼리는 계속 대상이며 완료 이후에만 
  assert.equal(typeof learningGoal,'function');
  const records=Object.fromEntries(require('../content/lessons.cjs').flatMap(u=>u.cards).map(c=>[c.id,{passed:true}]));
  const data={records,days:{[date]:{...cycle(false),goalCycles:3}}};
- assert.equal(learningGoal(data,date).courseComplete,false);data.days[date]=cycle();assert.equal(learningGoal(data,date).courseComplete,true);delete data.days[date];assert.equal(learningGoal(data,date).courseComplete,true);
+ assert.equal(learningGoal(data,date).courseComplete,false);data.days[date]=cycle();assert.equal(learningGoal(data,date).courseComplete,false);
+ for(const u of require('../content/lessons.cjs'))for(const id of u.queries)records[id]={passed:true};
+ assert.equal(learningGoal(data,date).courseComplete,true);delete data.days[date];assert.equal(learningGoal(data,date).courseComplete,true);
+});
+test('마지막 쿼리를 남기고 날짜가 바뀌어도 전체 완료가 아니다',()=>{
+ const units=require('../content/lessons.cjs'),data={days:{},records:{}};
+ for(const unit of units){for(const card of unit.cards)data.records[card.id]={passed:true};if(unit!==units.at(-1))for(const id of unit.queries)data.records[id]={passed:true};}
+ assert.equal(learningGoal(data,'2026-09-23').courseComplete,false);
+ data.days['2026-09-23']={blanks:[],done:[],queries:[],queriesDone:[],courseComplete:true};
+ assert.equal(learningGoal(data,'2026-09-23').courseComplete,false);
 });
 function fixture(t){const directory=fs.mkdtempSync(path.join(os.tmpdir(),'yoursql-reminders-'));t.after(()=>fs.rmSync(directory,{recursive:true,force:true}));const {Reminders}=require('../lib/reminders.cjs');let now=new Date(2026,8,22,20),calls=0;const scheduler={identity:'test-path',register:async()=>{},unregister:async()=>{}};const r=new Reminders({directory,scheduler,clock:()=>now,notify:async()=>{calls++;return {requested:true};}});return {r,scheduler,directory,calls:()=>calls,time:d=>now=d};}
 test('꺼짐·시간 경계·중복·테스트 알림·다음날 재평가',async t=>{const f=fixture(t);await f.r.check();assert.equal(f.calls(),0);await f.r.setEnabled(true);f.time(new Date(2026,8,22,19,59));await f.r.check();assert.equal(f.calls(),0);f.time(new Date(2026,8,22,20));await Promise.all([f.r.check(),f.r.check()]);assert.equal(f.calls(),1);await f.r.check({test:true});assert.equal(f.calls(),2);f.time(new Date(2026,8,23,22));await f.r.check();assert.equal(f.calls(),2);f.time(new Date(2026,8,24,21,59));await f.r.check();assert.equal(f.calls(),3);assert.equal(fs.existsSync(path.join(f.directory,'learning.json')),false);});
