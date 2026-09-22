@@ -2,7 +2,7 @@ const {_electron:electron}=require('@playwright/test');
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),os=require('node:os');
 const root=path.resolve(__dirname,'..'),directory=fs.mkdtempSync(path.join(os.tmpdir(),'yoursql-reminder-ui-'));
 const packaged=process.argv.includes('--packaged'),executable=process.platform==='darwin'?path.join(root,'dist/YourSQL-darwin-arm64/YourSQL.app/Contents/MacOS/YourSQL'):path.join(root,'dist/YourSQL-win32-x64/YourSQL.exe');
-const env={...process.env,SQL_PRACTICE_DATA_DIR:directory,YOURSQL_TEST_HIDDEN:'1'};
+const env={...process.env,SQL_PRACTICE_DATA_DIR:directory,YOURSQL_TEST_HIDDEN:process.platform==='darwin'?'1':'0'};
 fs.cpSync(path.join(root,'theme'),path.join(directory,'theme'),{recursive:true});
 fs.writeFileSync(path.join(directory,'updates.json'),JSON.stringify({repository:''}));
 (async()=>{let app;try{
@@ -31,10 +31,11 @@ fs.writeFileSync(path.join(directory,'updates.json'),JSON.stringify({repository:
  await page.locator('#editor').fill('SELECT 987 AS reminder_draft');
  // 검사 요청은 현재 모드와 숨김 상태를 바꾸지 않는다.
  const before=await page.locator('body').getAttribute('data-mode');
+ const visibleBefore=await app.evaluate(({BrowserWindow})=>BrowserWindow.getAllWindows().some(w=>w.isVisible()));
  await app.evaluate(({app})=>app.emit('second-instance',{},['--reminder-check']));
  assert.equal(await page.locator('body').getAttribute('data-mode'),before);
  assert.equal(await page.locator('#editor').inputValue(),'SELECT 987 AS reminder_draft');
- assert.equal(await app.evaluate(({BrowserWindow})=>BrowserWindow.getAllWindows().some(w=>w.isVisible())),false);
+ assert.equal(await app.evaluate(({BrowserWindow})=>BrowserWindow.getAllWindows().some(w=>w.isVisible())),visibleBefore);
  // 클릭 전달은 기존 초안 저장 경로를 통해 오늘 화면으로 이동한다.
  await app.evaluate(({BrowserWindow})=>BrowserWindow.getAllWindows()[0].webContents.send('practice:reminderOpen'));
  await page.waitForFunction(()=>document.body.dataset.mode==='today');

@@ -31,6 +31,12 @@ jobs:
       - name: 소스 앱 학습·재시작 검사
         if: ${{ !inputs.build_only }}
         run: npm run test:ui
+      - name: 소스 앱 알림 검사
+        if: ${{ !inputs.build_only }}
+        run: npm run test:daily-reminder
+      - name: 기록 복구 화면 검사
+        if: ${{ !inputs.build_only }}
+        run: npm run test:recovery
       - name: Windows Setup 생성
         run: npm run release
       - name: 설치·재설치·실행·제거 검사
@@ -39,12 +45,12 @@ jobs:
         run: ./tests/windows-installer.ps1
       - name: 새 배포 폴더·ZIP 검사
         run: node tests/distribution-themes.cjs release windows
-      - name: 배포 앱과 알림·복구 검사
+      - name: 배포 앱 학습 검사
         if: ${{ !inputs.build_only }}
-        run: |
-          npm run test:packaged
-          npm run test:daily-reminder -- --packaged
-          npm run test:recovery
+        run: npm run test:packaged
+      - name: 배포 앱 알림 검사
+        if: ${{ !inputs.build_only }}
+        run: npm run test:daily-reminder -- --packaged
       - uses: actions/upload-artifact@v4
         with:
           name: YourSQL-local-${{ inputs.build_only && 'build-only' || 'tested' }}-x64
