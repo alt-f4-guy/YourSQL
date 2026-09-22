@@ -172,18 +172,60 @@ $process=Invoke-YourSQLUninstall
 if($process.ExitCode -ne 0 -or (Test-Path $install)){throw '파일 잠금 해제 후 제거 재시도 실패'}
 Write-Host '예약 삭제 API 오류·실제 파일 잠금 실패·재시도 PASS'
 
-# 마지막 설치 키 삭제가 거부되어도 제거 프로그램과 제어판 진입점을 복원한다.
+# 마지막 등록 삭제 실패는 검사 전용 NSIS 사본의 해당 API 경계에서 주입한다.
+# 관리자 CI의 실제 레지스트리 ACL 거부는 재현되지 않으므로 결과를 구분한다.
 Install-YourSQL
-$oldAcl=Get-Acl -LiteralPath $appKey
-$denyDelete=[Security.AccessControl.RegistryAccessRule]::new([Security.Principal.SecurityIdentifier]::new($sid),[Security.AccessControl.RegistryRights]::Delete,[Security.AccessControl.AccessControlType]::Deny)
-$deniedAcl=Get-Acl -LiteralPath $appKey;$deniedAcl.AddAccessRule($denyDelete)
+$fixture=Join-Path $env:RUNNER_TEMP 'yoursql-registry-failure'
+New-Item -ItemType Directory -Force -Path $fixture | Out-Null
+Copy-Item -LiteralPath (Join-Path $root 'installer\close-app.ps1'),(Join-Path $root 'installer\uninstall-app.ps1') -Destination $fixture
+$source=Get-Content -LiteralPath (Join-Path $root 'installer\YourSQL.nsi') -Raw
+$body=$source.Substring($source.IndexOf('Function un.onInit'))
+$delete='  DeleteRegKey HKCU "Software\YourSQL"'
+if([regex]::Matches($body,[regex]::Escape($delete)).Count -ne 1){throw '등록 삭제 경계를 찾지 못했습니다.'}
+$injected=@'
+  IfFileExists "@MARKER@" 0 registry_delete_allowed
+  FileOpen $0 "@REACHED@" w
+  FileWrite $0 "reached"
+  FileClose $0
+  SetErrors
+  Goto registry_delete_checked
+registry_delete_allowed:
+  DeleteRegKey HKCU "Software\YourSQL"
+registry_delete_checked:
+'@
+$denyMarker=Join-Path $fixture 'deny-delete'
+$reachedMarker=Join-Path $fixture 'delete-reached'
+$body=$body.Replace($delete,$injected.Replace('@MARKER@',$denyMarker).Replace('@REACHED@',$reachedMarker))
+$header=@'
+Unicode true
+!include "FileFunc.nsh"
+Var UninstallForce
+Name "YourSQL uninstall failure test"
+OutFile "@OUTPUT@"
+RequestExecutionLevel user
+SilentInstall silent
+Section
+  WriteUninstaller "@UNINSTALLER@"
+SectionEnd
+
+'@
+$maker=Join-Path $fixture 'make-uninstaller.exe'
+$fixtureUninstaller=Join-Path $fixture 'Uninstall.exe'
+$fixtureSource=Join-Path $fixture 'failure.nsi'
+($header.Replace('@OUTPUT@',$maker).Replace('@UNINSTALLER@',$fixtureUninstaller)+$body) | Set-Content -LiteralPath $fixtureSource -Encoding utf8BOM
+& (Join-Path ${env:ProgramFiles(x86)} 'NSIS\makensis.exe') $fixtureSource
+if($LASTEXITCODE -ne 0){throw '등록 삭제 오류 주입 제거 프로그램 빌드 실패'}
+$made=Start-Process -FilePath $maker -ArgumentList '/S' -Wait -PassThru
+if($made.ExitCode -ne 0 -or -not(Test-Path $fixtureUninstaller)){throw '검사용 제거 프로그램 생성 실패'}
+Copy-Item -LiteralPath $fixtureUninstaller -Destination (Join-Path $install 'Uninstall.exe') -Force
+Set-Content -LiteralPath $denyMarker -Value 'deny'
 try{
-  Set-Acl -LiteralPath $appKey -AclObject $deniedAcl
   $process=Invoke-YourSQLUninstall
-  if($process.ExitCode -eq 0){throw '마지막 등록 삭제 거부를 성공으로 표시했습니다.'}
+  if($process.ExitCode -eq 0){throw '마지막 등록 삭제 실패를 성공으로 표시했습니다.'}
+  if(-not(Test-Path $reachedMarker)){throw '마지막 등록 삭제 경계까지 도달하지 못했습니다.'}
   if(-not(Test-Path (Join-Path $install 'Uninstall.exe')) -or -not(Test-Path $uninstallKey)){throw '마지막 등록 삭제 실패 후 재시도 진입점이 없습니다.'}
   if((Get-ItemProperty -LiteralPath $uninstallKey).UninstallString -ne ('"'+(Join-Path $install 'Uninstall.exe')+'"')){throw '복원한 제거 명령이 올바르지 않습니다.'}
-}finally{Set-Acl -LiteralPath $appKey -AclObject $oldAcl}
+}finally{Remove-Item -LiteralPath $denyMarker -Force}
 $process=Invoke-YourSQLUninstall
-if($process.ExitCode -ne 0 -or (Test-Path $install)){throw '레지스트리 권한 복원 후 제거 재시도 실패'}
-Write-Host '마지막 레지스트리 삭제 실패 후 재시도 PASS'
+if($process.ExitCode -ne 0 -or (Test-Path $install)){throw '등록 삭제 오류 해제 후 제거 재시도 실패'}
+Write-Host '마지막 등록 삭제 API 오류 주입·제거 프로그램/등록 복원·재시도 PASS'
