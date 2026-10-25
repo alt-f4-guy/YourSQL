@@ -848,7 +848,7 @@
         "name"
       ],
       "ordered": true,
-      "description": "서울 거주 고객을 고객 번호 오름차순으로 조회한다. 도시가 NULL이면 제외한다. 결과 열은 customer_id,name 순서로 출력한다. 기간을 별도로 제한하지 않은 경우 전체 기간의 데이터를 사용한다.",
+      "description": "서울 거주 고객을 고객 번호 오름차순으로 조회한다. 도시가 NULL이면 제외한다. 결과 열은 customer_id, name 순서로 출력한다.",
       "solution": "SELECT customer_id,name FROM customers WHERE city='서울' ORDER BY customer_id",
       "explanation": "문자열 조건은 작은따옴표로 감싼다. NULL과 문자열을 비교한 결과는 참이 아니므로 도시가 NULL인 행은 선택되지 않는다.",
       "hints": [
@@ -872,7 +872,7 @@
         "price"
       ],
       "ordered": true,
-      "description": "현재 단가가 1000 이상 3000 이하인 상품을 가격 내림차순, 상품 번호 오름차순으로 조회한다. 두 경계를 모두 포함한다. 결과 열은 product_id,name,price 순서로 출력한다. 기간을 별도로 제한하지 않은 경우 전체 기간의 데이터를 사용한다.",
+      "description": "현재 단가가 1000 이상 3000 이하인 상품을 가격 내림차순, 상품 번호 오름차순으로 조회한다. 두 경계를 모두 포함한다. 결과 열은 product_id, name, price 순서로 출력한다.",
       "solution": "SELECT product_id,name,price FROM products WHERE price BETWEEN 1000 AND 3000 ORDER BY price DESC,product_id",
       "explanation": "BETWEEN은 양 끝을 포함한다. 같은 가격의 순서는 상품 번호로 결정한다.",
       "hints": [
@@ -895,7 +895,7 @@
         "name"
       ],
       "ordered": true,
-      "description": "거주 도시가 NULL인 고객만 고객 번호 오름차순으로 조회한다. 빈 문자열을 NULL로 취급하지 않는다. 결과 열은 customer_id,name 순서로 출력한다. 기간을 별도로 제한하지 않은 경우 전체 기간의 데이터를 사용한다.",
+      "description": "거주 도시가 NULL인 고객만 고객 번호 오름차순으로 조회한다. 빈 문자열을 NULL로 취급하지 않는다. 결과 열은 customer_id, name 순서로 출력한다.",
       "solution": "SELECT customer_id,name FROM customers WHERE city IS NULL ORDER BY customer_id",
       "explanation": "NULL은 = NULL이 아니라 IS NULL로 검사한다.",
       "hints": [
@@ -918,7 +918,7 @@
         "customer_id"
       ],
       "ordered": true,
-      "description": "2024년 1월 1일부터 1월 31일까지 결제 완료(paid)된 주문을 주문 번호 오름차순으로 조회한다. 결과 열은 order_id,customer_id 순서로 출력한다. 기간을 별도로 제한하지 않은 경우 전체 기간의 데이터를 사용한다.",
+      "description": "2024년 1월 1일부터 1월 31일까지 결제 완료(paid)된 주문을 주문 번호 오름차순으로 조회한다. 결과 열은 order_id, customer_id 순서로 출력한다.",
       "solution": "SELECT order_id,customer_id FROM orders WHERE status='paid' AND ordered_at>='2024-01-01' AND ordered_at<'2024-02-01' ORDER BY order_id",
       "explanation": "월초 이상, 다음 달 첫날 미만으로 조건을 지정하면 월말이 며칠인지 따로 계산할 필요가 없다.",
       "hints": [
@@ -940,7 +940,7 @@
         "category"
       ],
       "ordered": true,
-      "description": "등록된 상품 분류를 중복 없이 분류 오름차순으로 조회한다. 결과 열은 category 순서로 출력한다. 기간을 별도로 제한하지 않은 경우 전체 기간의 데이터를 사용한다.",
+      "description": "등록된 상품 분류를 중복 없이 분류 오름차순으로 조회한다. 결과 열은 category 순서로 출력한다.",
       "solution": "SELECT DISTINCT category FROM products ORDER BY category",
       "explanation": "DISTINCT를 적용한 열 조합 단위로 중복이 제거된다.",
       "hints": [
@@ -964,7 +964,7 @@
         "total_price"
       ],
       "ordered": true,
-      "description": "문구 상품을 각각 3개씩 현재 단가로 살 때의 금액 total_price를 계산한다. 상품 번호 오름차순이다. 결과 열은 product_id,name,total_price 순서로 출력한다. 기간을 별도로 제한하지 않은 경우 전체 기간의 데이터를 사용한다.",
+      "description": "문구 상품을 각각 3개씩 현재 단가로 살 때의 금액 total_price를 계산한다. 상품 번호 오름차순이다. 결과 열은 product_id, name, total_price 순서로 출력한다.",
       "solution": "SELECT product_id,name,price*3 AS total_price FROM products WHERE category='문구' ORDER BY product_id",
       "explanation": "원본 가격을 바꾸지 않고 SELECT 식으로 계산 결과를 만든다.",
       "hints": [
@@ -987,7 +987,7 @@
         "name"
       ],
       "ordered": true,
-      "description": "상품 이름에 ‘노’가 한 번 이상 포함된 상품을 상품 번호 오름차순으로 조회한다. 결과 열은 product_id,name 순서로 출력한다. 기간을 별도로 제한하지 않은 경우 전체 기간의 데이터를 사용한다.",
+      "description": "상품 이름에 ‘노’가 한 번 이상 포함된 상품을 상품 번호 오름차순으로 조회한다. 결과 열은 product_id, name 순서로 출력한다.",
       "solution": "SELECT product_id,name FROM products WHERE name LIKE '%노%' ORDER BY product_id",
       "explanation": "%는 길이 0 이상인 문자열과 대응한다. 앞뒤 모두 붙여 포함 검색을 수행한다.",
       "hints": [
@@ -1011,7 +1011,7 @@
         "avg_price"
       ],
       "ordered": true,
-      "description": "분류별 상품 수와 현재 단가의 평균을 조회한다. 평균은 소수 둘째 자리까지 반올림한다. 분류 오름차순이다. 결과 열은 category,product_count,avg_price 순서로 출력한다. 기간을 별도로 제한하지 않은 경우 전체 기간의 데이터를 사용한다.",
+      "description": "분류별 상품 수와 현재 단가의 평균을 조회한다. 평균은 소수 둘째 자리까지 반올림한다. 분류 오름차순이다. 결과 열은 category, product_count, avg_price 순서로 출력한다.",
       "solution": "SELECT category,COUNT(*) AS product_count,ROUND(AVG(price),2) AS avg_price FROM products GROUP BY category ORDER BY category",
       "explanation": "상품 테이블의 한 행이 상품 하나이므로 COUNT(*)가 상품 수다. 반올림은 평균 계산 뒤 적용한다.",
       "hints": [
@@ -1034,7 +1034,7 @@
         "order_count"
       ],
       "ordered": true,
-      "description": "전체 기간 paid 주문이 2건 이상인 고객 번호와 해당 주문 수를 주문 수 내림차순, 고객 번호 오름차순으로 조회한다. 결과 열은 customer_id,order_count 순서로 출력한다. 기간을 별도로 제한하지 않은 경우 전체 기간의 데이터를 사용한다.",
+      "description": "전체 기간 paid 주문이 2건 이상인 고객 번호와 해당 주문 수를 주문 수 내림차순, 고객 번호 오름차순으로 조회한다. 결과 열은 customer_id, order_count 순서로 출력한다.",
       "solution": "SELECT customer_id,COUNT(*) AS order_count FROM orders WHERE status='paid' GROUP BY customer_id HAVING COUNT(*)>=2 ORDER BY order_count DESC,customer_id",
       "explanation": "행 필터는 WHERE, 그룹 단위 조건은 HAVING에 둔다.",
       "hints": [
@@ -1057,7 +1057,7 @@
         "customer_count"
       ],
       "ordered": true,
-      "description": "NULL 도시를 미입력으로 표시하고 도시별 고객 수를 조회한다. 실제 도시값에 미입력은 없다. city_label 오름차순이다. 결과 열은 city_label,customer_count 순서로 출력한다. 기간을 별도로 제한하지 않은 경우 전체 기간의 데이터를 사용한다.",
+      "description": "NULL 도시를 미입력으로 표시하고 도시별 고객 수를 조회한다. 실제 도시값에 미입력은 없다. city_label 오름차순이다. 결과 열은 city_label, customer_count 순서로 출력한다.",
       "solution": "SELECT COALESCE(city,'미입력') AS city_label,COUNT(*) AS customer_count FROM customers GROUP BY COALESCE(city,'미입력') ORDER BY city_label",
       "explanation": "COUNT(city)는 NULL을 세지 않는다. 고객 수는 COUNT(*)로 계산한다.",
       "hints": [
@@ -1081,7 +1081,7 @@
         "canceled_count"
       ],
       "ordered": true,
-      "description": "주문이 존재하는 모든 월에 대해 paid와 canceled 주문 수를 각각 집계한다. month는 YYYY-MM이며 오름차순이다. 해당 상태가 없으면 0이다. 결과 열은 month,paid_count,canceled_count 순서로 출력한다. 기간을 별도로 제한하지 않은 경우 전체 기간의 데이터를 사용한다.",
+      "description": "주문이 존재하는 모든 월에 대해 paid와 canceled 주문 수를 각각 집계한다. month는 YYYY-MM이며 오름차순이다. 해당 상태가 없으면 0이다. 결과 열은 month, paid_count, canceled_count 순서로 출력한다.",
       "solution": "SELECT DATE_FORMAT(ordered_at,'%Y-%m') AS month,SUM(status='paid') AS paid_count,SUM(status='canceled') AS canceled_count FROM orders GROUP BY DATE_FORMAT(ordered_at,'%Y-%m') ORDER BY month",
       "explanation": "MySQL 비교식의 참은 1, 거짓은 0이므로 SUM으로 조건별 개수를 셀 수 있다.",
       "hints": [
@@ -1104,7 +1104,7 @@
         "price_band"
       ],
       "ordered": true,
-      "description": "현재 단가가 1000 미만이면 저가, 1000 이상 3000 미만이면 중가, 나머지는 고가로 표시한다. 상품 번호 오름차순이다. 결과 열은 product_id,price_band 순서로 출력한다. 기간을 별도로 제한하지 않은 경우 전체 기간의 데이터를 사용한다.",
+      "description": "현재 단가가 1000 미만이면 저가, 1000 이상 3000 미만이면 중가, 나머지는 고가로 표시한다. 상품 번호 오름차순이다. 결과 열은 product_id, price_band 순서로 출력한다.",
       "solution": "SELECT product_id,CASE WHEN price<1000 THEN '저가' WHEN price<3000 THEN '중가' ELSE '고가' END AS price_band FROM products ORDER BY product_id",
       "explanation": "CASE는 첫 번째로 만족한 분기를 선택한다. 앞 조건을 통과하지 못한 범위를 다음 조건이 이어받는다.",
       "hints": [
@@ -1127,7 +1127,7 @@
         "joined_at"
       ],
       "ordered": true,
-      "description": "가입일이 해당 월의 마지막 날짜인 고객을 고객 번호 오름차순으로 조회한다. 윤년의 2월도 실제 달력을 적용한다. 결과 열은 customer_id,joined_at 순서로 출력한다. 기간을 별도로 제한하지 않은 경우 전체 기간의 데이터를 사용한다.",
+      "description": "가입일이 해당 월의 마지막 날짜인 고객을 고객 번호 오름차순으로 조회한다. 윤년의 2월도 실제 달력을 적용한다. 결과 열은 customer_id, joined_at 순서로 출력한다.",
       "solution": "SELECT customer_id,joined_at FROM customers WHERE joined_at=LAST_DAY(joined_at) ORDER BY customer_id",
       "explanation": "LAST_DAY는 월별 일수와 윤년을 처리하므로 날짜 문자열 끝자리 비교가 필요 없다.",
       "hints": [
@@ -1151,7 +1151,7 @@
         "order_amount"
       ],
       "ordered": true,
-      "description": "상품 행이 있는 주문별 총수량과 구매 당시 단가 기준 금액 합계를 주문 번호 오름차순으로 조회한다. 중복된 주문·상품 행도 각각 구매량에 포함한다. 주문 상태는 구분하지 않는다. 결과 열은 order_id,total_quantity,order_amount 순서로 출력한다. 기간을 별도로 제한하지 않은 경우 전체 기간의 데이터를 사용한다.",
+      "description": "상품 행이 있는 주문별 총수량과 구매 당시 단가 기준 금액 합계를 주문 번호 오름차순으로 조회한다. 중복된 주문·상품 행도 각각 구매량에 포함한다. 주문 상태는 구분하지 않는다. 결과 열은 order_id, total_quantity, order_amount 순서로 출력한다.",
       "solution": "SELECT order_id,SUM(quantity) AS total_quantity,SUM(quantity*unit_price) AS order_amount FROM order_items GROUP BY order_id ORDER BY order_id",
       "explanation": "SUM(DISTINCT ...)는 값이 같은 서로 다른 구매를 없애므로 사용하면 안 된다.",
       "hints": [
@@ -1176,7 +1176,7 @@
         "paid_count"
       ],
       "ordered": true,
-      "description": "모든 고객의 paid 주문 수를 조회한다. 주문이 없는 고객도 0으로 포함하고 고객 번호 오름차순으로 정렬한다. 결과 열은 customer_id,name,paid_count 순서로 출력한다. 기간을 별도로 제한하지 않은 경우 전체 기간의 데이터를 사용한다.",
+      "description": "모든 고객의 paid 주문 수를 조회한다. 주문이 없는 고객도 0으로 포함하고 고객 번호 오름차순으로 정렬한다. 결과 열은 customer_id, name, paid_count 순서로 출력한다.",
       "solution": "SELECT c.customer_id,c.name,COUNT(o.order_id) AS paid_count FROM customers c LEFT JOIN orders o ON o.customer_id=c.customer_id AND o.status='paid' GROUP BY c.customer_id,c.name ORDER BY c.customer_id",
       "explanation": "상태 조건을 ON에 두어 주문이 없는 고객을 보존한다. COUNT(*) 대신 주문 번호를 센다.",
       "hints": [
@@ -1201,7 +1201,7 @@
         "name"
       ],
       "ordered": true,
-      "description": "어떤 paid 주문에도 포함되지 않은 상품을 상품 번호 오름차순으로 조회한다. canceled 주문에만 있는 상품도 포함한다. 결과 열은 product_id,name 순서로 출력한다. 기간을 별도로 제한하지 않은 경우 전체 기간의 데이터를 사용한다.",
+      "description": "어떤 paid 주문에도 포함되지 않은 상품을 상품 번호 오름차순으로 조회한다. canceled 주문에만 있는 상품도 포함한다. 결과 열은 product_id, name 순서로 출력한다.",
       "solution": "SELECT p.product_id,p.name FROM products p WHERE NOT EXISTS (SELECT 1 FROM order_items i JOIN orders o ON o.order_id=i.order_id WHERE i.product_id=p.product_id AND o.status='paid') ORDER BY p.product_id",
       "explanation": "NOT EXISTS는 조건에 맞는 관계가 없는지 확인하며 자식 행 중복의 영향을 받지 않는다.",
       "hints": [
@@ -1226,7 +1226,7 @@
         "revenue"
       ],
       "ordered": true,
-      "description": "paid 주문의 상품 행이 있는 도시별 매출을 조회한다. 구매 당시 단가를 사용하며 NULL 도시는 미입력으로 표시한다. 매출 내림차순, city_label 오름차순이다. 실제 도시값에 미입력은 없다. 결과 열은 city_label,revenue 순서로 출력한다. 기간을 별도로 제한하지 않은 경우 전체 기간의 데이터를 사용한다.",
+      "description": "paid 주문의 상품 행이 있는 도시별 매출을 조회한다. 구매 당시 단가를 사용하며 NULL 도시는 미입력으로 표시한다. 매출 내림차순, city_label 오름차순이다. 실제 도시값에 미입력은 없다. 결과 열은 city_label, revenue 순서로 출력한다.",
       "solution": "SELECT COALESCE(c.city,'미입력') AS city_label,SUM(i.quantity*i.unit_price) AS revenue FROM customers c JOIN orders o ON o.customer_id=c.customer_id JOIN order_items i ON i.order_id=o.order_id WHERE o.status='paid' GROUP BY COALESCE(c.city,'미입력') ORDER BY revenue DESC,city_label",
       "explanation": "주문 상품 행의 금액을 합산해야 한다. 현재 상품 가격은 과거 매출에 사용하지 않는다.",
       "hints": [
@@ -1250,7 +1250,7 @@
         "price"
       ],
       "ordered": true,
-      "description": "자신의 분류에 속한 모든 상품의 현재 평균 단가보다 엄격히 비싼 상품을 상품 번호 오름차순으로 조회한다. 평균과 같으면 제외한다. 결과 열은 product_id,name,price 순서로 출력한다. 기간을 별도로 제한하지 않은 경우 전체 기간의 데이터를 사용한다.",
+      "description": "자신의 분류에 속한 모든 상품의 현재 평균 단가보다 엄격히 비싼 상품을 상품 번호 오름차순으로 조회한다. 평균과 같으면 제외한다. 결과 열은 product_id, name, price 순서로 출력한다.",
       "solution": "SELECT p.product_id,p.name,p.price FROM products p WHERE p.price>(SELECT AVG(q.price) FROM products q WHERE q.category=p.category) ORDER BY p.product_id",
       "explanation": "상관 조건으로 분류별 비교 기준을 만든다. 비교 전 평균을 반올림하지 않는다.",
       "hints": [
@@ -1276,7 +1276,7 @@
         "name"
       ],
       "ordered": true,
-      "description": "전체 기간 paid 주문에서 문구와 생활 분류 상품을 각각 한 번 이상 구매한 고객을 고객 번호 오름차순으로 조회한다. 한 주문에서 모두 살 필요는 없다. 결과 열은 customer_id,name 순서로 출력한다. 기간을 별도로 제한하지 않은 경우 전체 기간의 데이터를 사용한다.",
+      "description": "전체 기간 paid 주문에서 문구와 생활 분류 상품을 각각 한 번 이상 구매한 고객을 고객 번호 오름차순으로 조회한다. 한 주문에서 모두 살 필요는 없다. 결과 열은 customer_id, name 순서로 출력한다.",
       "solution": "SELECT c.customer_id,c.name FROM customers c JOIN orders o ON o.customer_id=c.customer_id JOIN order_items i ON i.order_id=o.order_id JOIN products p ON p.product_id=i.product_id WHERE o.status='paid' AND p.category IN ('문구','생활') GROUP BY c.customer_id,c.name HAVING COUNT(DISTINCT p.category)=2 ORDER BY c.customer_id",
       "explanation": "대상 두 분류로 제한한 뒤 서로 다른 분류 수를 세면 반복 구매와 무관하게 교집합을 확인할 수 있다.",
       "hints": [
@@ -1301,7 +1301,7 @@
         "first_paid_at"
       ],
       "ordered": true,
-      "description": "모든 고객의 최초 paid 주문일을 조회한다. 결제 이력이 없으면 NULL을 출력하고 고객 번호 오름차순으로 정렬한다. 결과 열은 customer_id,name,first_paid_at 순서로 출력한다. 기간을 별도로 제한하지 않은 경우 전체 기간의 데이터를 사용한다.",
+      "description": "모든 고객의 최초 paid 주문일을 조회한다. 결제 이력이 없으면 NULL을 출력하고 고객 번호 오름차순으로 정렬한다. 결과 열은 customer_id, name, first_paid_at 순서로 출력한다.",
       "solution": "SELECT c.customer_id,c.name,MIN(o.ordered_at) AS first_paid_at FROM customers c LEFT JOIN orders o ON o.customer_id=c.customer_id AND o.status='paid' GROUP BY c.customer_id,c.name ORDER BY c.customer_id",
       "explanation": "최초 날짜만 필요하면 정렬이나 윈도 함수보다 MIN 집계가 간단하다.",
       "hints": [
@@ -1325,7 +1325,7 @@
         "order_amount"
       ],
       "ordered": true,
-      "description": "전체 paid 주문의 평균 주문액보다 엄격히 큰 paid 주문을 조회한다. 상품 행이 없는 주문액은 0이며 평균 분모에도 포함한다. 주문액 내림차순, 주문 번호 오름차순이다. 결과 열은 order_id,order_amount 순서로 출력한다. 기간을 별도로 제한하지 않은 경우 전체 기간의 데이터를 사용한다.",
+      "description": "전체 paid 주문의 평균 주문액보다 엄격히 큰 paid 주문을 조회한다. 상품 행이 없는 주문액은 0이며 평균 분모에도 포함한다. 주문액 내림차순, 주문 번호 오름차순이다. 결과 열은 order_id, order_amount 순서로 출력한다.",
       "solution": "SELECT a.order_id,a.order_amount FROM (SELECT o.order_id,COALESCE(SUM(i.quantity*i.unit_price),0) AS order_amount FROM orders o LEFT JOIN order_items i ON i.order_id=o.order_id WHERE o.status='paid' GROUP BY o.order_id) a WHERE a.order_amount>(SELECT AVG(b.amount) FROM (SELECT o.order_id,COALESCE(SUM(i.quantity*i.unit_price),0) AS amount FROM orders o LEFT JOIN order_items i ON i.order_id=o.order_id WHERE o.status='paid' GROUP BY o.order_id) b) ORDER BY a.order_amount DESC,a.order_id",
       "explanation": "상품 행 평균은 주문액 평균과 다르다. 먼저 주문 단위 금액을 만든 다음 평균을 구한다.",
       "hints": [
@@ -1349,7 +1349,7 @@
         "purchase_number"
       ],
       "ordered": true,
-      "description": "paid 주문에 고객별 구매 순번을 1부터 매긴다. 같은 주문일에는 주문 번호가 작은 주문이 먼저다. 고객 번호, 구매 순번 오름차순이다. 결과 열은 customer_id,order_id,purchase_number 순서로 출력한다. 기간을 별도로 제한하지 않은 경우 전체 기간의 데이터를 사용한다.",
+      "description": "paid 주문에 고객별 구매 순번을 1부터 매긴다. 같은 주문일에는 주문 번호가 작은 주문이 먼저다. 고객 번호, 구매 순번 오름차순이다. 결과 열은 customer_id, order_id, purchase_number 순서로 출력한다.",
       "solution": "SELECT customer_id,order_id,ROW_NUMBER() OVER(PARTITION BY customer_id ORDER BY ordered_at,order_id) AS purchase_number FROM orders WHERE status='paid' ORDER BY customer_id,purchase_number",
       "explanation": "ROW_NUMBER의 정렬에 고유 주문 번호를 추가하면 같은 날짜에서도 순번이 안정적이다.",
       "hints": [
@@ -1374,7 +1374,7 @@
         "price_rank"
       ],
       "ordered": true,
-      "description": "분류별 서로 다른 현재 가격 중 상위 두 가격에 속하는 모든 상품을 조회한다. 동점은 모두 같은 순위이며 다음 순위는 건너뛰지 않는다. 분류, 순위, 상품 번호 오름차순이다. 결과 열은 category,product_id,price,price_rank 순서로 출력한다. 기간을 별도로 제한하지 않은 경우 전체 기간의 데이터를 사용한다.",
+      "description": "분류별 서로 다른 현재 가격 중 상위 두 가격에 속하는 모든 상품을 조회한다. 동점은 모두 같은 순위이며 다음 순위는 건너뛰지 않는다. 분류, 순위, 상품 번호 오름차순이다. 결과 열은 category, product_id, price, price_rank 순서로 출력한다.",
       "solution": "WITH ranked AS (SELECT category,product_id,price,DENSE_RANK() OVER(PARTITION BY category ORDER BY price DESC) AS price_rank FROM products) SELECT category,product_id,price,price_rank FROM ranked WHERE price_rank<=2 ORDER BY category,price_rank,product_id",
       "explanation": "동점 모두 포함한 서로 다른 가격 두 개는 DENSE_RANK로 선택한다. ROW_NUMBER는 동점을 잘라낸다.",
       "hints": [
@@ -1398,7 +1398,7 @@
         "gap_days"
       ],
       "ordered": true,
-      "description": "paid 주문별 직전 paid 주문과의 날짜 차이를 구한다. 고객별 주문일, 주문 번호 순으로 직전을 정하며 첫 주문은 NULL이다. 같은 날의 간격은 0이다. 고객 번호, 주문일, 주문 번호 순으로 출력한다. 결과 열은 customer_id,order_id,gap_days 순서로 출력한다. 기간을 별도로 제한하지 않은 경우 전체 기간의 데이터를 사용한다.",
+      "description": "paid 주문별 직전 paid 주문과의 날짜 차이를 구한다. 고객별 주문일, 주문 번호 순으로 직전을 정하며 첫 주문은 NULL이다. 같은 날의 간격은 0이다. 고객 번호, 주문일, 주문 번호 순으로 출력한다. 결과 열은 customer_id, order_id, gap_days 순서로 출력한다.",
       "solution": "SELECT customer_id,order_id,DATEDIFF(ordered_at,LAG(ordered_at) OVER(PARTITION BY customer_id ORDER BY ordered_at,order_id)) AS gap_days FROM orders WHERE status='paid' ORDER BY customer_id,ordered_at,order_id",
       "explanation": "LAG로 이전 행의 날짜를 가져온다. 고객별 파티션이 없으면 다른 고객 주문과 비교하게 된다.",
       "hints": [
@@ -1423,7 +1423,7 @@
         "cumulative_revenue"
       ],
       "ordered": true,
-      "description": "paid 주문이 있는 날짜별 매출과 그 날짜까지의 누적 매출을 날짜 오름차순으로 조회한다. 상품 행이 없는 주문은 0이며 paid 주문이 없는 날짜는 출력하지 않는다. 결과 열은 sale_date,revenue,cumulative_revenue 순서로 출력한다. 기간을 별도로 제한하지 않은 경우 전체 기간의 데이터를 사용한다.",
+      "description": "paid 주문이 있는 날짜별 매출과 그 날짜까지의 누적 매출을 날짜 오름차순으로 조회한다. 상품 행이 없는 주문은 0이며 paid 주문이 없는 날짜는 출력하지 않는다. 결과 열은 sale_date, revenue, cumulative_revenue 순서로 출력한다.",
       "solution": "WITH daily AS (SELECT o.ordered_at AS sale_date,COALESCE(SUM(i.quantity*i.unit_price),0) AS revenue FROM orders o LEFT JOIN order_items i ON i.order_id=o.order_id WHERE o.status='paid' GROUP BY o.ordered_at) SELECT sale_date,revenue,SUM(revenue) OVER(ORDER BY sale_date ROWS UNBOUNDED PRECEDING) AS cumulative_revenue FROM daily ORDER BY sale_date",
       "explanation": "먼저 날짜별 집계로 같은 날을 합친 뒤 누적한다. ROWS 프레임을 명시해 누적 범위를 분명히 한다.",
       "hints": [
@@ -1449,7 +1449,7 @@
         "revenue_pct"
       ],
       "ordered": true,
-      "description": "모든 고객의 paid 매출과 전체 paid 매출 대비 백분율을 소수 둘째 자리로 반올림해 조회한다. 미구매는 매출 0이며 전체 매출이 0이면 비율도 0이다. 고객 번호 오름차순이다. 결과 열은 customer_id,revenue,revenue_pct 순서로 출력한다. 기간을 별도로 제한하지 않은 경우 전체 기간의 데이터를 사용한다.",
+      "description": "모든 고객의 paid 매출과 전체 paid 매출 대비 백분율을 소수 둘째 자리로 반올림해 조회한다. 미구매는 매출 0이며 전체 매출이 0이면 비율도 0이다. 고객 번호 오름차순이다. 결과 열은 customer_id, revenue, revenue_pct 순서로 출력한다.",
       "solution": "WITH totals AS (SELECT c.customer_id,COALESCE(SUM(i.quantity*i.unit_price),0) AS revenue FROM customers c LEFT JOIN orders o ON o.customer_id=c.customer_id AND o.status='paid' LEFT JOIN order_items i ON i.order_id=o.order_id GROUP BY c.customer_id) SELECT customer_id,revenue,COALESCE(ROUND(100.0*revenue/NULLIF(SUM(revenue) OVER(),0),2),0) AS revenue_pct FROM totals ORDER BY customer_id",
       "explanation": "고객별 합계 위에 전체 윈도 합계를 적용한다. NULLIF로 0 나눗셈을 피한 후 COALESCE로 정책을 구현한다.",
       "hints": [
@@ -1474,7 +1474,7 @@
         "revenue_30d"
       ],
       "ordered": true,
-      "description": "모든 고객에 대해 가입일부터 30일간의 paid 매출을 조회한다. 가입일 포함, 가입일+30일 제외이며 가입 전 주문은 제외한다. 매출이 없으면 0, 고객 번호 오름차순이다. 결과 열은 customer_id,revenue_30d 순서로 출력한다. 기간을 별도로 제한하지 않은 경우 전체 기간의 데이터를 사용한다.",
+      "description": "모든 고객에 대해 가입일부터 30일간의 paid 매출을 조회한다. 가입일 포함, 가입일+30일 제외이며 가입 전 주문은 제외한다. 매출이 없으면 0, 고객 번호 오름차순이다. 결과 열은 customer_id, revenue_30d 순서로 출력한다.",
       "solution": "WITH eligible AS (SELECT c.customer_id,o.order_id FROM customers c LEFT JOIN orders o ON o.customer_id=c.customer_id AND o.status='paid' AND o.ordered_at>=c.joined_at AND o.ordered_at<DATE_ADD(c.joined_at,INTERVAL 30 DAY)) SELECT e.customer_id,COALESCE(SUM(i.quantity*i.unit_price),0) AS revenue_30d FROM eligible e LEFT JOIN order_items i ON i.order_id=e.order_id GROUP BY e.customer_id ORDER BY e.customer_id",
       "explanation": "가입일 기준의 개별 구간을 조인 조건으로 구성해야 미구매 고객도 남는다. 30일은 달력 한 달과 다르다.",
       "hints": [
@@ -1499,7 +1499,7 @@
         "moving_avg"
       ],
       "ordered": true,
-      "description": "paid 주문을 고객별 주문일, 주문 번호 순으로 나열하여 현재 주문과 직전 주문의 주문액 평균을 소수 둘째 자리로 반올림한다. 첫 주문의 이동 평균은 해당 주문액과 같다. 상품 행이 없으면 주문액은 0이다. 고객 번호, 주문일, 주문 번호 순이다. 결과 열은 customer_id,order_id,moving_avg 순서로 출력한다. 기간을 별도로 제한하지 않은 경우 전체 기간의 데이터를 사용한다.",
+      "description": "paid 주문을 고객별 주문일, 주문 번호 순으로 나열하여 현재 주문과 직전 주문의 주문액 평균을 소수 둘째 자리로 반올림한다. 첫 주문의 이동 평균은 해당 주문액과 같다. 상품 행이 없으면 주문액은 0이다. 고객 번호, 주문일, 주문 번호 순이다. 결과 열은 customer_id, order_id, moving_avg 순서로 출력한다.",
       "solution": "WITH amounts AS (SELECT o.customer_id,o.order_id,o.ordered_at,COALESCE(SUM(i.quantity*i.unit_price),0) AS amount FROM orders o LEFT JOIN order_items i ON i.order_id=o.order_id WHERE o.status='paid' GROUP BY o.customer_id,o.order_id,o.ordered_at) SELECT customer_id,order_id,ROUND(AVG(amount) OVER(PARTITION BY customer_id ORDER BY ordered_at,order_id ROWS BETWEEN 1 PRECEDING AND CURRENT ROW),2) AS moving_avg FROM amounts ORDER BY customer_id,ordered_at,order_id",
       "explanation": "최근 두 주문은 최근 이틀과 다르다. ROWS 1 PRECEDING으로 행 기준 창을 만든다.",
       "hints": [
@@ -1525,7 +1525,7 @@
         "retention_pct"
       ],
       "ordered": true,
-      "description": "가입 월별 전체 고객 수와 가입 월 바로 다음 달에 paid 주문을 한 고객 수, 그 비율(백분율, 소수 둘째 자리)을 조회한다. 같은 고객의 여러 주문은 한 번만 센다. 다음 달은 달력 월 기준이며 코호트 월 오름차순이다. 결과 열은 cohort_month,customer_count,retained_count,retention_pct 순서로 출력한다. 기간을 별도로 제한하지 않은 경우 전체 기간의 데이터를 사용한다.",
+      "description": "가입 월별 전체 고객 수와 가입 월 바로 다음 달에 paid 주문을 한 고객 수, 그 비율(백분율, 소수 둘째 자리)을 조회한다. 같은 고객의 여러 주문은 한 번만 센다. 다음 달은 달력 월 기준이며 코호트 월 오름차순이다. 결과 열은 cohort_month, customer_count, retained_count, retention_pct 순서로 출력한다.",
       "solution": "WITH cohort AS (SELECT customer_id,DATE_FORMAT(joined_at,'%Y-%m') AS cohort_month,CAST(DATE_FORMAT(joined_at,'%Y-%m-01') AS DATE) AS month_start FROM customers), flags AS (SELECT c.customer_id,c.cohort_month,EXISTS(SELECT 1 FROM orders o WHERE o.customer_id=c.customer_id AND o.status='paid' AND o.ordered_at>=DATE_ADD(c.month_start,INTERVAL 1 MONTH) AND o.ordered_at<DATE_ADD(c.month_start,INTERVAL 2 MONTH)) AS retained FROM cohort c) SELECT cohort_month,COUNT(*) AS customer_count,SUM(retained) AS retained_count,ROUND(100.0*SUM(retained)/COUNT(*),2) AS retention_pct FROM flags GROUP BY cohort_month ORDER BY cohort_month",
       "explanation": "분모는 결제자가 아니라 해당 가입 월의 전체 고객이다. EXISTS로 반복 주문에 의한 분자 중복을 막는다.",
       "hints": [
@@ -1550,7 +1550,7 @@
         "day_count"
       ],
       "ordered": true,
-      "description": "같은 고객이 매일 한 번 이상 paid 주문한 최대 연속 날짜 구간 중 길이가 3일 이상인 구간을 모두 조회한다. 같은 날 여러 주문은 하루로 센다. 고객 번호, 시작일 오름차순이다. 결과 열은 customer_id,start_date,end_date,day_count 순서로 출력한다. 기간을 별도로 제한하지 않은 경우 전체 기간의 데이터를 사용한다.",
+      "description": "같은 고객이 매일 한 번 이상 paid 주문한 최대 연속 날짜 구간 중 길이가 3일 이상인 구간을 모두 조회한다. 같은 날 여러 주문은 하루로 센다. 고객 번호, 시작일 오름차순이다. 결과 열은 customer_id, start_date, end_date, day_count 순서로 출력한다.",
       "solution": "WITH days AS (SELECT DISTINCT customer_id,ordered_at FROM orders WHERE status='paid'), numbered AS (SELECT customer_id,ordered_at,ROW_NUMBER() OVER(PARTITION BY customer_id ORDER BY ordered_at) AS rn FROM days), islands AS (SELECT customer_id,ordered_at,DATE_SUB(ordered_at,INTERVAL rn DAY) AS grp FROM numbered) SELECT customer_id,MIN(ordered_at) AS start_date,MAX(ordered_at) AS end_date,COUNT(*) AS day_count FROM islands GROUP BY customer_id,grp HAVING COUNT(*)>=3 ORDER BY customer_id,start_date",
       "explanation": "날짜 중복을 먼저 없앤다. 연속 날짜에서 날짜-순번은 일정하므로 같은 최대 구간으로 묶인다.",
       "hints": [
@@ -1576,7 +1576,7 @@
         "name"
       ],
       "ordered": true,
-      "description": "현재 등록된 모든 문구 상품을 전체 기간 paid 주문에서 각각 한 번 이상 구매한 고객을 조회한다. 문구 상품이 하나도 없다면 모든 고객이 조건을 만족한다. 고객 번호 오름차순이다. 결과 열은 customer_id,name 순서로 출력한다. 기간을 별도로 제한하지 않은 경우 전체 기간의 데이터를 사용한다.",
+      "description": "현재 등록된 모든 문구 상품을 전체 기간 paid 주문에서 각각 한 번 이상 구매한 고객을 조회한다. 문구 상품이 하나도 없다면 모든 고객이 조건을 만족한다. 고객 번호 오름차순이다. 결과 열은 customer_id, name 순서로 출력한다.",
       "solution": "SELECT c.customer_id,c.name FROM customers c WHERE NOT EXISTS (SELECT 1 FROM products p WHERE p.category='문구' AND NOT EXISTS (SELECT 1 FROM orders o JOIN order_items i ON i.order_id=o.order_id WHERE o.customer_id=c.customer_id AND o.status='paid' AND i.product_id=p.product_id)) ORDER BY c.customer_id",
       "explanation": "구매하지 않은 필수 상품이 하나도 없다는 이중 NOT EXISTS가 모든 조건을 표현한다. 빈 필수 집합도 자연스럽게 처리한다.",
       "hints": [
@@ -1600,7 +1600,7 @@
         "revenue_7d"
       ],
       "ordered": true,
-      "description": "2024년 1월 1일부터 1월 7일까지 매일 한 행씩 출력한다. revenue_7d는 해당 날짜와 직전 6일의 paid 매출 합계다. 출력 시작일 이전 주문도 창에 들어오면 포함한다. 주문이 없는 날의 매출은 0이다. 날짜 오름차순이다. 결과 열은 sale_date,revenue_7d 순서로 출력한다. 기간을 별도로 제한하지 않은 경우 전체 기간의 데이터를 사용한다.",
+      "description": "2024년 1월 1일부터 1월 7일까지 매일 한 행씩 출력한다. revenue_7d는 해당 날짜와 직전 6일의 paid 매출 합계다. 출력 시작일 이전 주문도 창에 들어오면 포함한다. 주문이 없는 날의 매출은 0이다. 날짜 오름차순이다. 결과 열은 sale_date, revenue_7d 순서로 출력한다.",
       "solution": "WITH RECURSIVE dates AS (SELECT CAST('2023-12-26' AS DATE) AS d UNION ALL SELECT DATE_ADD(d,INTERVAL 1 DAY) FROM dates WHERE d<'2024-01-07'), daily AS (SELECT o.ordered_at, SUM(i.quantity*i.unit_price) AS revenue FROM orders o JOIN order_items i ON i.order_id=o.order_id WHERE o.status='paid' AND o.ordered_at>='2023-12-26' AND o.ordered_at<='2024-01-07' GROUP BY o.ordered_at), rolling AS (SELECT d,SUM(COALESCE(revenue,0)) OVER(ORDER BY d ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS revenue_7d FROM dates LEFT JOIN daily ON ordered_at=d) SELECT d AS sale_date,revenue_7d FROM rolling WHERE d>='2024-01-01' ORDER BY sale_date",
       "explanation": "빈 날짜를 채우고 출력 시작일 이전 여섯 날짜까지 창을 계산한 다음 출력 범위를 자른다.",
       "hints": [
@@ -1624,7 +1624,7 @@
         "days_to_second"
       ],
       "ordered": true,
-      "description": "모든 고객에 대해 첫 번째 paid 주문부터 두 번째 paid 주문까지의 날짜 차이를 출력한다. 주문일, 주문 번호로 순서를 정하며 같은 날 주문 둘은 0일이다. paid 주문이 2건 미만이면 NULL을 출력한다. 고객 번호 오름차순이다. 결과 열은 customer_id,days_to_second 순서로 출력한다. 기간을 별도로 제한하지 않은 경우 전체 기간의 데이터를 사용한다.",
+      "description": "모든 고객에 대해 첫 번째 paid 주문부터 두 번째 paid 주문까지의 날짜 차이를 출력한다. 주문일, 주문 번호로 순서를 정하며 같은 날 주문 둘은 0일이다. paid 주문이 2건 미만이면 NULL을 출력한다. 고객 번호 오름차순이다. 결과 열은 customer_id, days_to_second 순서로 출력한다.",
       "solution": "WITH ranked AS (SELECT customer_id,ordered_at,ROW_NUMBER() OVER(PARTITION BY customer_id ORDER BY ordered_at,order_id) AS rn FROM orders WHERE status='paid'), first_two AS (SELECT customer_id,DATEDIFF(MAX(CASE WHEN rn=2 THEN ordered_at END),MAX(CASE WHEN rn=1 THEN ordered_at END)) AS days_to_second FROM ranked WHERE rn<=2 GROUP BY customer_id) SELECT c.customer_id,f.days_to_second FROM customers c LEFT JOIN first_two f ON f.customer_id=c.customer_id ORDER BY c.customer_id",
       "explanation": "서로 다른 두 날짜가 아니라 두 주문을 순위로 정한다. 두 번째 주문이 없으면 날짜 차이도 NULL이다.",
       "hints": [
@@ -1648,7 +1648,7 @@
         "median_revenue"
       ],
       "ordered": true,
-      "description": "각 월에 paid 주문을 한 고객별 월 매출을 먼저 계산하고, 그 값들의 중앙값을 소수 둘째 자리로 출력한다. 상품 없는 주문도 매출 0으로 포함하나 그달 미구매 고객은 제외한다. 값의 개수가 짝수이면 가운데 두 값의 평균을 구한다. 월 YYYY-MM 오름차순이다. 결과 열은 month,median_revenue 순서로 출력한다. 기간을 별도로 제한하지 않은 경우 전체 기간의 데이터를 사용한다.",
+      "description": "각 월에 paid 주문을 한 고객별 월 매출을 먼저 계산하고, 그 값들의 중앙값을 소수 둘째 자리로 출력한다. 상품 없는 주문도 매출 0으로 포함하나 그달 미구매 고객은 제외한다. 값의 개수가 짝수이면 가운데 두 값의 평균을 구한다. 월 YYYY-MM 오름차순이다. 결과 열은 month, median_revenue 순서로 출력한다.",
       "solution": "WITH totals AS (SELECT DATE_FORMAT(o.ordered_at,'%Y-%m') AS month,o.customer_id,COALESCE(SUM(i.quantity*i.unit_price),0) AS revenue FROM orders o LEFT JOIN order_items i ON i.order_id=o.order_id WHERE o.status='paid' GROUP BY DATE_FORMAT(o.ordered_at,'%Y-%m'),o.customer_id), ranked AS (SELECT month,revenue,ROW_NUMBER() OVER(PARTITION BY month ORDER BY revenue,customer_id) AS rn,COUNT(*) OVER(PARTITION BY month) AS n FROM totals) SELECT month,ROUND(AVG(revenue),2) AS median_revenue FROM ranked WHERE rn IN (FLOOR((n+1)/2),FLOOR((n+2)/2)) GROUP BY month ORDER BY month",
       "explanation": "월별 고객 단위로 집계한 뒤 가운데 위치를 선택한다. 홀수 개이면 두 위치 식이 같은 값을 가리킨다.",
       "hints": [
@@ -1673,7 +1673,7 @@
         "order_count"
       ],
       "ordered": true,
-      "description": "같은 paid 주문에서 함께 등장한 서로 다른 상품 쌍별 주문 수를 조회한다. 상품 번호가 작은 쪽이 product_a이다. 같은 주문의 중복 상품 행과 수량은 횟수를 늘리지 않는다. 주문 수 내림차순, product_a, product_b 오름차순이다. 결과 열은 product_a,product_b,order_count 순서로 출력한다. 기간을 별도로 제한하지 않은 경우 전체 기간의 데이터를 사용한다.",
+      "description": "같은 paid 주문에서 함께 등장한 서로 다른 상품 쌍별 주문 수를 조회한다. 상품 번호가 작은 쪽이 product_a이다. 같은 주문의 중복 상품 행과 수량은 횟수를 늘리지 않는다. 주문 수 내림차순, product_a, product_b 오름차순이다. 결과 열은 product_a, product_b, order_count 순서로 출력한다.",
       "solution": "WITH unique_items AS (SELECT DISTINCT i.order_id,i.product_id FROM order_items i JOIN orders o ON o.order_id=i.order_id WHERE o.status='paid') SELECT a.product_id AS product_a,b.product_id AS product_b,COUNT(*) AS order_count FROM unique_items a JOIN unique_items b ON a.order_id=b.order_id AND a.product_id<b.product_id GROUP BY a.product_id,b.product_id ORDER BY order_count DESC,product_a,product_b",
       "explanation": "주문·상품을 먼저 유일하게 만들고 작은 번호에서 큰 번호로만 조인하여 행 중복과 역순 쌍을 함께 방지한다.",
       "hints": [
@@ -1696,7 +1696,7 @@
         "city"
       ],
       "ordered": true,
-      "description": "거주 도시가 서울이 아닌 고객과 도시가 NULL인 고객을 조회한다. NULL은 그대로 출력한다. 결과 열은 customer_id,city 순서다. 정렬 기준은 customer_id 순으로 적용한다. DESC가 붙은 항목은 내림차순, 나머지는 오름차순이다. 날짜 범위를 별도로 지정하지 않으면 전체 기간을 대상으로 한다.",
+      "description": "거주 도시가 서울이 아닌 고객과 도시가 NULL인 고객을 조회한다. NULL은 그대로 출력한다. 결과 열은 customer_id, city 순서다. 정렬 기준은 customer_id 오름차순으로 적용한다.",
       "solution": "SELECT customer_id,city FROM customers WHERE city<>'서울' OR city IS NULL ORDER BY customer_id",
       "explanation": "부등 비교만으로는 NULL 행을 포함할 수 없어 OR IS NULL을 결합한다.",
       "hints": [
@@ -1719,7 +1719,7 @@
         "price"
       ],
       "ordered": true,
-      "description": "분류와 가격 조합을 중복 없이 조회한다. 결과 열은 category,price 순서다. 정렬 기준은 category,price 순으로 적용한다. DESC가 붙은 항목은 내림차순, 나머지는 오름차순이다. 날짜 범위를 별도로 지정하지 않으면 전체 기간을 대상으로 한다.",
+      "description": "분류와 가격 조합을 중복 없이 조회한다. 결과 열은 category, price 순서다. 정렬 기준은 category 오름차순, price 오름차순으로 적용한다.",
       "solution": "SELECT DISTINCT category,price FROM products ORDER BY category,price",
       "explanation": "DISTINCT는 선택한 두 열의 조합에 적용된다.",
       "hints": [
@@ -1742,7 +1742,7 @@
         "address_label"
       ],
       "ordered": true,
-      "description": "고객별 이름 뒤에 괄호로 도시를 붙인다. 도시가 NULL이면 미입력을 넣는다. 예: 가람(서울). 결과 열은 customer_id,address_label 순서다. 정렬 기준은 customer_id 순으로 적용한다. DESC가 붙은 항목은 내림차순, 나머지는 오름차순이다. 날짜 범위를 별도로 지정하지 않으면 전체 기간을 대상으로 한다.",
+      "description": "고객별 이름 뒤에 괄호로 도시를 붙인다. 도시가 NULL이면 미입력을 넣는다. 예: 가람(서울). 결과 열은 customer_id, address_label 순서다. 정렬 기준은 customer_id 오름차순으로 적용한다.",
       "solution": "SELECT customer_id,CONCAT(name,'(',COALESCE(city,'미입력'),')') AS address_label FROM customers ORDER BY customer_id",
       "explanation": "NULL을 먼저 치환해야 CONCAT 전체가 NULL이 되지 않는다.",
       "hints": [
@@ -1765,7 +1765,7 @@
         "price"
       ],
       "ordered": true,
-      "description": "가격 오름차순으로 정렬한 목록의 첫 두 상품을 건너뛰고 다음 세 상품만 조회한다. 동점은 상품 번호순이다. 부족하면 있는 행만 반환한다. 결과 열은 product_id,price 순서다. 정렬 기준은 price,product_id 순으로 적용한다. DESC가 붙은 항목은 내림차순, 나머지는 오름차순이다. 날짜 범위를 별도로 지정하지 않으면 전체 기간을 대상으로 한다.",
+      "description": "가격 오름차순으로 정렬한 목록의 첫 두 상품을 건너뛰고 다음 세 상품만 조회한다. 동점은 상품 번호순이다. 부족하면 있는 행만 반환한다. 결과 열은 product_id, price 순서다. 정렬 기준은 price 오름차순, product_id 오름차순으로 적용한다.",
       "solution": "SELECT product_id,price FROM products ORDER BY price,product_id LIMIT 3 OFFSET 2",
       "explanation": "OFFSET은 건너뛸 행 수이며 동점 기준까지 지정해야 페이지가 안정적이다.",
       "hints": [
@@ -1789,7 +1789,7 @@
         "customer_id"
       ],
       "ordered": true,
-      "description": "모든 주문을 최근 날짜 먼저 조회하고 같은 날에는 고객 번호, 주문 번호 순으로 조회한다. 상태는 구분하지 않는다. 결과 열은 order_id,ordered_at,customer_id 순서다. 정렬 기준은 ordered_at DESC,customer_id,order_id 순으로 적용한다. DESC가 붙은 항목은 내림차순, 나머지는 오름차순이다. 날짜 범위를 별도로 지정하지 않으면 전체 기간을 대상으로 한다.",
+      "description": "모든 주문을 최근 날짜 먼저 조회하고 같은 날에는 고객 번호, 주문 번호 순으로 조회한다. 상태는 구분하지 않는다. 결과 열은 order_id, ordered_at, customer_id 순서다. 정렬 기준은 ordered_at 내림차순, customer_id 오름차순, order_id 오름차순으로 적용한다.",
       "solution": "SELECT order_id,ordered_at,customer_id FROM orders ORDER BY ordered_at DESC,customer_id,order_id",
       "explanation": "각 정렬 열마다 방향을 독립적으로 지정한다.",
       "hints": [
@@ -1812,7 +1812,7 @@
         "name"
       ],
       "ordered": true,
-      "description": "이름이 정확히 한 글자인 상품을 조회한다. 결과 열은 product_id,name 순서다. 정렬 기준은 product_id 순으로 적용한다. DESC가 붙은 항목은 내림차순, 나머지는 오름차순이다. 날짜 범위를 별도로 지정하지 않으면 전체 기간을 대상으로 한다.",
+      "description": "이름이 정확히 한 글자인 상품을 조회한다. 결과 열은 product_id, name 순서다. 정렬 기준은 product_id 오름차순으로 적용한다.",
       "solution": "SELECT product_id,name FROM products WHERE name LIKE '_' ORDER BY product_id",
       "explanation": "밑줄 하나는 정확히 한 글자와 대응한다.",
       "hints": [
@@ -1835,7 +1835,7 @@
         "join_month"
       ],
       "ordered": true,
-      "description": "각 고객의 가입일을 YYYY-MM 문자열로 변환한다. 결과 열은 customer_id,join_month 순서다. 정렬 기준은 customer_id 순으로 적용한다. DESC가 붙은 항목은 내림차순, 나머지는 오름차순이다. 날짜 범위를 별도로 지정하지 않으면 전체 기간을 대상으로 한다.",
+      "description": "각 고객의 가입일을 YYYY-MM 문자열로 변환한다. 결과 열은 customer_id, join_month 순서다. 정렬 기준은 customer_id 오름차순으로 적용한다.",
       "solution": "SELECT customer_id,DATE_FORMAT(joined_at,'%Y-%m') AS join_month FROM customers ORDER BY customer_id",
       "explanation": "연도와 월을 함께 출력하면 다른 해의 같은 달이 구별된다.",
       "hints": [
@@ -1858,7 +1858,7 @@
         "next_date"
       ],
       "ordered": true,
-      "description": "상태와 무관하게 주문일 다음날을 계산한다. 결과 열은 order_id,next_date 순서다. 정렬 기준은 order_id 순으로 적용한다. DESC가 붙은 항목은 내림차순, 나머지는 오름차순이다. 날짜 범위를 별도로 지정하지 않으면 전체 기간을 대상으로 한다.",
+      "description": "상태와 무관하게 주문일 다음날을 계산한다. 결과 열은 order_id, next_date 순서다. 정렬 기준은 order_id 오름차순으로 적용한다.",
       "solution": "SELECT order_id,DATE_ADD(ordered_at,INTERVAL 1 DAY) AS next_date FROM orders ORDER BY order_id",
       "explanation": "날짜 연산은 월말과 연말의 경계를 자동 처리한다.",
       "hints": [
@@ -1881,7 +1881,7 @@
         "price_thousands"
       ],
       "ordered": true,
-      "description": "가격을 천원 단위로 변환하고 소수 첫째 자리로 반올림한다. 결과 열은 product_id,price_thousands 순서다. 정렬 기준은 product_id 순으로 적용한다. DESC가 붙은 항목은 내림차순, 나머지는 오름차순이다. 날짜 범위를 별도로 지정하지 않으면 전체 기간을 대상으로 한다.",
+      "description": "가격을 천원 단위로 변환하고 소수 첫째 자리로 반올림한다. 결과 열은 product_id, price_thousands 순서다. 정렬 기준은 product_id 오름차순으로 적용한다.",
       "solution": "SELECT product_id,ROUND(price/1000,1) AS price_thousands FROM products ORDER BY product_id",
       "explanation": "단위 변환 후 필요한 자릿수에서 반올림한다.",
       "hints": [
@@ -1904,7 +1904,7 @@
         "product_id"
       ],
       "ordered": true,
-      "description": "주문과 상품 번호 조합을 한 번씩만 출력한다. 수량과 단가는 출력하지 않으며 주문 상태를 구분하지 않는다. 결과 열은 order_id,product_id 순서다. 정렬 기준은 order_id,product_id 순으로 적용한다. DESC가 붙은 항목은 내림차순, 나머지는 오름차순이다. 날짜 범위를 별도로 지정하지 않으면 전체 기간을 대상으로 한다.",
+      "description": "주문과 상품 번호 조합을 한 번씩만 출력한다. 수량과 단가는 출력하지 않으며 주문 상태를 구분하지 않는다. 결과 열은 order_id, product_id 순서다. 정렬 기준은 order_id 오름차순, product_id 오름차순으로 적용한다.",
       "solution": "SELECT DISTINCT order_id,product_id FROM order_items ORDER BY order_id,product_id",
       "explanation": "주문 안에서 반복된 상품 행을 두 열의 조합으로 제거한다.",
       "hints": [
@@ -1929,7 +1929,7 @@
         "line_amount"
       ],
       "ordered": true,
-      "description": "수량이 2 이상인 상품 행과 수량 곱하기 당시 단가로 계산한 행 금액을 조회한다. 중복 행은 유지한다. 모든 출력값이 같은 행의 순서는 구별하지 않는다. 결과 열은 order_id,product_id,quantity,line_amount 순서다. 정렬 기준은 order_id,product_id,quantity,line_amount 순으로 적용한다. DESC가 붙은 항목은 내림차순, 나머지는 오름차순이다. 날짜 범위를 별도로 지정하지 않으면 전체 기간을 대상으로 한다.",
+      "description": "수량이 2 이상인 상품 행과 수량 곱하기 당시 단가로 계산한 행 금액을 조회한다. 중복 행은 유지한다. 모든 출력값이 같은 행의 순서는 구별하지 않는다. 결과 열은 order_id, product_id, quantity, line_amount 순서다. 정렬 기준은 order_id 오름차순, product_id 오름차순, quantity 오름차순, line_amount 오름차순으로 적용한다.",
       "solution": "SELECT order_id,product_id,quantity,quantity*unit_price AS line_amount FROM order_items WHERE quantity>=2 ORDER BY order_id,product_id,quantity,line_amount",
       "explanation": "집계하지 않고 각 원본 행의 수량과 단가를 곱한다.",
       "hints": [
@@ -1952,7 +1952,7 @@
         "affordable_quantity"
       ],
       "ordered": true,
-      "description": "가격이 양수인 상품마다 10000원으로 살 수 있는 최대 정수 개수를 구한다. 무료 상품은 제외한다. 결과 열은 product_id,affordable_quantity 순서다. 정렬 기준은 product_id 순으로 적용한다. DESC가 붙은 항목은 내림차순, 나머지는 오름차순이다. 날짜 범위를 별도로 지정하지 않으면 전체 기간을 대상으로 한다.",
+      "description": "가격이 양수인 상품마다 10000원으로 살 수 있는 최대 정수 개수를 구한다. 무료 상품은 제외한다. 결과 열은 product_id, affordable_quantity 순서다. 정렬 기준은 product_id 오름차순으로 적용한다.",
       "solution": "SELECT product_id,FLOOR(10000/price) AS affordable_quantity FROM products WHERE price>0 ORDER BY product_id",
       "explanation": "나눗셈 결과를 내림하고 분모가 0인 행을 먼저 제외한다.",
       "hints": [
@@ -1975,7 +1975,7 @@
         "remainder_amount"
       ],
       "ordered": true,
-      "description": "양수 가격인 상품을 10000원 한도에서 최대한 구매했을 때 남는 금액을 구한다. 무료 상품은 제외한다. 결과 열은 product_id,remainder_amount 순서다. 정렬 기준은 product_id 순으로 적용한다. DESC가 붙은 항목은 내림차순, 나머지는 오름차순이다. 날짜 범위를 별도로 지정하지 않으면 전체 기간을 대상으로 한다.",
+      "description": "양수 가격인 상품을 10000원 한도에서 최대한 구매했을 때 남는 금액을 구한다. 무료 상품은 제외한다. 결과 열은 product_id, remainder_amount 순서다. 정렬 기준은 product_id 오름차순으로 적용한다.",
       "solution": "SELECT product_id,MOD(10000,price) AS remainder_amount FROM products WHERE price>0 ORDER BY product_id",
       "explanation": "나머지 연산은 정수 개수 구매 후 남는 금액을 계산한다.",
       "hints": [
@@ -1998,7 +1998,7 @@
         "ordered_at"
       ],
       "ordered": true,
-      "description": "paid 주문의 고객 번호와 주문일 조합을 중복 없이 출력한다. 같은 날 같은 고객의 여러 주문은 하나로 합친다. 결과 열은 customer_id,ordered_at 순서다. 정렬 기준은 customer_id,ordered_at 순으로 적용한다. DESC가 붙은 항목은 내림차순, 나머지는 오름차순이다. 날짜 범위를 별도로 지정하지 않으면 전체 기간을 대상으로 한다.",
+      "description": "paid 주문의 고객 번호와 주문일 조합을 중복 없이 출력한다. 같은 날 같은 고객의 여러 주문은 하나로 합친다. 결과 열은 customer_id, ordered_at 순서다. 정렬 기준은 customer_id 오름차순, ordered_at 오름차순으로 적용한다.",
       "solution": "SELECT DISTINCT customer_id,ordered_at FROM orders WHERE status='paid' ORDER BY customer_id,ordered_at",
       "explanation": "행 조건 적용 뒤 선택한 두 열의 중복을 제거한다.",
       "hints": [
@@ -2021,7 +2021,7 @@
         "joined_at"
       ],
       "ordered": true,
-      "description": "2024년 1월 1일 전에 가입했거나 2024년 3월 1일 당일 또는 그 이후에 가입한 고객을 조회한다. 두 기간 사이의 가입은 제외한다. 결과 열은 customer_id,joined_at 순서다. 정렬 기준은 customer_id 순으로 적용한다. DESC가 붙은 항목은 내림차순, 나머지는 오름차순이다. 날짜 범위를 별도로 지정하지 않으면 전체 기간을 대상으로 한다.",
+      "description": "2024년 1월 1일 전에 가입했거나 2024년 3월 1일 당일 또는 그 이후에 가입한 고객을 조회한다. 두 기간 사이의 가입은 제외한다. 결과 열은 customer_id, joined_at 순서다. 정렬 기준은 customer_id 오름차순으로 적용한다.",
       "solution": "SELECT customer_id,joined_at FROM customers WHERE joined_at<'2024-01-01' OR joined_at>='2024-03-01' ORDER BY customer_id",
       "explanation": "겹치지 않는 두 기간은 OR로 결합한다.",
       "hints": [
@@ -2044,7 +2044,7 @@
         "name"
       ],
       "ordered": true,
-      "description": "문구 상품 전체와 가격이 2500 이상인 생활 상품을 조회한다. 다른 분류는 제외한다. 결과 열은 product_id,name 순서다. 정렬 기준은 product_id 순으로 적용한다. DESC가 붙은 항목은 내림차순, 나머지는 오름차순이다. 날짜 범위를 별도로 지정하지 않으면 전체 기간을 대상으로 한다.",
+      "description": "문구 상품 전체와 가격이 2500 이상인 생활 상품을 조회한다. 다른 분류는 제외한다. 결과 열은 product_id, name 순서다. 정렬 기준은 product_id 오름차순으로 적용한다.",
       "solution": "SELECT product_id,name FROM products WHERE category='문구' OR (category='생활' AND price>=2500) ORDER BY product_id",
       "explanation": "분류별로 다른 조건을 OR로 연결하고 필요한 AND를 묶는다.",
       "hints": [
@@ -2067,7 +2067,7 @@
         "month_start"
       ],
       "ordered": true,
-      "description": "가입일이 속한 달의 1일을 YYYY-MM-DD 문자열로 출력한다. 결과 열은 customer_id,month_start 순서다. 정렬 기준은 customer_id 순으로 적용한다. DESC가 붙은 항목은 내림차순, 나머지는 오름차순이다. 날짜 범위를 별도로 지정하지 않으면 전체 기간을 대상으로 한다.",
+      "description": "가입일이 속한 달의 1일을 YYYY-MM-DD 문자열로 출력한다. 결과 열은 customer_id, month_start 순서다. 정렬 기준은 customer_id 오름차순으로 적용한다.",
       "solution": "SELECT customer_id,DATE_FORMAT(joined_at,'%Y-%m-01') AS month_start FROM customers ORDER BY customer_id",
       "explanation": "서식의 일 부분을 고정하면 월 시작일 문자열을 얻는다.",
       "hints": [
@@ -2090,7 +2090,7 @@
         "ordered_at"
       ],
       "ordered": true,
-      "description": "매월 1일에 발생한 주문을 상태와 무관하게 조회한다. 결과 열은 order_id,ordered_at 순서다. 정렬 기준은 order_id 순으로 적용한다. DESC가 붙은 항목은 내림차순, 나머지는 오름차순이다. 날짜 범위를 별도로 지정하지 않으면 전체 기간을 대상으로 한다.",
+      "description": "매월 1일에 발생한 주문을 상태와 무관하게 조회한다. 결과 열은 order_id, ordered_at 순서다. 정렬 기준은 order_id 오름차순으로 적용한다.",
       "solution": "SELECT order_id,ordered_at FROM orders WHERE DAYOFMONTH(ordered_at)=1 ORDER BY order_id",
       "explanation": "날짜의 일 부분을 추출해 월에 관계없는 조건을 적용한다.",
       "hints": [
@@ -2113,7 +2113,7 @@
         "product_code"
       ],
       "ordered": true,
-      "description": "상품 번호를 최소 네 자리로 왼쪽에 0을 채워 표시한다. 번호가 네 자리보다 길면 원래 번호 문자열을 유지한다. 결과 열은 product_id,product_code 순서다. 정렬 기준은 product_id 순으로 적용한다. DESC가 붙은 항목은 내림차순, 나머지는 오름차순이다. 날짜 범위를 별도로 지정하지 않으면 전체 기간을 대상으로 한다.",
+      "description": "상품 번호를 최소 네 자리로 왼쪽에 0을 채워 표시한다. 번호가 네 자리보다 길면 원래 번호 문자열을 유지한다. 결과 열은 product_id, product_code 순서다. 정렬 기준은 product_id 오름차순으로 적용한다.",
       "solution": "SELECT product_id,LPAD(CAST(product_id AS CHAR),GREATEST(4,CHAR_LENGTH(CAST(product_id AS CHAR))),'0') AS product_code FROM products ORDER BY product_id",
       "explanation": "LPAD의 길이를 원본 길이 이상으로 잡아 긴 번호가 잘리지 않게 한다.",
       "hints": [
@@ -2136,7 +2136,7 @@
         "elapsed_days"
       ],
       "ordered": true,
-      "description": "2024년 3월 1일까지 가입한 고객에 대해 기준일 2024년 3월 1일에서 가입일을 뺀 일수를 계산한다. 당일은 0이며 기준일 가입을 포함한다. 결과 열은 customer_id,elapsed_days 순서다. 정렬 기준은 customer_id 순으로 적용한다. DESC가 붙은 항목은 내림차순, 나머지는 오름차순이다. 날짜 범위를 별도로 지정하지 않으면 전체 기간을 대상으로 한다.",
+      "description": "2024년 3월 1일까지 가입한 고객에 대해 기준일 2024년 3월 1일에서 가입일을 뺀 일수를 계산한다. 당일은 0이며 기준일 가입을 포함한다. 결과 열은 customer_id, elapsed_days 순서다. 정렬 기준은 customer_id 오름차순으로 적용한다.",
       "solution": "SELECT customer_id,DATEDIFF('2024-03-01',joined_at) AS elapsed_days FROM customers WHERE joined_at<='2024-03-01' ORDER BY customer_id",
       "explanation": "고정 기준일을 사용하면 실행 날짜에 관계없이 결과를 재현한다.",
       "hints": [
@@ -2159,7 +2159,7 @@
         "price"
       ],
       "ordered": true,
-      "description": "가격이 1000의 배수가 아닌 상품을 조회한다. 0은 배수이므로 제외된다. 결과 열은 product_id,price 순서다. 정렬 기준은 product_id 순으로 적용한다. DESC가 붙은 항목은 내림차순, 나머지는 오름차순이다. 날짜 범위를 별도로 지정하지 않으면 전체 기간을 대상으로 한다.",
+      "description": "가격이 1000의 배수가 아닌 상품을 조회한다. 0은 배수이므로 제외된다. 결과 열은 product_id, price 순서다. 정렬 기준은 product_id 오름차순으로 적용한다.",
       "solution": "SELECT product_id,price FROM products WHERE MOD(price,1000)<>0 ORDER BY product_id",
       "explanation": "나머지가 0이 아니면 해당 단위로 나누어떨어지지 않는다.",
       "hints": [
@@ -2182,7 +2182,7 @@
         "joined_at"
       ],
       "ordered": true,
-      "description": "도시를 입력한 고객 중 가입일이 가장 최근인 최대 두 명을 조회한다. 같은 가입일에는 고객 번호가 작은 고객을 먼저 선택한다. 결과 열은 customer_id,joined_at 순서다. 정렬 기준은 joined_at DESC,customer_id 순으로 적용한다. DESC가 붙은 항목은 내림차순, 나머지는 오름차순이다. 날짜 범위를 별도로 지정하지 않으면 전체 기간을 대상으로 한다.",
+      "description": "도시를 입력한 고객 중 가입일이 가장 최근인 최대 두 명을 조회한다. 같은 가입일에는 고객 번호가 작은 고객을 먼저 선택한다. 결과 열은 customer_id, joined_at 순서다. 정렬 기준은 joined_at 내림차순, customer_id 오름차순으로 적용한다.",
       "solution": "SELECT customer_id,joined_at FROM customers WHERE city IS NOT NULL ORDER BY joined_at DESC,customer_id LIMIT 2",
       "explanation": "대상 고객을 먼저 거른 다음 정렬한 결과에서 두 행을 선택한다.",
       "hints": [
@@ -2206,7 +2206,7 @@
         "ordered_at"
       ],
       "ordered": true,
-      "description": "paid 상태가 아닌 주문을 고객 번호 오름차순, 같은 고객이면 최근 주문일 먼저 조회한다. 같은 날짜에는 주문 번호순이다. 상태 도메인은 paid와 canceled다. 결과 열은 order_id,customer_id,ordered_at 순서다. 정렬 기준은 customer_id,ordered_at DESC,order_id 순으로 적용한다. DESC가 붙은 항목은 내림차순, 나머지는 오름차순이다. 날짜 범위를 별도로 지정하지 않으면 전체 기간을 대상으로 한다.",
+      "description": "paid 상태가 아닌 주문을 고객 번호 오름차순, 같은 고객이면 최근 주문일 먼저 조회한다. 같은 날짜에는 주문 번호순이다. 상태 도메인은 paid와 canceled다. 결과 열은 order_id, customer_id, ordered_at 순서다. 정렬 기준은 customer_id 오름차순, ordered_at 내림차순, order_id 오름차순으로 적용한다.",
       "solution": "SELECT order_id,customer_id,ordered_at FROM orders WHERE status<>'paid' ORDER BY customer_id,ordered_at DESC,order_id",
       "explanation": "상태 도메인이 정해져 있을 때 부등 조건으로 반대 상태를 선택한다.",
       "hints": [
@@ -2230,7 +2230,7 @@
         "known_percent"
       ],
       "ordered": true,
-      "description": "전체 고객 수와 도시가 NULL이 아닌 고객 수를 구한다. 도시가 입력된 고객의 백분율은 소수 둘째 자리까지 반올림한다. 고객이 없으면 비율은 NULL이다. 한 행을 출력한다. 결과 열은 total_customers,known_cities,known_percent 순서다. 정렬 기준은 total_customers 순으로 적용한다. DESC가 붙은 항목은 내림차순, 나머지는 오름차순이다. 날짜 범위를 별도로 지정하지 않으면 전체 기간을 대상으로 한다.",
+      "description": "전체 고객 수와 도시가 NULL이 아닌 고객 수를 구한다. 도시가 입력된 고객의 백분율은 소수 둘째 자리까지 반올림한다. 고객이 없으면 비율은 NULL이다. 한 행을 출력한다. 결과 열은 total_customers, known_cities, known_percent 순서다. 정렬 기준은 total_customers 오름차순으로 적용한다.",
       "solution": "SELECT COUNT(*) AS total_customers,COUNT(city) AS known_cities,ROUND(100.0*COUNT(city)/NULLIF(COUNT(*),0),2) AS known_percent FROM customers ORDER BY total_customers",
       "explanation": "전체 행 수와 NULL을 제외한 열 개수를 서로 다른 분모와 분자로 사용한다.",
       "hints": [
@@ -2253,7 +2253,7 @@
         "price_gap"
       ],
       "ordered": true,
-      "description": "분류별 최고 가격에서 최저 가격을 뺀 가격 폭을 계산한다. 상품 하나인 분류는 0이다. 결과 열은 category,price_gap 순서다. 정렬 기준은 category 순으로 적용한다. DESC가 붙은 항목은 내림차순, 나머지는 오름차순이다. 날짜 범위를 별도로 지정하지 않으면 전체 기간을 대상으로 한다.",
+      "description": "분류별 최고 가격에서 최저 가격을 뺀 가격 폭을 계산한다. 상품 하나인 분류는 0이다. 결과 열은 category, price_gap 순서다. 정렬 기준은 category 오름차순으로 적용한다.",
       "solution": "SELECT category,MAX(price)-MIN(price) AS price_gap FROM products GROUP BY category ORDER BY category",
       "explanation": "두 극값의 차이는 그룹 내부 가격 범위를 나타낸다.",
       "hints": [
@@ -2277,7 +2277,7 @@
         "last_order"
       ],
       "ordered": true,
-      "description": "주문이 있는 고객별 첫 주문일과 마지막 주문일을 구한다. 모든 상태를 포함한다. 결과 열은 customer_id,first_order,last_order 순서다. 정렬 기준은 customer_id 순으로 적용한다. DESC가 붙은 항목은 내림차순, 나머지는 오름차순이다. 날짜 범위를 별도로 지정하지 않으면 전체 기간을 대상으로 한다.",
+      "description": "주문이 있는 고객별 첫 주문일과 마지막 주문일을 구한다. 모든 상태를 포함한다. 결과 열은 customer_id, first_order, last_order 순서다. 정렬 기준은 customer_id 오름차순으로 적용한다.",
       "solution": "SELECT customer_id,MIN(ordered_at) AS first_order,MAX(ordered_at) AS last_order FROM orders GROUP BY customer_id ORDER BY customer_id",
       "explanation": "날짜 열의 최솟값과 최댓값은 최초일과 최종일이다.",
       "hints": [
@@ -2301,7 +2301,7 @@
         "order_count"
       ],
       "ordered": true,
-      "description": "같은 고객이 같은 날짜에 두 건 이상 주문한 조합과 주문 수를 조회한다. 모든 상태를 포함한다. 결과 열은 customer_id,ordered_at,order_count 순서다. 정렬 기준은 customer_id,ordered_at 순으로 적용한다. DESC가 붙은 항목은 내림차순, 나머지는 오름차순이다. 날짜 범위를 별도로 지정하지 않으면 전체 기간을 대상으로 한다.",
+      "description": "같은 고객이 같은 날짜에 두 건 이상 주문한 조합과 주문 수를 조회한다. 모든 상태를 포함한다. 결과 열은 customer_id, ordered_at, order_count 순서다. 정렬 기준은 customer_id 오름차순, ordered_at 오름차순으로 적용한다.",
       "solution": "SELECT customer_id,ordered_at,COUNT(*) AS order_count FROM orders GROUP BY customer_id,ordered_at HAVING COUNT(*)>=2 ORDER BY customer_id,ordered_at",
       "explanation": "고객과 날짜를 함께 묶어 같은 날의 반복 주문을 센다.",
       "hints": [
@@ -2324,7 +2324,7 @@
         "weighted_price"
       ],
       "ordered": true,
-      "description": "상품별 총 구매 금액을 총수량으로 나눈 가중 평균 단가를 소수 둘째 자리로 구한다. 모든 상세 행과 중복 행을 포함하며 주문 상태는 구분하지 않는다. 결과 열은 product_id,weighted_price 순서다. 정렬 기준은 product_id 순으로 적용한다. DESC가 붙은 항목은 내림차순, 나머지는 오름차순이다. 날짜 범위를 별도로 지정하지 않으면 전체 기간을 대상으로 한다.",
+      "description": "상품별 총 구매 금액을 총수량으로 나눈 가중 평균 단가를 소수 둘째 자리로 구한다. 모든 상세 행과 중복 행을 포함하며 주문 상태는 구분하지 않는다. 결과 열은 product_id, weighted_price 순서다. 정렬 기준은 product_id 오름차순으로 적용한다.",
       "solution": "SELECT product_id,ROUND(SUM(quantity*unit_price)/SUM(quantity),2) AS weighted_price FROM order_items GROUP BY product_id ORDER BY product_id",
       "explanation": "수량 가중 평균은 행별 단가의 단순 평균과 다르다.",
       "hints": [
@@ -2347,7 +2347,7 @@
         "order_count"
       ],
       "ordered": true,
-      "description": "상세 행에 등장한 상품별 서로 다른 주문 번호 수를 조회한다. 같은 주문에 중복된 상품 행은 한 주문으로 센다. 모든 상태를 포함한다. 결과 열은 product_id,order_count 순서다. 정렬 기준은 product_id 순으로 적용한다. DESC가 붙은 항목은 내림차순, 나머지는 오름차순이다. 날짜 범위를 별도로 지정하지 않으면 전체 기간을 대상으로 한다.",
+      "description": "상세 행에 등장한 상품별 서로 다른 주문 번호 수를 조회한다. 같은 주문에 중복된 상품 행은 한 주문으로 센다. 모든 상태를 포함한다. 결과 열은 product_id, order_count 순서다. 정렬 기준은 product_id 오름차순으로 적용한다.",
       "solution": "SELECT product_id,COUNT(DISTINCT order_id) AS order_count FROM order_items GROUP BY product_id ORDER BY product_id",
       "explanation": "상품별 주문 수를 셀 때 주문 번호에 DISTINCT를 적용한다.",
       "hints": [
@@ -2371,7 +2371,7 @@
         "line_count"
       ],
       "ordered": true,
-      "description": "주문 번호와 상품 번호가 같은 행이 order_items에 두 개 이상 있는 조합과 해당 행 수를 출력한다. 수량과 단가가 달라도 같은 조합이다. 모든 상태를 포함한다. 결과 열은 order_id,product_id,line_count 순서다. 정렬 기준은 order_id,product_id 순으로 적용한다. DESC가 붙은 항목은 내림차순, 나머지는 오름차순이다. 날짜 범위를 별도로 지정하지 않으면 전체 기간을 대상으로 한다.",
+      "description": "주문 번호와 상품 번호가 같은 행이 order_items에 두 개 이상 있는 조합과 해당 행 수를 출력한다. 수량과 단가가 달라도 같은 조합이다. 모든 상태를 포함한다. 결과 열은 order_id, product_id, line_count 순서다. 정렬 기준은 order_id 오름차순, product_id 오름차순으로 적용한다.",
       "solution": "SELECT order_id,product_id,COUNT(*) AS line_count FROM order_items GROUP BY order_id,product_id HAVING COUNT(*)>1 ORDER BY order_id,product_id",
       "explanation": "복합 키의 행 수가 1보다 큰 그룹을 찾는다.",
       "hints": [
@@ -2394,7 +2394,7 @@
         "product_count"
       ],
       "ordered": true,
-      "description": "두 상품 이상이 공유하는 가격과 해당 가격의 상품 수를 조회한다. 분류는 구분하지 않는다. 결과 열은 price,product_count 순서다. 정렬 기준은 price 순으로 적용한다. DESC가 붙은 항목은 내림차순, 나머지는 오름차순이다. 날짜 범위를 별도로 지정하지 않으면 전체 기간을 대상으로 한다.",
+      "description": "두 상품 이상이 공유하는 가격과 해당 가격의 상품 수를 조회한다. 분류는 구분하지 않는다. 결과 열은 price, product_count 순서다. 정렬 기준은 price 오름차순으로 적용한다.",
       "solution": "SELECT price,COUNT(*) AS product_count FROM products GROUP BY price HAVING COUNT(*)>=2 ORDER BY price",
       "explanation": "식별자가 아닌 가격을 그룹 키로 삼아 동가 상품을 찾는다.",
       "hints": [
@@ -2418,7 +2418,7 @@
         "city_count"
       ],
       "ordered": true,
-      "description": "가입 연도별 고객 수와 서로 다른 입력 도시 수를 구한다. NULL 도시는 도시 수에 포함하지 않지만 고객 수에는 포함한다. 결과 열은 join_year,customer_count,city_count 순서다. 정렬 기준은 join_year 순으로 적용한다. DESC가 붙은 항목은 내림차순, 나머지는 오름차순이다. 날짜 범위를 별도로 지정하지 않으면 전체 기간을 대상으로 한다.",
+      "description": "가입 연도별 고객 수와 서로 다른 입력 도시 수를 구한다. NULL 도시는 도시 수에 포함하지 않지만 고객 수에는 포함한다. 결과 열은 join_year, customer_count, city_count 순서다. 정렬 기준은 join_year 오름차순으로 적용한다.",
       "solution": "SELECT YEAR(joined_at) AS join_year,COUNT(*) AS customer_count,COUNT(DISTINCT city) AS city_count FROM customers GROUP BY YEAR(joined_at) ORDER BY join_year",
       "explanation": "COUNT DISTINCT는 NULL을 제외하고 중복된 도시를 한 번 센다.",
       "hints": [
@@ -2442,7 +2442,7 @@
         "canceled_count"
       ],
       "ordered": true,
-      "description": "paid와 canceled 주문이 각각 한 건 이상 있는 고객과 상태별 주문 수를 조회한다. 결과 열은 customer_id,paid_count,canceled_count 순서다. 정렬 기준은 customer_id 순으로 적용한다. DESC가 붙은 항목은 내림차순, 나머지는 오름차순이다. 날짜 범위를 별도로 지정하지 않으면 전체 기간을 대상으로 한다.",
+      "description": "paid와 canceled 주문이 각각 한 건 이상 있는 고객과 상태별 주문 수를 조회한다. 결과 열은 customer_id, paid_count, canceled_count 순서다. 정렬 기준은 customer_id 오름차순으로 적용한다.",
       "solution": "SELECT customer_id,SUM(status='paid') AS paid_count,SUM(status='canceled') AS canceled_count FROM orders GROUP BY customer_id HAVING SUM(status='paid')>0 AND SUM(status='canceled')>0 ORDER BY customer_id",
       "explanation": "상태를 WHERE에서 제거하지 않고 집계 후 양쪽 상태의 존재를 확인한다.",
       "hints": [
@@ -2465,7 +2465,7 @@
         "cancel_percent"
       ],
       "ordered": true,
-      "description": "주문이 있는 고객별 전체 주문 중 canceled 주문의 백분율을 소수 둘째 자리로 구한다. 취소가 없으면 0이다. 결과 열은 customer_id,cancel_percent 순서다. 정렬 기준은 customer_id 순으로 적용한다. DESC가 붙은 항목은 내림차순, 나머지는 오름차순이다. 날짜 범위를 별도로 지정하지 않으면 전체 기간을 대상으로 한다.",
+      "description": "주문이 있는 고객별 전체 주문 중 canceled 주문의 백분율을 소수 둘째 자리로 구한다. 취소가 없으면 0이다. 결과 열은 customer_id, cancel_percent 순서다. 정렬 기준은 customer_id 오름차순으로 적용한다.",
       "solution": "SELECT customer_id,ROUND(100.0*SUM(status='canceled')/COUNT(*),2) AS cancel_percent FROM orders GROUP BY customer_id ORDER BY customer_id",
       "explanation": "그룹 전체 주문 수를 분모로 두고 취소 건수를 분자로 둔다.",
       "hints": [
@@ -2488,7 +2488,7 @@
         "buyer_count"
       ],
       "ordered": true,
-      "description": "paid 주문이 있는 연월별 고유 고객 수를 구한다. 연월은 YYYY-MM이며 같은 고객의 여러 주문은 한 명으로 센다. 결과 열은 order_month,buyer_count 순서다. 정렬 기준은 order_month 순으로 적용한다. DESC가 붙은 항목은 내림차순, 나머지는 오름차순이다. 날짜 범위를 별도로 지정하지 않으면 전체 기간을 대상으로 한다.",
+      "description": "paid 주문이 있는 연월별 고유 고객 수를 구한다. 연월은 YYYY-MM이며 같은 고객의 여러 주문은 한 명으로 센다. 결과 열은 order_month, buyer_count 순서다. 정렬 기준은 order_month 오름차순으로 적용한다.",
       "solution": "SELECT DATE_FORMAT(ordered_at,'%Y-%m') AS order_month,COUNT(DISTINCT customer_id) AS buyer_count FROM orders WHERE status='paid' GROUP BY DATE_FORMAT(ordered_at,'%Y-%m') ORDER BY order_month",
       "explanation": "월별 주문 행을 묶은 뒤 고객 번호의 중복을 제거해 센다.",
       "hints": [
@@ -2511,7 +2511,7 @@
         "product_count"
       ],
       "ordered": true,
-      "description": "서로 다른 상품을 두 종류 이상 담은 주문과 상품 종류 수를 구한다. 중복 행과 수량은 종류 수를 늘리지 않으며 상태는 구분하지 않는다. 결과 열은 order_id,product_count 순서다. 정렬 기준은 order_id 순으로 적용한다. DESC가 붙은 항목은 내림차순, 나머지는 오름차순이다. 날짜 범위를 별도로 지정하지 않으면 전체 기간을 대상으로 한다.",
+      "description": "서로 다른 상품을 두 종류 이상 담은 주문과 상품 종류 수를 구한다. 중복 행과 수량은 종류 수를 늘리지 않으며 상태는 구분하지 않는다. 결과 열은 order_id, product_count 순서다. 정렬 기준은 order_id 오름차순으로 적용한다.",
       "solution": "SELECT order_id,COUNT(DISTINCT product_id) AS product_count FROM order_items GROUP BY order_id HAVING COUNT(DISTINCT product_id)>=2 ORDER BY order_id",
       "explanation": "행 수 대신 고유 상품 수를 집계한 뒤 조건을 적용한다.",
       "hints": [
@@ -2535,7 +2535,7 @@
         "max_price"
       ],
       "ordered": true,
-      "description": "상세 행의 당시 단가가 서로 다른 값으로 기록된 상품과 최저·최고 단가를 구한다. 주문 상태는 구분하지 않는다. 결과 열은 product_id,min_price,max_price 순서다. 정렬 기준은 product_id 순으로 적용한다. DESC가 붙은 항목은 내림차순, 나머지는 오름차순이다. 날짜 범위를 별도로 지정하지 않으면 전체 기간을 대상으로 한다.",
+      "description": "상세 행의 당시 단가가 서로 다른 값으로 기록된 상품과 최저·최고 단가를 구한다. 주문 상태는 구분하지 않는다. 결과 열은 product_id, min_price, max_price 순서다. 정렬 기준은 product_id 오름차순으로 적용한다.",
       "solution": "SELECT product_id,MIN(unit_price) AS min_price,MAX(unit_price) AS max_price FROM order_items GROUP BY product_id HAVING MIN(unit_price)<MAX(unit_price) ORDER BY product_id",
       "explanation": "최솟값이 최댓값보다 작으면 최소 두 가격이 존재한다.",
       "hints": [
@@ -2559,7 +2559,7 @@
         "customer_count"
       ],
       "ordered": true,
-      "description": "가입 연도와 반기별 고객 수를 구한다. 1~6월은 1, 7~12월은 2이며 존재하는 그룹만 출력한다. 결과 열은 join_year,half_year,customer_count 순서다. 정렬 기준은 join_year,half_year 순으로 적용한다. DESC가 붙은 항목은 내림차순, 나머지는 오름차순이다. 날짜 범위를 별도로 지정하지 않으면 전체 기간을 대상으로 한다.",
+      "description": "가입 연도와 반기별 고객 수를 구한다. 1~6월은 1, 7~12월은 2이며 존재하는 그룹만 출력한다. 결과 열은 join_year, half_year, customer_count 순서다. 정렬 기준은 join_year 오름차순, half_year 오름차순으로 적용한다.",
       "solution": "SELECT YEAR(joined_at) AS join_year,CASE WHEN MONTH(joined_at)<=6 THEN 1 ELSE 2 END AS half_year,COUNT(*) AS customer_count FROM customers GROUP BY YEAR(joined_at),half_year ORDER BY join_year,half_year",
       "explanation": "연도와 반기를 모두 묶어 서로 다른 해가 섞이지 않게 한다.",
       "hints": [
@@ -2582,7 +2582,7 @@
         "cheap_count"
       ],
       "ordered": true,
-      "description": "모든 분류별 가격 1000 미만 상품 수를 구한다. 해당 상품이 없는 분류는 0을 출력한다. 결과 열은 category,cheap_count 순서다. 정렬 기준은 category 순으로 적용한다. DESC가 붙은 항목은 내림차순, 나머지는 오름차순이다. 날짜 범위를 별도로 지정하지 않으면 전체 기간을 대상으로 한다.",
+      "description": "모든 분류별 가격 1000 미만 상품 수를 구한다. 해당 상품이 없는 분류는 0을 출력한다. 결과 열은 category, cheap_count 순서다. 정렬 기준은 category 오름차순으로 적용한다.",
       "solution": "SELECT category,SUM(CASE WHEN price<1000 THEN 1 ELSE 0 END) AS cheap_count FROM products GROUP BY category ORDER BY category",
       "explanation": "WHERE 대신 CASE를 집계하면 해당 조건이 없는 분류도 남는다.",
       "hints": [
@@ -2605,7 +2605,7 @@
         "span_days"
       ],
       "ordered": true,
-      "description": "상태별 최초 주문일부터 최종 주문일까지의 날짜 차이를 구한다. 같은 날만 존재하면 0이다. 결과 열은 status,span_days 순서다. 정렬 기준은 status 순으로 적용한다. DESC가 붙은 항목은 내림차순, 나머지는 오름차순이다. 날짜 범위를 별도로 지정하지 않으면 전체 기간을 대상으로 한다.",
+      "description": "상태별 최초 주문일부터 최종 주문일까지의 날짜 차이를 구한다. 같은 날만 존재하면 0이다. 결과 열은 status, span_days 순서다. 정렬 기준은 status 오름차순으로 적용한다.",
       "solution": "SELECT status,DATEDIFF(MAX(ordered_at),MIN(ordered_at)) AS span_days FROM orders GROUP BY status ORDER BY status",
       "explanation": "그룹의 날짜 극값을 구한 뒤 두 날짜의 차이를 계산한다.",
       "hints": [
@@ -2628,7 +2628,7 @@
         "min_price"
       ],
       "ordered": true,
-      "description": "모든 상품 가격이 1000 이상인 분류와 최저 가격을 조회한다. 결과 열은 category,min_price 순서다. 정렬 기준은 category 순으로 적용한다. DESC가 붙은 항목은 내림차순, 나머지는 오름차순이다. 날짜 범위를 별도로 지정하지 않으면 전체 기간을 대상으로 한다.",
+      "description": "모든 상품 가격이 1000 이상인 분류와 최저 가격을 조회한다. 결과 열은 category, min_price 순서다. 정렬 기준은 category 오름차순으로 적용한다.",
       "solution": "SELECT category,MIN(price) AS min_price FROM products GROUP BY category HAVING MIN(price)>=1000 ORDER BY category",
       "explanation": "모든 가격의 하한 조건은 최저 가격으로 검증한다.",
       "hints": [
@@ -2651,7 +2651,7 @@
         "large_line_percent"
       ],
       "ordered": true,
-      "description": "주문별 총금액 중 행 금액이 2000 이상인 상세 행 금액의 비중을 백분율로 소수 둘째 자리까지 구한다. 중복 행을 유지하고 상태를 구분하지 않는다. 주문 총금액이 0이면 NULL이다. 결과 열은 order_id,large_line_percent 순서다. 정렬 기준은 order_id 순으로 적용한다. DESC가 붙은 항목은 내림차순, 나머지는 오름차순이다. 날짜 범위를 별도로 지정하지 않으면 전체 기간을 대상으로 한다.",
+      "description": "주문별 총금액 중 행 금액이 2000 이상인 상세 행 금액의 비중을 백분율로 소수 둘째 자리까지 구한다. 중복 행을 유지하고 상태를 구분하지 않는다. 주문 총금액이 0이면 NULL이다. 결과 열은 order_id, large_line_percent 순서다. 정렬 기준은 order_id 오름차순으로 적용한다.",
       "solution": "SELECT order_id,ROUND(100.0*SUM(CASE WHEN quantity*unit_price>=2000 THEN quantity*unit_price ELSE 0 END)/NULLIF(SUM(quantity*unit_price),0),2) AS large_line_percent FROM order_items GROUP BY order_id ORDER BY order_id",
       "explanation": "금액 기여율은 조건 충족 행 수가 아니라 해당 금액 합계를 분자로 삼는다.",
       "hints": [
@@ -2674,7 +2674,7 @@
         "active_months"
       ],
       "ordered": true,
-      "description": "주문이 있는 고객별 서로 다른 주문 연월 수를 구한다. 모든 상태를 포함하고 같은 달 여러 주문은 한 달로 센다. 결과 열은 customer_id,active_months 순서다. 정렬 기준은 customer_id 순으로 적용한다. DESC가 붙은 항목은 내림차순, 나머지는 오름차순이다. 날짜 범위를 별도로 지정하지 않으면 전체 기간을 대상으로 한다.",
+      "description": "주문이 있는 고객별 서로 다른 주문 연월 수를 구한다. 모든 상태를 포함하고 같은 달 여러 주문은 한 달로 센다. 결과 열은 customer_id, active_months 순서다. 정렬 기준은 customer_id 오름차순으로 적용한다.",
       "solution": "SELECT customer_id,COUNT(DISTINCT DATE_FORMAT(ordered_at,'%Y-%m')) AS active_months FROM orders GROUP BY customer_id ORDER BY customer_id",
       "explanation": "월 번호만 사용하면 서로 다른 연도의 같은 월이 합쳐지므로 연월을 사용한다.",
       "hints": [
@@ -2698,7 +2698,7 @@
         "customer_count"
       ],
       "ordered": true,
-      "description": "가입자가 있는 연월별 최초 가입일과 가입자 수를 구한다. 연월은 YYYY-MM이다. 결과 열은 join_month,first_joined,customer_count 순서다. 정렬 기준은 join_month 순으로 적용한다. DESC가 붙은 항목은 내림차순, 나머지는 오름차순이다. 날짜 범위를 별도로 지정하지 않으면 전체 기간을 대상으로 한다.",
+      "description": "가입자가 있는 연월별 최초 가입일과 가입자 수를 구한다. 연월은 YYYY-MM이다. 결과 열은 join_month, first_joined, customer_count 순서다. 정렬 기준은 join_month 오름차순으로 적용한다.",
       "solution": "SELECT DATE_FORMAT(joined_at,'%Y-%m') AS join_month,MIN(joined_at) AS first_joined,COUNT(*) AS customer_count FROM customers GROUP BY DATE_FORMAT(joined_at,'%Y-%m') ORDER BY join_month",
       "explanation": "월별 최소 날짜는 반드시 월 1일인 것이 아니라 실제 첫 가입일이다.",
       "hints": [

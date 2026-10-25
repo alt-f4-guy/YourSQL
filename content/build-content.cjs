@@ -17,7 +17,7 @@ shop.datasets=[
 let ids={1:0,2:0,3:0,4:0,5:0};
 function add(pack,level,title,topic,tables,columns,description,solution,explanation){
  const id=`level${level}_${String(++ids[level]).padStart(2,'0')}`;
- pack.problems.push({id,level,title,topic,tables:tables.split(','),columns:columns.split(','),ordered:true,description:description+' 결과 열은 '+columns+' 순서로 출력한다. 기간을 별도로 제한하지 않은 경우 전체 기간의 데이터를 사용한다.',solution,explanation,hints:[`핵심 개념: ${topic}. 이 개념을 적용할 열과 결과의 행 단위를 먼저 확인하세요.`,explanation,'-- 주석으로 표시된 빈칸을 채우세요.\n'+hints[level][ids[level]-1]],starter:'-- 조건과 출력 열을 확인한 뒤 쿼리를 작성하세요.\nSELECT '});
+ pack.problems.push({id,level,title,topic,tables:tables.split(','),columns:columns.split(','),ordered:true,description:description+' 결과 열은 '+columns.split(',').join(', ')+' 순서로 출력한다.',solution,explanation,hints:[`핵심 개념: ${topic}. 이 개념을 적용할 열과 결과의 행 단위를 먼저 확인하세요.`,explanation,'-- 주석으로 표시된 빈칸을 채우세요.\n'+hints[level][ids[level]-1]],starter:'-- 조건과 출력 열을 확인한 뒤 쿼리를 작성하세요.\nSELECT '});
 }
 add(shop,1,'서울 고객 찾기','WHERE','customers','customer_id,name','서울 거주 고객을 고객 번호 오름차순으로 조회한다. 도시가 NULL이면 제외한다.',"SELECT customer_id,name FROM customers WHERE city='서울' ORDER BY customer_id",'문자열 조건은 작은따옴표로 감싼다. NULL과 문자열을 비교한 결과는 참이 아니므로 도시가 NULL인 행은 선택되지 않는다.');
 add(shop,1,'가격 범위 안의 상품','BETWEEN','products','product_id,name,price','현재 단가가 1000 이상 3000 이하인 상품을 가격 내림차순, 상품 번호 오름차순으로 조회한다. 두 경계를 모두 포함한다.',"SELECT product_id,name,price FROM products WHERE price BETWEEN 1000 AND 3000 ORDER BY price DESC,product_id",'BETWEEN은 양 끝을 포함한다. 같은 가격의 순서는 상품 번호로 결정한다.');

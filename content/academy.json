@@ -1050,7 +1050,7 @@
         "title"
       ],
       "ordered": true,
-      "description": "필수 여부가 1인 강좌를 강좌 번호 오름차순으로 조회한다. 결과 열은 course_id,title 순서로 출력한다. 기간을 별도로 제한하지 않은 경우 전체 기간의 데이터를 사용한다.",
+      "description": "필수 여부가 1인 강좌를 강좌 번호 오름차순으로 조회한다. 결과 열은 course_id, title 순서로 출력한다.",
       "solution": "SELECT course_id,title FROM courses WHERE required=1 ORDER BY course_id",
       "explanation": "정수 형태의 여부 열은 조건에 해당하는 값으로 직접 필터링한다.",
       "hints": [
@@ -1074,7 +1074,7 @@
         "course_id"
       ],
       "ordered": true,
-      "description": "완료일이 NULL인 수강 등록을 등록 번호 오름차순으로 조회한다. 같은 회원·강좌 재등록도 별도 행이다. 결과 열은 enrollment_id,member_id,course_id 순서로 출력한다. 기간을 별도로 제한하지 않은 경우 전체 기간의 데이터를 사용한다.",
+      "description": "완료일이 NULL인 수강 등록을 등록 번호 오름차순으로 조회한다. 같은 회원·강좌 재등록도 별도 행이다. 결과 열은 enrollment_id, member_id, course_id 순서로 출력한다.",
       "solution": "SELECT enrollment_id,member_id,course_id FROM enrollments WHERE completed_at IS NULL ORDER BY enrollment_id",
       "explanation": "등록 번호를 포함해 각 등록을 한 행씩 조회한다. 재등록도 서로 다른 등록 번호를 가진다.",
       "hints": [
@@ -1098,7 +1098,7 @@
         "score"
       ],
       "ordered": true,
-      "description": "점수가 80 이상인 응시를 점수 내림차순, 응시 번호 오름차순으로 조회한다. 미채점 응시는 제외한다. 결과 열은 attempt_id,member_id,score 순서로 출력한다. 기간을 별도로 제한하지 않은 경우 전체 기간의 데이터를 사용한다.",
+      "description": "점수가 80 이상인 응시를 점수 내림차순, 응시 번호 오름차순으로 조회한다. 미채점 응시는 제외한다. 결과 열은 attempt_id, member_id, score 순서로 출력한다.",
       "solution": "SELECT attempt_id,member_id,score FROM attempts WHERE score>=80 ORDER BY score DESC,attempt_id",
       "explanation": "점수 동점에도 응시 번호를 정렬 기준으로 추가하여 결과 순서를 확정한다.",
       "hints": [
@@ -1121,7 +1121,7 @@
         "name"
       ],
       "ordered": true,
-      "description": "서울 또는 부산 거주 회원을 회원 번호 오름차순으로 조회한다. NULL 지역은 제외한다. 결과 열은 member_id,name 순서로 출력한다. 기간을 별도로 제한하지 않은 경우 전체 기간의 데이터를 사용한다.",
+      "description": "서울 또는 부산 거주 회원을 회원 번호 오름차순으로 조회한다. NULL 지역은 제외한다. 결과 열은 member_id, name 순서로 출력한다.",
       "solution": "SELECT member_id,name FROM members WHERE region IN ('서울','부산') ORDER BY member_id",
       "explanation": "동일 열의 여러 후보값 비교는 IN으로 간결하게 표현한다.",
       "hints": [
@@ -1144,7 +1144,7 @@
         "duration_seconds"
       ],
       "ordered": true,
-      "description": "study 기록의 분 단위 시간을 초 단위 duration_seconds로 변환한다. 시간이 0인 기록도 포함하며 활동 번호 오름차순이다. 결과 열은 activity_id,duration_seconds 순서로 출력한다. 기간을 별도로 제한하지 않은 경우 전체 기간의 데이터를 사용한다.",
+      "description": "study 기록의 분 단위 시간을 초 단위 duration_seconds로 변환한다. 시간이 0인 기록도 포함하며 활동 번호 오름차순이다. 결과 열은 activity_id, duration_seconds 순서로 출력한다.",
       "solution": "SELECT activity_id,duration*60 AS duration_seconds FROM activity WHERE kind='study' ORDER BY activity_id",
       "explanation": "단위를 변환할 때 출력 열 이름에도 단위를 드러내면 후속 계산의 혼동을 줄인다.",
       "hints": [
@@ -1167,7 +1167,7 @@
         "enrolled_at"
       ],
       "ordered": true,
-      "description": "등록일이 가장 빠른 수강 등록을 최대 3건 조회한다. 같은 등록일에는 등록 번호가 작은 것이 먼저다. 전체 행이 3건 미만이면 모두 출력한다. 결과 열은 enrollment_id,enrolled_at 순서로 출력한다. 기간을 별도로 제한하지 않은 경우 전체 기간의 데이터를 사용한다.",
+      "description": "등록일이 가장 빠른 수강 등록을 최대 3건 조회한다. 같은 등록일에는 등록 번호가 작은 것이 먼저다. 전체 행이 3건 미만이면 모두 출력한다. 결과 열은 enrollment_id, enrolled_at 순서로 출력한다.",
       "solution": "SELECT enrollment_id,enrolled_at FROM enrollments ORDER BY enrolled_at,enrollment_id LIMIT 3",
       "explanation": "LIMIT 전에 ORDER BY로 선택 기준을 고정한다. 동점 전체 포함이 아니라 정확히 최대 세 행이다.",
       "hints": [
@@ -1190,7 +1190,7 @@
         "title"
       ],
       "ordered": true,
-      "description": "이름이 영문 SQL로 시작하는 강좌를 강좌 번호 오름차순으로 조회한다. 데이터의 영문 표기는 대문자로 통일되어 있다. 결과 열은 course_id,title 순서로 출력한다. 기간을 별도로 제한하지 않은 경우 전체 기간의 데이터를 사용한다.",
+      "description": "이름이 영문 SQL로 시작하는 강좌를 강좌 번호 오름차순으로 조회한다. 데이터의 영문 표기는 대문자로 통일되어 있다. 결과 열은 course_id, title 순서로 출력한다.",
       "solution": "SELECT course_id,title FROM courses WHERE title LIKE 'SQL%' ORDER BY course_id",
       "explanation": "끝에만 %를 붙이면 접두어 검색이 된다.",
       "hints": [
@@ -1215,7 +1215,7 @@
         "avg_score"
       ],
       "ordered": true,
-      "description": "응시가 있는 강좌별 전체 응시 수, 채점된 응시 수, 채점된 점수 평균(소수 둘째 자리)을 조회한다. 전부 미채점이면 평균은 NULL이다. 강좌 번호 오름차순이다. 결과 열은 course_id,attempt_count,graded_count,avg_score 순서로 출력한다. 기간을 별도로 제한하지 않은 경우 전체 기간의 데이터를 사용한다.",
+      "description": "응시가 있는 강좌별 전체 응시 수, 채점된 응시 수, 채점된 점수 평균(소수 둘째 자리)을 조회한다. 전부 미채점이면 평균은 NULL이다. 강좌 번호 오름차순이다. 결과 열은 course_id, attempt_count, graded_count, avg_score 순서로 출력한다.",
       "solution": "SELECT course_id,COUNT(*) AS attempt_count,COUNT(score) AS graded_count,ROUND(AVG(score),2) AS avg_score FROM attempts GROUP BY course_id ORDER BY course_id",
       "explanation": "COUNT(*)는 전체 행, COUNT(score)와 AVG(score)는 NULL이 아닌 값만 계산한다.",
       "hints": [
@@ -1238,7 +1238,7 @@
         "total_minutes"
       ],
       "ordered": true,
-      "description": "study 기록이 있는 날짜별 학습 시간 합계를 날짜 오름차순으로 조회한다. login 시간은 제외하고 0분 study 날짜는 포함한다. 결과 열은 activity_date,total_minutes 순서로 출력한다. 기간을 별도로 제한하지 않은 경우 전체 기간의 데이터를 사용한다.",
+      "description": "study 기록이 있는 날짜별 학습 시간 합계를 날짜 오름차순으로 조회한다. login 시간은 제외하고 0분 study 날짜는 포함한다. 결과 열은 activity_date, total_minutes 순서로 출력한다.",
       "solution": "SELECT activity_date,SUM(duration) AS total_minutes FROM activity WHERE kind='study' GROUP BY activity_date ORDER BY activity_date",
       "explanation": "행을 날짜로 묶기 전에 활동 종류를 제한한다.",
       "hints": [
@@ -1262,7 +1262,7 @@
         "attempt_count"
       ],
       "ordered": true,
-      "description": "채점 여부와 무관하게 같은 강좌에 2회 이상 응시한 회원·강좌 조합과 응시 수를 조회한다. 회원 번호, 강좌 번호 오름차순이다. 결과 열은 member_id,course_id,attempt_count 순서로 출력한다. 기간을 별도로 제한하지 않은 경우 전체 기간의 데이터를 사용한다.",
+      "description": "채점 여부와 무관하게 같은 강좌에 2회 이상 응시한 회원·강좌 조합과 응시 수를 조회한다. 회원 번호, 강좌 번호 오름차순이다. 결과 열은 member_id, course_id, attempt_count 순서로 출력한다.",
       "solution": "SELECT member_id,course_id,COUNT(*) AS attempt_count FROM attempts GROUP BY member_id,course_id HAVING COUNT(*)>=2 ORDER BY member_id,course_id",
       "explanation": "회원 번호만 묶으면 서로 다른 강좌의 응시가 합쳐진다. 분석 단위 두 열을 모두 GROUP BY에 둔다.",
       "hints": [
@@ -1285,7 +1285,7 @@
         "completion_days"
       ],
       "ordered": true,
-      "description": "완료된 수강 등록에 대해 완료일-등록일의 날짜 차이를 조회한다. 당일 완료는 0일이며 등록 번호 오름차순이다. 결과 열은 enrollment_id,completion_days 순서로 출력한다. 기간을 별도로 제한하지 않은 경우 전체 기간의 데이터를 사용한다.",
+      "description": "완료된 수강 등록에 대해 완료일-등록일의 날짜 차이를 조회한다. 당일 완료는 0일이며 등록 번호 오름차순이다. 결과 열은 enrollment_id, completion_days 순서로 출력한다.",
       "solution": "SELECT enrollment_id,DATEDIFF(completed_at,enrolled_at) AS completion_days FROM enrollments WHERE completed_at IS NOT NULL ORDER BY enrollment_id",
       "explanation": "DATEDIFF의 첫 인수에서 두 번째 인수를 뺀다. 날짜 차이에는 시작일을 추가로 1일 세지 않는다.",
       "hints": [
@@ -1308,7 +1308,7 @@
         "active_days"
       ],
       "ordered": true,
-      "description": "활동 기록이 있는 회원마다 login과 study를 모두 포함하여 서로 다른 활동 날짜 수를 조회한다. 같은 날의 여러 기록은 하루다. 회원 번호 오름차순이다. 결과 열은 member_id,active_days 순서로 출력한다. 기간을 별도로 제한하지 않은 경우 전체 기간의 데이터를 사용한다.",
+      "description": "활동 기록이 있는 회원마다 login과 study를 모두 포함하여 서로 다른 활동 날짜 수를 조회한다. 같은 날의 여러 기록은 하루다. 회원 번호 오름차순이다. 결과 열은 member_id, active_days 순서로 출력한다.",
       "solution": "SELECT member_id,COUNT(DISTINCT activity_date) AS active_days FROM activity GROUP BY member_id ORDER BY member_id",
       "explanation": "활동 행 수와 활동 날짜 수는 다르므로 날짜에 DISTINCT를 적용한다.",
       "hints": [
@@ -1331,7 +1331,7 @@
         "attempt_count"
       ],
       "ordered": true,
-      "description": "점수 80 이상은 우수, 60 이상 80 미만은 보통, 60 미만은 보완, NULL은 미채점으로 분류하고 구간별 응시 수를 조회한다. 존재하는 구간만 출력하며 score_band 오름차순이다. 결과 열은 score_band,attempt_count 순서로 출력한다. 기간을 별도로 제한하지 않은 경우 전체 기간의 데이터를 사용한다.",
+      "description": "점수 80 이상은 우수, 60 이상 80 미만은 보통, 60 미만은 보완, NULL은 미채점으로 분류하고 구간별 응시 수를 조회한다. 존재하는 구간만 출력하며 score_band 오름차순이다. 결과 열은 score_band, attempt_count 순서로 출력한다.",
       "solution": "SELECT CASE WHEN score IS NULL THEN '미채점' WHEN score>=80 THEN '우수' WHEN score>=60 THEN '보통' ELSE '보완' END AS score_band,COUNT(*) AS attempt_count FROM attempts GROUP BY score_band ORDER BY score_band",
       "explanation": "NULL 분기를 먼저 명시해야 미채점이 낮은 점수 구간으로 떨어지지 않는다.",
       "hints": [
@@ -1354,7 +1354,7 @@
         "total_minutes"
       ],
       "ordered": true,
-      "description": "전체 기간 study 시간이 합계 60분 이상인 회원과 학습 시간 합계를 조회한다. 총시간 내림차순, 회원 번호 오름차순이다. 결과 열은 member_id,total_minutes 순서로 출력한다. 기간을 별도로 제한하지 않은 경우 전체 기간의 데이터를 사용한다.",
+      "description": "전체 기간 study 시간이 합계 60분 이상인 회원과 학습 시간 합계를 조회한다. 총시간 내림차순, 회원 번호 오름차순이다. 결과 열은 member_id, total_minutes 순서로 출력한다.",
       "solution": "SELECT member_id,SUM(duration) AS total_minutes FROM activity WHERE kind='study' GROUP BY member_id HAVING SUM(duration)>=60 ORDER BY total_minutes DESC,member_id",
       "explanation": "한 기록의 60분 조건이 아니라 회원 전체 합계의 60분 조건이므로 HAVING을 사용한다.",
       "hints": [
@@ -1379,7 +1379,7 @@
         "member_count"
       ],
       "ordered": true,
-      "description": "모든 강좌에 대해 한 번 이상 등록한 서로 다른 회원 수를 조회한다. 재등록은 중복 계산하지 않고 등록자가 없으면 0이다. 강좌 번호 오름차순이다. 결과 열은 course_id,title,member_count 순서로 출력한다. 기간을 별도로 제한하지 않은 경우 전체 기간의 데이터를 사용한다.",
+      "description": "모든 강좌에 대해 한 번 이상 등록한 서로 다른 회원 수를 조회한다. 재등록은 중복 계산하지 않고 등록자가 없으면 0이다. 강좌 번호 오름차순이다. 결과 열은 course_id, title, member_count 순서로 출력한다.",
       "solution": "SELECT c.course_id,c.title,COUNT(DISTINCT e.member_id) AS member_count FROM courses c LEFT JOIN enrollments e ON e.course_id=c.course_id GROUP BY c.course_id,c.title ORDER BY c.course_id",
       "explanation": "등록 행 수 대신 회원의 고유 수를 센다. LEFT JOIN은 등록 없는 강좌도 보존한다.",
       "hints": [
@@ -1403,7 +1403,7 @@
         "name"
       ],
       "ordered": true,
-      "description": "점수가 NULL이 아닌 응시가 전혀 없는 회원을 조회한다. 응시가 아예 없는 회원과 미채점 응시만 있는 회원 모두 포함한다. 회원 번호 오름차순이다. 결과 열은 member_id,name 순서로 출력한다. 기간을 별도로 제한하지 않은 경우 전체 기간의 데이터를 사용한다.",
+      "description": "점수가 NULL이 아닌 응시가 전혀 없는 회원을 조회한다. 응시가 아예 없는 회원과 미채점 응시만 있는 회원 모두 포함한다. 회원 번호 오름차순이다. 결과 열은 member_id, name 순서로 출력한다.",
       "solution": "SELECT m.member_id,m.name FROM members m WHERE NOT EXISTS(SELECT 1 FROM attempts a WHERE a.member_id=m.member_id AND a.score IS NOT NULL) ORDER BY m.member_id",
       "explanation": "미채점 응시의 존재가 아니라 채점된 응시의 부재를 검사해야 한다.",
       "hints": [
@@ -1427,7 +1427,7 @@
         "score"
       ],
       "ordered": true,
-      "description": "자신의 강좌에 속한 모든 채점된 응시의 평균보다 엄격히 높은 점수의 응시를 조회한다. 회원별 최고점으로 바꾸지 않는다. 응시 번호 오름차순이다. 결과 열은 attempt_id,course_id,score 순서로 출력한다. 기간을 별도로 제한하지 않은 경우 전체 기간의 데이터를 사용한다.",
+      "description": "자신의 강좌에 속한 모든 채점된 응시의 평균보다 엄격히 높은 점수의 응시를 조회한다. 회원별 최고점으로 바꾸지 않는다. 응시 번호 오름차순이다. 결과 열은 attempt_id, course_id, score 순서로 출력한다.",
       "solution": "SELECT a.attempt_id,a.course_id,a.score FROM attempts a WHERE a.score>(SELECT AVG(b.score) FROM attempts b WHERE b.course_id=a.course_id) ORDER BY a.attempt_id",
       "explanation": "평균 계산 단위는 모든 응시 행이다. AVG는 미채점 NULL을 제외한다.",
       "hints": [
@@ -1451,7 +1451,7 @@
         "completed_members"
       ],
       "ordered": true,
-      "description": "완료된 등록이 하나 이상 있는 분야별로, 해당 분야에서 강좌를 하나 이상 완료한 서로 다른 회원 수를 조회한다. 같은 회원의 여러 완료는 한 번만 센다. 분야 오름차순이다. 결과 열은 track,completed_members 순서로 출력한다. 기간을 별도로 제한하지 않은 경우 전체 기간의 데이터를 사용한다.",
+      "description": "완료된 등록이 하나 이상 있는 분야별로, 해당 분야에서 강좌를 하나 이상 완료한 서로 다른 회원 수를 조회한다. 같은 회원의 여러 완료는 한 번만 센다. 분야 오름차순이다. 결과 열은 track, completed_members 순서로 출력한다.",
       "solution": "SELECT c.track,COUNT(DISTINCT e.member_id) AS completed_members FROM courses c JOIN enrollments e ON e.course_id=c.course_id WHERE e.completed_at IS NOT NULL GROUP BY c.track ORDER BY c.track",
       "explanation": "강좌별로 먼저 회원 수를 더하면 여러 강좌 완료자가 중복된다. 분야 그룹 안에서 직접 DISTINCT한다.",
       "hints": [
@@ -1476,7 +1476,7 @@
         "course_id"
       ],
       "ordered": true,
-      "description": "응시일 당일까지 해당 회원·강좌의 수강 등록이 없던 응시를 조회한다. 응시일과 같은 날의 등록은 유효하다. 이후 등록은 과거 응시를 유효하게 만들지 않는다. 응시 번호 오름차순이다. 결과 열은 attempt_id,member_id,course_id 순서로 출력한다. 기간을 별도로 제한하지 않은 경우 전체 기간의 데이터를 사용한다.",
+      "description": "응시일 당일까지 해당 회원·강좌의 수강 등록이 없던 응시를 조회한다. 응시일과 같은 날의 등록은 유효하다. 이후 등록은 과거 응시를 유효하게 만들지 않는다. 응시 번호 오름차순이다. 결과 열은 attempt_id, member_id, course_id 순서로 출력한다.",
       "solution": "SELECT a.attempt_id,a.member_id,a.course_id FROM attempts a WHERE NOT EXISTS(SELECT 1 FROM enrollments e WHERE e.member_id=a.member_id AND e.course_id=a.course_id AND e.enrolled_at<=a.attempted_at) ORDER BY a.attempt_id",
       "explanation": "관계 유무뿐 아니라 응시 시점까지 존재했는지 시간 조건도 함께 검사한다.",
       "hints": [
@@ -1500,7 +1500,7 @@
         "avg_best_score"
       ],
       "ordered": true,
-      "description": "모든 회원에 대해 강좌별 최고 채점 점수를 먼저 구한 뒤 그 최고점들의 평균을 소수 둘째 자리로 조회한다. 채점 점수가 전혀 없는 회원은 NULL이다. 회원 번호 오름차순이다. 결과 열은 member_id,avg_best_score 순서로 출력한다. 기간을 별도로 제한하지 않은 경우 전체 기간의 데이터를 사용한다.",
+      "description": "모든 회원에 대해 강좌별 최고 채점 점수를 먼저 구한 뒤 그 최고점들의 평균을 소수 둘째 자리로 조회한다. 채점 점수가 전혀 없는 회원은 NULL이다. 회원 번호 오름차순이다. 결과 열은 member_id, avg_best_score 순서로 출력한다.",
       "solution": "SELECT m.member_id,ROUND(AVG(b.best_score),2) AS avg_best_score FROM members m LEFT JOIN (SELECT member_id,course_id,MAX(score) AS best_score FROM attempts WHERE score IS NOT NULL GROUP BY member_id,course_id) b ON b.member_id=m.member_id GROUP BY m.member_id ORDER BY m.member_id",
       "explanation": "응시가 많은 강좌에 가중치가 쏠리지 않도록 먼저 회원·강좌 최고점으로 압축한다.",
       "hints": [
@@ -1524,7 +1524,7 @@
         "name"
       ],
       "ordered": true,
-      "description": "가입일과 같은 날짜에 study 기록이 한 건 이상 있는 회원을 조회한다. 0분 study도 인정하며 login만 있는 회원은 제외한다. 회원 번호 오름차순이다. 결과 열은 member_id,name 순서로 출력한다. 기간을 별도로 제한하지 않은 경우 전체 기간의 데이터를 사용한다.",
+      "description": "가입일과 같은 날짜에 study 기록이 한 건 이상 있는 회원을 조회한다. 0분 study도 인정하며 login만 있는 회원은 제외한다. 회원 번호 오름차순이다. 결과 열은 member_id, name 순서로 출력한다.",
       "solution": "SELECT m.member_id,m.name FROM members m WHERE EXISTS(SELECT 1 FROM activity a WHERE a.member_id=m.member_id AND a.activity_date=m.joined_at AND a.kind='study') ORDER BY m.member_id",
       "explanation": "EXISTS는 여러 당일 기록이 있더라도 회원당 한 행을 유지한다.",
       "hints": [
@@ -1549,7 +1549,7 @@
         "score_rank"
       ],
       "ordered": true,
-      "description": "채점된 응시가 있는 회원·강좌별 최고점을 구해 강좌 안에서 높은 점수 순으로 경쟁 순위를 매긴다. 동점은 같은 순위를 부여하고, 다음 순위는 앞선 인원수를 반영한다. 예를 들어 공동 1위가 두 명이면 다음은 3위다. 강좌, 순위, 회원 번호 오름차순이다. 결과 열은 course_id,member_id,best_score,score_rank 순서로 출력한다. 기간을 별도로 제한하지 않은 경우 전체 기간의 데이터를 사용한다.",
+      "description": "채점된 응시가 있는 회원·강좌별 최고점을 구해 강좌 안에서 높은 점수 순으로 경쟁 순위를 매긴다. 동점은 같은 순위를 부여하고, 다음 순위는 앞선 인원수를 반영한다. 예를 들어 공동 1위가 두 명이면 다음은 3위다. 강좌, 순위, 회원 번호 오름차순이다. 결과 열은 course_id, member_id, best_score, score_rank 순서로 출력한다.",
       "solution": "WITH best AS (SELECT course_id,member_id,MAX(score) AS best_score FROM attempts WHERE score IS NOT NULL GROUP BY course_id,member_id) SELECT course_id,member_id,best_score,RANK() OVER(PARTITION BY course_id ORDER BY best_score DESC) AS score_rank FROM best ORDER BY course_id,score_rank,member_id",
       "explanation": "최고점을 먼저 집계해야 동일 회원이 순위를 여러 개 차지하지 않는다. 경쟁 순위는 RANK다.",
       "hints": [
@@ -1574,7 +1574,7 @@
         "score"
       ],
       "ordered": true,
-      "description": "응시가 있는 각 회원·강좌의 가장 최근 응시 한 건을 조회한다. 응시일이 같으면 응시 번호가 큰 것이 최근이다. 미채점 응시도 최신 후보에 포함한다. 회원, 강좌 번호 오름차순이다. 결과 열은 member_id,course_id,attempt_id,score 순서로 출력한다. 기간을 별도로 제한하지 않은 경우 전체 기간의 데이터를 사용한다.",
+      "description": "응시가 있는 각 회원·강좌의 가장 최근 응시 한 건을 조회한다. 응시일이 같으면 응시 번호가 큰 것이 최근이다. 미채점 응시도 최신 후보에 포함한다. 회원, 강좌 번호 오름차순이다. 결과 열은 member_id, course_id, attempt_id, score 순서로 출력한다.",
       "solution": "WITH ranked AS (SELECT member_id,course_id,attempt_id,score,ROW_NUMBER() OVER(PARTITION BY member_id,course_id ORDER BY attempted_at DESC,attempt_id DESC) AS rn FROM attempts) SELECT member_id,course_id,attempt_id,score FROM ranked WHERE rn=1 ORDER BY member_id,course_id",
       "explanation": "MAX(score)는 최근 점수를 뜻하지 않는다. 날짜와 고유 번호를 기준으로 최신 행 전체를 선택한다.",
       "hints": [
@@ -1599,7 +1599,7 @@
         "score_change"
       ],
       "ordered": true,
-      "description": "채점된 응시만 대상으로 같은 회원·강좌의 직전 채점 점수 대비 변화량을 구한다. 응시일, 응시 번호 순이며 첫 채점은 NULL이다. 회원, 강좌, 응시일, 응시 번호 순으로 출력한다. 결과 열은 attempt_id,member_id,course_id,score_change 순서로 출력한다. 기간을 별도로 제한하지 않은 경우 전체 기간의 데이터를 사용한다.",
+      "description": "채점된 응시만 대상으로 같은 회원·강좌의 직전 채점 점수 대비 변화량을 구한다. 응시일, 응시 번호 순이며 첫 채점은 NULL이다. 회원, 강좌, 응시일, 응시 번호 순으로 출력한다. 결과 열은 attempt_id, member_id, course_id, score_change 순서로 출력한다.",
       "solution": "SELECT attempt_id,member_id,course_id,score-LAG(score) OVER(PARTITION BY member_id,course_id ORDER BY attempted_at,attempt_id) AS score_change FROM attempts WHERE score IS NOT NULL ORDER BY member_id,course_id,attempted_at,attempt_id",
       "explanation": "윈도 계산 전에 NULL 점수를 제거하여 직전 응시가 아니라 직전 채점과 비교한다.",
       "hints": [
@@ -1623,7 +1623,7 @@
         "cumulative_minutes"
       ],
       "ordered": true,
-      "description": "study 기록이 있는 회원·날짜별로 해당일까지의 누적 study 시간을 조회한다. 같은 날의 기록을 먼저 합친다. 회원 번호, 날짜 오름차순이다. 결과 열은 member_id,activity_date,cumulative_minutes 순서로 출력한다. 기간을 별도로 제한하지 않은 경우 전체 기간의 데이터를 사용한다.",
+      "description": "study 기록이 있는 회원·날짜별로 해당일까지의 누적 study 시간을 조회한다. 같은 날의 기록을 먼저 합친다. 회원 번호, 날짜 오름차순이다. 결과 열은 member_id, activity_date, cumulative_minutes 순서로 출력한다.",
       "solution": "WITH daily AS (SELECT member_id,activity_date,SUM(duration) AS minutes FROM activity WHERE kind='study' GROUP BY member_id,activity_date) SELECT member_id,activity_date,SUM(minutes) OVER(PARTITION BY member_id ORDER BY activity_date ROWS UNBOUNDED PRECEDING) AS cumulative_minutes FROM daily ORDER BY member_id,activity_date",
       "explanation": "날짜 단위 결과가 필요하므로 행 단위 누적에 앞서 일별 집계를 수행한다.",
       "hints": [
@@ -1648,7 +1648,7 @@
         "last_score"
       ],
       "ordered": true,
-      "description": "채점된 응시가 있는 회원·강좌별 최초 및 최종 채점 점수를 조회한다. 응시일, 응시 번호 순으로 정하며 채점 한 건이면 두 값이 같다. 회원, 강좌 번호 오름차순이다. 결과 열은 member_id,course_id,first_score,last_score 순서로 출력한다. 기간을 별도로 제한하지 않은 경우 전체 기간의 데이터를 사용한다.",
+      "description": "채점된 응시가 있는 회원·강좌별 최초 및 최종 채점 점수를 조회한다. 응시일, 응시 번호 순으로 정하며 채점 한 건이면 두 값이 같다. 회원, 강좌 번호 오름차순이다. 결과 열은 member_id, course_id, first_score, last_score 순서로 출력한다.",
       "solution": "WITH ranked AS (SELECT member_id,course_id,score,ROW_NUMBER() OVER(PARTITION BY member_id,course_id ORDER BY attempted_at,attempt_id) AS first_rn,ROW_NUMBER() OVER(PARTITION BY member_id,course_id ORDER BY attempted_at DESC,attempt_id DESC) AS last_rn FROM attempts WHERE score IS NOT NULL) SELECT member_id,course_id,MAX(CASE WHEN first_rn=1 THEN score END) AS first_score,MAX(CASE WHEN last_rn=1 THEN score END) AS last_score FROM ranked GROUP BY member_id,course_id ORDER BY member_id,course_id",
       "explanation": "양 방향 순번과 조건부 집계를 조합하면 LAST_VALUE의 기본 프레임에 의한 혼동을 피할 수 있다.",
       "hints": [
@@ -1672,7 +1672,7 @@
         "best_score"
       ],
       "ordered": true,
-      "description": "각 강좌에서 회원별 최고 채점 점수가 높은 회원을 최대 두 명 조회한다. 점수가 같으면 회원 번호가 작은 회원을 우선하며 동점 전체를 포함하지 않는다. 강좌 번호, 최고점 내림차순, 회원 번호 오름차순이다. 결과 열은 course_id,member_id,best_score 순서로 출력한다. 기간을 별도로 제한하지 않은 경우 전체 기간의 데이터를 사용한다.",
+      "description": "각 강좌에서 회원별 최고 채점 점수가 높은 회원을 최대 두 명 조회한다. 점수가 같으면 회원 번호가 작은 회원을 우선하며 동점 전체를 포함하지 않는다. 강좌 번호, 최고점 내림차순, 회원 번호 오름차순이다. 결과 열은 course_id, member_id, best_score 순서로 출력한다.",
       "solution": "WITH best AS (SELECT course_id,member_id,MAX(score) AS best_score FROM attempts WHERE score IS NOT NULL GROUP BY course_id,member_id), ranked AS (SELECT course_id,member_id,best_score,ROW_NUMBER() OVER(PARTITION BY course_id ORDER BY best_score DESC,member_id) AS rn FROM best) SELECT course_id,member_id,best_score FROM ranked WHERE rn<=2 ORDER BY course_id,best_score DESC,member_id",
       "explanation": "최대 두 명이라는 제한은 ROW_NUMBER에 적합하다. 회원 번호는 선택 시점과 출력 시점 모두 사용한다.",
       "hints": [
@@ -1697,7 +1697,7 @@
         "cumulative_pct"
       ],
       "ordered": true,
-      "description": "모든 회원의 study 총시간을 구하고, 전체 회원 중 자신 이하의 총시간을 가진 회원 비율을 백분율 소수 둘째 자리로 조회한다. 학습 기록이 없으면 총시간은 0이다. 동점 회원은 같은 비율이다. 총시간, 회원 번호 오름차순이다. 결과 열은 member_id,total_minutes,cumulative_pct 순서로 출력한다. 기간을 별도로 제한하지 않은 경우 전체 기간의 데이터를 사용한다.",
+      "description": "모든 회원의 study 총시간을 구하고, 전체 회원 중 자신 이하의 총시간을 가진 회원 비율을 백분율 소수 둘째 자리로 조회한다. 학습 기록이 없으면 총시간은 0이다. 동점 회원은 같은 비율이다. 총시간, 회원 번호 오름차순이다. 결과 열은 member_id, total_minutes, cumulative_pct 순서로 출력한다.",
       "solution": "WITH totals AS (SELECT m.member_id,COALESCE(SUM(a.duration),0) AS total_minutes FROM members m LEFT JOIN activity a ON a.member_id=m.member_id AND a.kind='study' GROUP BY m.member_id) SELECT member_id,total_minutes,ROUND(100*CUME_DIST() OVER(ORDER BY total_minutes),2) AS cumulative_pct FROM totals ORDER BY total_minutes,member_id",
       "explanation": "CUME_DIST는 동점의 마지막 위치까지 누적한 비율이다. 윈도 정렬에 회원 번호를 넣으면 동점 정책이 깨진다.",
       "hints": [
@@ -1723,7 +1723,7 @@
         "retention_pct"
       ],
       "ordered": true,
-      "description": "가입 날짜별 전체 회원 수와 정확히 가입 다음 날 study 기록이 있는 회원 수, 유지율(백분율, 소수 둘째 자리)을 조회한다. 0분 study도 인정하고 여러 기록은 회원당 한 번만 센다. 가입일 오름차순이다. 결과 열은 cohort_date,member_count,retained_count,retention_pct 순서로 출력한다. 기간을 별도로 제한하지 않은 경우 전체 기간의 데이터를 사용한다.",
+      "description": "가입 날짜별 전체 회원 수와 정확히 가입 다음 날 study 기록이 있는 회원 수, 유지율(백분율, 소수 둘째 자리)을 조회한다. 0분 study도 인정하고 여러 기록은 회원당 한 번만 센다. 가입일 오름차순이다. 결과 열은 cohort_date, member_count, retained_count, retention_pct 순서로 출력한다.",
       "solution": "WITH flags AS (SELECT m.member_id,m.joined_at,EXISTS(SELECT 1 FROM activity a WHERE a.member_id=m.member_id AND a.kind='study' AND a.activity_date=DATE_ADD(m.joined_at,INTERVAL 1 DAY)) AS retained FROM members m) SELECT joined_at AS cohort_date,COUNT(*) AS member_count,SUM(retained) AS retained_count,ROUND(100.0*SUM(retained)/COUNT(*),2) AS retention_pct FROM flags GROUP BY joined_at ORDER BY cohort_date",
       "explanation": "다음 활동일이 아닌 정확한 가입 다음 날을 검사한다. 활동하지 않은 가입자도 분모에 남는다.",
       "hints": [
@@ -1747,7 +1747,7 @@
         "longest_streak"
       ],
       "ordered": true,
-      "description": "모든 회원의 최장 연속 study 날짜 수를 조회한다. 같은 날 여러 기록은 하루이며 0분 study도 인정한다. login만 있는 날은 끊긴다. study 기록이 없으면 0을 출력한다. 회원 번호 오름차순이다. 결과 열은 member_id,longest_streak 순서로 출력한다. 기간을 별도로 제한하지 않은 경우 전체 기간의 데이터를 사용한다.",
+      "description": "모든 회원의 최장 연속 study 날짜 수를 조회한다. 같은 날 여러 기록은 하루이며 0분 study도 인정한다. login만 있는 날은 끊긴다. study 기록이 없으면 0을 출력한다. 회원 번호 오름차순이다. 결과 열은 member_id, longest_streak 순서로 출력한다.",
       "solution": "WITH days AS (SELECT DISTINCT member_id,activity_date FROM activity WHERE kind='study'), numbered AS (SELECT member_id,activity_date,ROW_NUMBER() OVER(PARTITION BY member_id ORDER BY activity_date) AS rn FROM days), lengths AS (SELECT member_id,COUNT(*) AS streak FROM numbered GROUP BY member_id,DATE_SUB(activity_date,INTERVAL rn DAY)), best AS (SELECT member_id,MAX(streak) AS longest_streak FROM lengths GROUP BY member_id) SELECT m.member_id,COALESCE(b.longest_streak,0) AS longest_streak FROM members m LEFT JOIN best b ON b.member_id=m.member_id ORDER BY m.member_id",
       "explanation": "날짜-순번으로 연속 구간을 나눈 뒤 구간 길이의 최댓값을 구한다. 회원 목록에 다시 조인해 비활동 회원을 보존한다.",
       "hints": [
@@ -1772,7 +1772,7 @@
         "name"
       ],
       "ordered": true,
-      "description": "현재 필수(required=1)인 강좌를 모두 한 번 이상 완료한 회원을 조회한다. 같은 강좌의 미완료 재등록이 있어도 완료 이력이 있으면 인정한다. 필수 강좌가 없으면 모든 회원을 출력한다. 회원 번호 오름차순이다. 결과 열은 member_id,name 순서로 출력한다. 기간을 별도로 제한하지 않은 경우 전체 기간의 데이터를 사용한다.",
+      "description": "현재 필수(required=1)인 강좌를 모두 한 번 이상 완료한 회원을 조회한다. 같은 강좌의 미완료 재등록이 있어도 완료 이력이 있으면 인정한다. 필수 강좌가 없으면 모든 회원을 출력한다. 회원 번호 오름차순이다. 결과 열은 member_id, name 순서로 출력한다.",
       "solution": "SELECT m.member_id,m.name FROM members m WHERE NOT EXISTS(SELECT 1 FROM courses c WHERE c.required=1 AND NOT EXISTS(SELECT 1 FROM enrollments e WHERE e.member_id=m.member_id AND e.course_id=c.course_id AND e.completed_at IS NOT NULL)) ORDER BY m.member_id",
       "explanation": "완료하지 않은 필수 강좌가 존재하지 않는지 검사한다. 빈 필수 집합과 재등록을 별도 예외 없이 처리한다.",
       "hints": [
@@ -1798,7 +1798,7 @@
         "total_minutes"
       ],
       "ordered": true,
-      "description": "회원별 모든 활동을 날짜 단위로 합친 뒤 인접 활동 날짜 간 차이가 2일을 초과하면 새 세션으로 나눈다. login도 활동일이며 total_minutes는 study만 합산한다. 회원별 세션 번호는 1부터 시작한다. 회원 번호, 세션 번호 오름차순이다. 결과 열은 member_id,session_number,start_date,end_date,total_minutes 순서로 출력한다. 기간을 별도로 제한하지 않은 경우 전체 기간의 데이터를 사용한다.",
+      "description": "회원별 모든 활동을 날짜 단위로 합친 뒤 인접 활동 날짜 간 차이가 2일을 초과하면 새 세션으로 나눈다. login도 활동일이며 total_minutes는 study만 합산한다. 회원별 세션 번호는 1부터 시작한다. 회원 번호, 세션 번호 오름차순이다. 결과 열은 member_id, session_number, start_date, end_date, total_minutes 순서로 출력한다.",
       "solution": "WITH daily AS (SELECT member_id,activity_date,SUM(CASE WHEN kind='study' THEN duration ELSE 0 END) AS minutes FROM activity GROUP BY member_id,activity_date), gaps AS (SELECT member_id,activity_date,minutes,LAG(activity_date) OVER(PARTITION BY member_id ORDER BY activity_date) AS previous_date FROM daily), numbered AS (SELECT member_id,activity_date,minutes,SUM(CASE WHEN previous_date IS NULL OR DATEDIFF(activity_date,previous_date)>2 THEN 1 ELSE 0 END) OVER(PARTITION BY member_id ORDER BY activity_date ROWS UNBOUNDED PRECEDING) AS session_number FROM gaps) SELECT member_id,session_number,MIN(activity_date) AS start_date,MAX(activity_date) AS end_date,SUM(minutes) AS total_minutes FROM numbered GROUP BY member_id,session_number ORDER BY member_id,session_number",
       "explanation": "먼저 새 세션 시작 여부를 만들고 누적합으로 세션 번호를 부여한다. 2일 차이는 유지하고 3일 차이부터 분리한다.",
       "hints": [
@@ -1822,7 +1822,7 @@
         "median_best_score"
       ],
       "ordered": true,
-      "description": "모든 강좌에 대해 회원별 최고 채점 점수들의 중앙값을 소수 둘째 자리로 조회한다. 짝수 인원이면 가운데 두 점수의 평균, 채점된 회원이 없으면 NULL이다. 강좌 번호 오름차순이다. 결과 열은 course_id,median_best_score 순서로 출력한다. 기간을 별도로 제한하지 않은 경우 전체 기간의 데이터를 사용한다.",
+      "description": "모든 강좌에 대해 회원별 최고 채점 점수들의 중앙값을 소수 둘째 자리로 조회한다. 짝수 인원이면 가운데 두 점수의 평균, 채점된 회원이 없으면 NULL이다. 강좌 번호 오름차순이다. 결과 열은 course_id, median_best_score 순서로 출력한다.",
       "solution": "WITH best AS (SELECT course_id,member_id,MAX(score) AS score FROM attempts WHERE score IS NOT NULL GROUP BY course_id,member_id), ranked AS (SELECT course_id,score,ROW_NUMBER() OVER(PARTITION BY course_id ORDER BY score,member_id) AS rn,COUNT(*) OVER(PARTITION BY course_id) AS n FROM best), medians AS (SELECT course_id,ROUND(AVG(score),2) AS median_best_score FROM ranked WHERE rn IN (FLOOR((n+1)/2),FLOOR((n+2)/2)) GROUP BY course_id) SELECT c.course_id,m.median_best_score FROM courses c LEFT JOIN medians m ON m.course_id=c.course_id ORDER BY c.course_id",
       "explanation": "최고점으로 응시 빈도를 제거한 뒤 위치 기반 중앙값을 계산한다. 채점 없는 강좌는 마지막 LEFT JOIN으로 복원한다.",
       "hints": [
@@ -1846,7 +1846,7 @@
         "reached_at"
       ],
       "ordered": true,
-      "description": "모든 회원에 대해 전체 기간 study 시간이 날짜 순 누적으로 처음 60분 이상 된 날짜를 조회한다. 같은 날의 기록을 모두 합친 뒤 판단한다. 달성하지 못하면 NULL을 출력한다. 회원 번호 오름차순이다. 결과 열은 member_id,reached_at 순서로 출력한다. 기간을 별도로 제한하지 않은 경우 전체 기간의 데이터를 사용한다.",
+      "description": "모든 회원에 대해 전체 기간 study 시간이 날짜 순 누적으로 처음 60분 이상 된 날짜를 조회한다. 같은 날의 기록을 모두 합친 뒤 판단한다. 달성하지 못하면 NULL을 출력한다. 회원 번호 오름차순이다. 결과 열은 member_id, reached_at 순서로 출력한다.",
       "solution": "WITH daily AS (SELECT member_id,activity_date,SUM(duration) AS minutes FROM activity WHERE kind='study' GROUP BY member_id,activity_date), running AS (SELECT member_id,activity_date,SUM(minutes) OVER(PARTITION BY member_id ORDER BY activity_date ROWS UNBOUNDED PRECEDING) AS total FROM daily), reached AS (SELECT member_id,MIN(activity_date) AS reached_at FROM running WHERE total>=60 GROUP BY member_id) SELECT m.member_id,r.reached_at FROM members m LEFT JOIN reached r ON r.member_id=m.member_id ORDER BY m.member_id",
       "explanation": "임계값을 넘는 일별 누적 행 중 첫 날짜를 선택한다. 한 활동의 시간이나 일별 시간만으로 판단하면 누적 목표를 놓친다.",
       "hints": [
@@ -1870,7 +1870,7 @@
         "member_b"
       ],
       "ordered": true,
-      "description": "서로 다른 두 회원의 전체 기간 등록 강좌 집합이 정확히 같은 쌍을 조회한다. 재등록은 집합에 영향을 주지 않는다. 두 회원 모두 적어도 한 강좌에 등록했어야 한다. 작은 회원 번호가 member_a이며 member_a, member_b 오름차순이다. 결과 열은 member_a,member_b 순서로 출력한다. 기간을 별도로 제한하지 않은 경우 전체 기간의 데이터를 사용한다.",
+      "description": "서로 다른 두 회원의 전체 기간 등록 강좌 집합이 정확히 같은 쌍을 조회한다. 재등록은 집합에 영향을 주지 않는다. 두 회원 모두 적어도 한 강좌에 등록했어야 한다. 작은 회원 번호가 member_a이며 member_a, member_b 오름차순이다. 결과 열은 member_a, member_b 순서로 출력한다.",
       "solution": "WITH registered AS (SELECT DISTINCT member_id,course_id FROM enrollments) SELECT a.member_id AS member_a,b.member_id AS member_b FROM members a JOIN members b ON a.member_id<b.member_id WHERE EXISTS(SELECT 1 FROM registered x WHERE x.member_id=a.member_id) AND NOT EXISTS(SELECT 1 FROM registered x WHERE x.member_id=a.member_id AND NOT EXISTS(SELECT 1 FROM registered y WHERE y.member_id=b.member_id AND y.course_id=x.course_id)) AND NOT EXISTS(SELECT 1 FROM registered y WHERE y.member_id=b.member_id AND NOT EXISTS(SELECT 1 FROM registered x WHERE x.member_id=a.member_id AND x.course_id=y.course_id)) ORDER BY member_a,member_b",
       "explanation": "양방향 차집합이 모두 비어 있어야 두 집합이 같다. 한 방향만 검사하면 진부분집합인 회원도 잘못 포함한다.",
       "hints": [
@@ -1893,7 +1893,7 @@
         "title"
       ],
       "ordered": true,
-      "description": "강좌명이 기초로 끝나는 강좌를 조회한다. 결과 열은 course_id,title 순서다. 정렬 기준은 course_id 순으로 적용한다. DESC가 붙은 항목은 내림차순, 나머지는 오름차순이다. 날짜 범위를 별도로 지정하지 않으면 전체 기간을 대상으로 한다.",
+      "description": "강좌명이 기초로 끝나는 강좌를 조회한다. 결과 열은 course_id, title 순서다. 정렬 기준은 course_id 오름차순으로 적용한다.",
       "solution": "SELECT course_id,title FROM courses WHERE title LIKE '%기초' ORDER BY course_id",
       "explanation": "앞쪽에만 퍼센트를 넣으면 접미어를 검색한다.",
       "hints": [
@@ -1916,7 +1916,7 @@
         "title"
       ],
       "ordered": true,
-      "description": "강좌명에 일반 공백 문자가 전혀 없는 강좌를 조회한다. 결과 열은 course_id,title 순서다. 정렬 기준은 course_id 순으로 적용한다. DESC가 붙은 항목은 내림차순, 나머지는 오름차순이다. 날짜 범위를 별도로 지정하지 않으면 전체 기간을 대상으로 한다.",
+      "description": "강좌명에 일반 공백 문자가 전혀 없는 강좌를 조회한다. 결과 열은 course_id, title 순서다. 정렬 기준은 course_id 오름차순으로 적용한다.",
       "solution": "SELECT course_id,title FROM courses WHERE title NOT LIKE '% %' ORDER BY course_id",
       "explanation": "포함 패턴을 NOT LIKE로 부정한다.",
       "hints": [
@@ -1939,7 +1939,7 @@
         "score"
       ],
       "ordered": true,
-      "description": "1번 강좌 응시 중 점수가 60 미만이거나 미채점인 행을 조회한다. 미채점 점수는 NULL 그대로 둔다. 결과 열은 attempt_id,score 순서다. 정렬 기준은 attempt_id 순으로 적용한다. DESC가 붙은 항목은 내림차순, 나머지는 오름차순이다. 날짜 범위를 별도로 지정하지 않으면 전체 기간을 대상으로 한다.",
+      "description": "1번 강좌 응시 중 점수가 60 미만이거나 미채점인 행을 조회한다. 미채점 점수는 NULL 그대로 둔다. 결과 열은 attempt_id, score 순서다. 정렬 기준은 attempt_id 오름차순으로 적용한다.",
       "solution": "SELECT attempt_id,score FROM attempts WHERE course_id=1 AND (score<60 OR score IS NULL) ORDER BY attempt_id",
       "explanation": "OR 조건을 괄호로 묶어 강좌 필터가 두 경우 모두에 적용되게 한다.",
       "hints": [
@@ -1962,7 +1962,7 @@
         "member_id"
       ],
       "ordered": true,
-      "description": "등록일과 완료일이 같은 수강을 조회한다. 완료일 NULL은 제외한다. 결과 열은 enrollment_id,member_id 순서다. 정렬 기준은 enrollment_id 순으로 적용한다. DESC가 붙은 항목은 내림차순, 나머지는 오름차순이다. 날짜 범위를 별도로 지정하지 않으면 전체 기간을 대상으로 한다.",
+      "description": "등록일과 완료일이 같은 수강을 조회한다. 완료일 NULL은 제외한다. 결과 열은 enrollment_id, member_id 순서다. 정렬 기준은 enrollment_id 오름차순으로 적용한다.",
       "solution": "SELECT enrollment_id,member_id FROM enrollments WHERE completed_at=enrolled_at ORDER BY enrollment_id",
       "explanation": "두 날짜 열을 직접 비교할 수 있으며 NULL 비교는 참이 되지 않는다.",
       "hints": [
@@ -1985,7 +1985,7 @@
         "score"
       ],
       "ordered": true,
-      "description": "모든 응시를 채점된 행 먼저, 점수 내림차순으로 조회한다. 미채점은 마지막이며 점수가 같거나 모두 NULL이면 응시 번호순이다. 결과 열은 attempt_id,score 순서다. 정렬 기준은 score IS NULL,score DESC,attempt_id 순으로 적용한다. DESC가 붙은 항목은 내림차순, 나머지는 오름차순이다. 날짜 범위를 별도로 지정하지 않으면 전체 기간을 대상으로 한다.",
+      "description": "모든 응시를 채점된 행 먼저, 점수 내림차순으로 조회한다. 미채점은 마지막이며 점수가 같거나 모두 NULL이면 응시 번호순이다. 결과 열은 attempt_id, score 순서다. 정렬 기준은 score의 채점 여부(채점된 응시 먼저), score 내림차순, attempt_id 오름차순으로 적용한다.",
       "solution": "SELECT attempt_id,score FROM attempts ORDER BY score IS NULL,score DESC,attempt_id",
       "explanation": "NULL 여부의 불리언 식을 첫 정렬 키로 쓰면 NULL의 위치를 제어한다.",
       "hints": [
@@ -2009,7 +2009,7 @@
         "join_month"
       ],
       "ordered": true,
-      "description": "가입일에서 연도와 월을 정수로 추출한다. 결과 열은 member_id,join_year,join_month 순서다. 정렬 기준은 member_id 순으로 적용한다. DESC가 붙은 항목은 내림차순, 나머지는 오름차순이다. 날짜 범위를 별도로 지정하지 않으면 전체 기간을 대상으로 한다.",
+      "description": "가입일에서 연도와 월을 정수로 추출한다. 결과 열은 member_id, join_year, join_month 순서다. 정렬 기준은 member_id 오름차순으로 적용한다.",
       "solution": "SELECT member_id,YEAR(joined_at) AS join_year,MONTH(joined_at) AS join_month FROM members ORDER BY member_id",
       "explanation": "YEAR와 MONTH는 날짜의 해당 부분을 정수로 반환한다.",
       "hints": [
@@ -2032,7 +2032,7 @@
         "title_length"
       ],
       "ordered": true,
-      "description": "강좌명의 글자 수를 계산한다. 공백도 한 글자로 센다. 결과 열은 course_id,title_length 순서다. 정렬 기준은 course_id 순으로 적용한다. DESC가 붙은 항목은 내림차순, 나머지는 오름차순이다. 날짜 범위를 별도로 지정하지 않으면 전체 기간을 대상으로 한다.",
+      "description": "강좌명의 글자 수를 계산한다. 공백도 한 글자로 센다. 결과 열은 course_id, title_length 순서다. 정렬 기준은 course_id 오름차순으로 적용한다.",
       "solution": "SELECT course_id,CHAR_LENGTH(title) AS title_length FROM courses ORDER BY course_id",
       "explanation": "한글의 바이트 수가 아니라 글자 수를 세므로 CHAR_LENGTH를 쓴다.",
       "hints": [
@@ -2055,7 +2055,7 @@
         "masked_name"
       ],
       "ordered": true,
-      "description": "회원 이름의 첫 글자 뒤에 별표 두 개를 붙여 표시한다. 이름 길이에 관계없이 별표는 두 개다. 결과 열은 member_id,masked_name 순서다. 정렬 기준은 member_id 순으로 적용한다. DESC가 붙은 항목은 내림차순, 나머지는 오름차순이다. 날짜 범위를 별도로 지정하지 않으면 전체 기간을 대상으로 한다.",
+      "description": "회원 이름의 첫 글자 뒤에 별표 두 개를 붙여 표시한다. 이름 길이에 관계없이 별표는 두 개다. 결과 열은 member_id, masked_name 순서다. 정렬 기준은 member_id 오름차순으로 적용한다.",
       "solution": "SELECT member_id,CONCAT(LEFT(name,1),'**') AS masked_name FROM members ORDER BY member_id",
       "explanation": "LEFT로 첫 글자를 추출한 다음 고정 문자열을 연결한다.",
       "hints": [
@@ -2078,7 +2078,7 @@
         "full_blocks"
       ],
       "ordered": true,
-      "description": "study 기록마다 완전히 채운 15분 구간 수를 구한다. 15분 미만은 0이다. 결과 열은 activity_id,full_blocks 순서다. 정렬 기준은 activity_id 순으로 적용한다. DESC가 붙은 항목은 내림차순, 나머지는 오름차순이다. 날짜 범위를 별도로 지정하지 않으면 전체 기간을 대상으로 한다.",
+      "description": "study 기록마다 완전히 채운 15분 구간 수를 구한다. 15분 미만은 0이다. 결과 열은 activity_id, full_blocks 순서다. 정렬 기준은 activity_id 오름차순으로 적용한다.",
       "solution": "SELECT activity_id,duration DIV 15 AS full_blocks FROM activity WHERE kind='study' ORDER BY activity_id",
       "explanation": "DIV는 나눗셈의 정수 몫만 반환한다.",
       "hints": [
@@ -2101,7 +2101,7 @@
         "completed_label"
       ],
       "ordered": true,
-      "description": "완료일을 YYYY-MM-DD 문자열로 표시하고 미완료는 진행중으로 표시한다. 결과 열은 enrollment_id,completed_label 순서다. 정렬 기준은 enrollment_id 순으로 적용한다. DESC가 붙은 항목은 내림차순, 나머지는 오름차순이다. 날짜 범위를 별도로 지정하지 않으면 전체 기간을 대상으로 한다.",
+      "description": "완료일을 YYYY-MM-DD 문자열로 표시하고 미완료는 진행중으로 표시한다. 결과 열은 enrollment_id, completed_label 순서다. 정렬 기준은 enrollment_id 오름차순으로 적용한다.",
       "solution": "SELECT enrollment_id,IFNULL(DATE_FORMAT(completed_at,'%Y-%m-%d'),'진행중') AS completed_label FROM enrollments ORDER BY enrollment_id",
       "explanation": "날짜를 문자열로 변환한 뒤 미완료 대체 문구를 넣는다.",
       "hints": [
@@ -2124,7 +2124,7 @@
         "compact_title"
       ],
       "ordered": true,
-      "description": "강좌명에서 모든 일반 공백을 제거한다. 다른 문자는 그대로 유지한다. 결과 열은 course_id,compact_title 순서다. 정렬 기준은 course_id 순으로 적용한다. DESC가 붙은 항목은 내림차순, 나머지는 오름차순이다. 날짜 범위를 별도로 지정하지 않으면 전체 기간을 대상으로 한다.",
+      "description": "강좌명에서 모든 일반 공백을 제거한다. 다른 문자는 그대로 유지한다. 결과 열은 course_id, compact_title 순서다. 정렬 기준은 course_id 오름차순으로 적용한다.",
       "solution": "SELECT course_id,REPLACE(title,' ','') AS compact_title FROM courses ORDER BY course_id",
       "explanation": "REPLACE는 지정한 부분 문자열의 모든 출현을 바꾼다.",
       "hints": [
@@ -2147,7 +2147,7 @@
         "normalized_title"
       ],
       "ordered": true,
-      "description": "강좌명에 포함된 영문자를 소문자로 변환한다. 한글과 공백은 유지한다. 결과 열은 course_id,normalized_title 순서다. 정렬 기준은 course_id 순으로 적용한다. DESC가 붙은 항목은 내림차순, 나머지는 오름차순이다. 날짜 범위를 별도로 지정하지 않으면 전체 기간을 대상으로 한다.",
+      "description": "강좌명에 포함된 영문자를 소문자로 변환한다. 한글과 공백은 유지한다. 결과 열은 course_id, normalized_title 순서다. 정렬 기준은 course_id 오름차순으로 적용한다.",
       "solution": "SELECT course_id,LOWER(title) AS normalized_title FROM courses ORDER BY course_id",
       "explanation": "LOWER는 문자 대소문자를 정규화한다.",
       "hints": [
@@ -2170,7 +2170,7 @@
         "missing_points"
       ],
       "ordered": true,
-      "description": "채점된 점수가 80 미만인 응시에 대해 80점까지 부족한 점수를 구한다. NULL은 제외한다. 결과 열은 attempt_id,missing_points 순서다. 정렬 기준은 attempt_id 순으로 적용한다. DESC가 붙은 항목은 내림차순, 나머지는 오름차순이다. 날짜 범위를 별도로 지정하지 않으면 전체 기간을 대상으로 한다.",
+      "description": "채점된 점수가 80 미만인 응시에 대해 80점까지 부족한 점수를 구한다. NULL은 제외한다. 결과 열은 attempt_id, missing_points 순서다. 정렬 기준은 attempt_id 오름차순으로 적용한다.",
       "solution": "SELECT attempt_id,80-score AS missing_points FROM attempts WHERE score<80 ORDER BY attempt_id",
       "explanation": "목표에서 현재 값을 빼면 부족분을 얻는다.",
       "hints": [
@@ -2194,7 +2194,7 @@
         "score"
       ],
       "ordered": true,
-      "description": "강좌 번호가 1과 2가 아니며 채점이 끝난 응시만 조회한다. 결과 열은 attempt_id,course_id,score 순서다. 정렬 기준은 attempt_id 순으로 적용한다. DESC가 붙은 항목은 내림차순, 나머지는 오름차순이다. 날짜 범위를 별도로 지정하지 않으면 전체 기간을 대상으로 한다.",
+      "description": "강좌 번호가 1과 2가 아니며 채점이 끝난 응시만 조회한다. 결과 열은 attempt_id, course_id, score 순서다. 정렬 기준은 attempt_id 오름차순으로 적용한다.",
       "solution": "SELECT attempt_id,course_id,score FROM attempts WHERE course_id NOT IN (1,2) AND score IS NOT NULL ORDER BY attempt_id",
       "explanation": "제외 목록과 채점 여부는 별개의 조건으로 결합한다.",
       "hints": [
@@ -2218,7 +2218,7 @@
         "completed_at"
       ],
       "ordered": true,
-      "description": "등록일이 속한 달의 말일보다 뒤에 완료된 등록을 조회한다. 미완료는 제외한다. 결과 열은 enrollment_id,enrolled_at,completed_at 순서다. 정렬 기준은 enrollment_id 순으로 적용한다. DESC가 붙은 항목은 내림차순, 나머지는 오름차순이다. 날짜 범위를 별도로 지정하지 않으면 전체 기간을 대상으로 한다.",
+      "description": "등록일이 속한 달의 말일보다 뒤에 완료된 등록을 조회한다. 미완료는 제외한다. 결과 열은 enrollment_id, enrolled_at, completed_at 순서다. 정렬 기준은 enrollment_id 오름차순으로 적용한다.",
       "solution": "SELECT enrollment_id,enrolled_at,completed_at FROM enrollments WHERE completed_at>LAST_DAY(enrolled_at) ORDER BY enrollment_id",
       "explanation": "완료일을 등록 월의 마지막 날과 비교하면 달을 넘긴 완료를 찾는다.",
       "hints": [
@@ -2241,7 +2241,7 @@
         "activity_date"
       ],
       "ordered": true,
-      "description": "토요일 또는 일요일에 남긴 활동을 종류와 시간에 관계없이 조회한다. 결과 열은 activity_id,activity_date 순서다. 정렬 기준은 activity_id 순으로 적용한다. DESC가 붙은 항목은 내림차순, 나머지는 오름차순이다. 날짜 범위를 별도로 지정하지 않으면 전체 기간을 대상으로 한다.",
+      "description": "토요일 또는 일요일에 남긴 활동을 종류와 시간에 관계없이 조회한다. 결과 열은 activity_id, activity_date 순서다. 정렬 기준은 activity_id 오름차순으로 적용한다.",
       "solution": "SELECT activity_id,activity_date FROM activity WHERE WEEKDAY(activity_date) IN (5,6) ORDER BY activity_id",
       "explanation": "WEEKDAY는 월요일 0부터 일요일 6까지 반환한다.",
       "hints": [
@@ -2264,7 +2264,7 @@
         "weekday_number"
       ],
       "ordered": true,
-      "description": "가입일의 요일을 월요일 0부터 일요일 6까지의 정수로 출력한다. 결과 열은 member_id,weekday_number 순서다. 정렬 기준은 member_id 순으로 적용한다. DESC가 붙은 항목은 내림차순, 나머지는 오름차순이다. 날짜 범위를 별도로 지정하지 않으면 전체 기간을 대상으로 한다.",
+      "description": "가입일의 요일을 월요일 0부터 일요일 6까지의 정수로 출력한다. 결과 열은 member_id, weekday_number 순서다. 정렬 기준은 member_id 오름차순으로 적용한다.",
       "solution": "SELECT member_id,WEEKDAY(joined_at) AS weekday_number FROM members ORDER BY member_id",
       "explanation": "요일 함수마다 번호 체계가 다르므로 요구한 체계에 맞춘다.",
       "hints": [
@@ -2287,7 +2287,7 @@
         "first_word"
       ],
       "ordered": true,
-      "description": "강좌명에서 첫 일반 공백 이전 문자열을 구한다. 공백이 없으면 강좌명 전체를 반환한다. 결과 열은 course_id,first_word 순서다. 정렬 기준은 course_id 순으로 적용한다. DESC가 붙은 항목은 내림차순, 나머지는 오름차순이다. 날짜 범위를 별도로 지정하지 않으면 전체 기간을 대상으로 한다.",
+      "description": "강좌명에서 첫 일반 공백 이전 문자열을 구한다. 공백이 없으면 강좌명 전체를 반환한다. 결과 열은 course_id, first_word 순서다. 정렬 기준은 course_id 오름차순으로 적용한다.",
       "solution": "SELECT course_id,SUBSTRING_INDEX(title,' ',1) AS first_word FROM courses ORDER BY course_id",
       "explanation": "구분자가 없으면 SUBSTRING_INDEX는 원본 문자열을 반환한다.",
       "hints": [
@@ -2310,7 +2310,7 @@
         "duration"
       ],
       "ordered": true,
-      "description": "활동 종류가 study이고 시간이 0보다 큰 기록만 시간 내림차순으로 조회한다. 동점은 활동 번호순이다. 결과 열은 activity_id,duration 순서다. 정렬 기준은 duration DESC,activity_id 순으로 적용한다. DESC가 붙은 항목은 내림차순, 나머지는 오름차순이다. 날짜 범위를 별도로 지정하지 않으면 전체 기간을 대상으로 한다.",
+      "description": "활동 종류가 study이고 시간이 0보다 큰 기록만 시간 내림차순으로 조회한다. 동점은 활동 번호순이다. 결과 열은 activity_id, duration 순서다. 정렬 기준은 duration 내림차순, activity_id 오름차순으로 적용한다.",
       "solution": "SELECT activity_id,duration FROM activity WHERE kind='study' AND duration>0 ORDER BY duration DESC,activity_id",
       "explanation": "활동 종류와 측정값 조건을 모두 만족하는 행만 선택한다.",
       "hints": [
@@ -2333,7 +2333,7 @@
         "score_label"
       ],
       "ordered": true,
-      "description": "채점된 응시의 정수 점수 뒤에 퍼센트 기호를 붙인다. 미채점은 제외한다. 결과 열은 attempt_id,score_label 순서다. 정렬 기준은 attempt_id 순으로 적용한다. DESC가 붙은 항목은 내림차순, 나머지는 오름차순이다. 날짜 범위를 별도로 지정하지 않으면 전체 기간을 대상으로 한다.",
+      "description": "채점된 응시의 정수 점수 뒤에 퍼센트 기호를 붙인다. 미채점은 제외한다. 결과 열은 attempt_id, score_label 순서다. 정렬 기준은 attempt_id 오름차순으로 적용한다.",
       "solution": "SELECT attempt_id,CONCAT(score,'%') AS score_label FROM attempts WHERE score IS NOT NULL ORDER BY attempt_id",
       "explanation": "CONCAT은 수치를 표시용 문자열로 연결한다.",
       "hints": [
@@ -2356,7 +2356,7 @@
         "reminder_date"
       ],
       "ordered": true,
-      "description": "각 등록일로부터 한 달 뒤 날짜를 조회한다. 다음 달에 같은 일이 없으면 그달 마지막 날로 보정한다. 완료 여부는 구분하지 않는다. 결과 열은 enrollment_id,reminder_date 순서다. 정렬 기준은 enrollment_id 순으로 적용한다. DESC가 붙은 항목은 내림차순, 나머지는 오름차순이다. 날짜 범위를 별도로 지정하지 않으면 전체 기간을 대상으로 한다.",
+      "description": "각 등록일로부터 한 달 뒤 날짜를 조회한다. 다음 달에 같은 일이 없으면 그달 마지막 날로 보정한다. 완료 여부는 구분하지 않는다. 결과 열은 enrollment_id, reminder_date 순서다. 정렬 기준은 enrollment_id 오름차순으로 적용한다.",
       "solution": "SELECT enrollment_id,DATE_ADD(enrolled_at,INTERVAL 1 MONTH) AS reminder_date FROM enrollments ORDER BY enrollment_id",
       "explanation": "한 달은 고정된 30일과 다르다. 월 간격 연산은 존재하지 않는 날짜를 월말로 보정한다.",
       "hints": [
@@ -2379,7 +2379,7 @@
         "score"
       ],
       "ordered": true,
-      "description": "점수가 60보다 크고 80보다 작은 채점 응시를 조회한다. 60과 80 및 NULL은 제외한다. 결과 열은 attempt_id,score 순서다. 정렬 기준은 attempt_id 순으로 적용한다. DESC가 붙은 항목은 내림차순, 나머지는 오름차순이다. 날짜 범위를 별도로 지정하지 않으면 전체 기간을 대상으로 한다.",
+      "description": "점수가 60보다 크고 80보다 작은 채점 응시를 조회한다. 60과 80 및 NULL은 제외한다. 결과 열은 attempt_id, score 순서다. 정렬 기준은 attempt_id 오름차순으로 적용한다.",
       "solution": "SELECT attempt_id,score FROM attempts WHERE score>60 AND score<80 ORDER BY attempt_id",
       "explanation": "양 끝을 제외하는 구간에는 BETWEEN 대신 엄격한 부등호를 쓴다.",
       "hints": [
@@ -2402,7 +2402,7 @@
         "second_character"
       ],
       "ordered": true,
-      "description": "회원 이름의 두 번째 글자를 출력한다. 두 번째 글자가 없으면 빈 문자열이다. 결과 열은 member_id,second_character 순서다. 정렬 기준은 member_id 순으로 적용한다. DESC가 붙은 항목은 내림차순, 나머지는 오름차순이다. 날짜 범위를 별도로 지정하지 않으면 전체 기간을 대상으로 한다.",
+      "description": "회원 이름의 두 번째 글자를 출력한다. 두 번째 글자가 없으면 빈 문자열이다. 결과 열은 member_id, second_character 순서다. 정렬 기준은 member_id 오름차순으로 적용한다.",
       "solution": "SELECT member_id,SUBSTRING(name,2,1) AS second_character FROM members ORDER BY member_id",
       "explanation": "문자열 위치는 1부터 시작하며 길이 1로 한 글자를 추출한다.",
       "hints": [
@@ -2425,7 +2425,7 @@
         "pass_percent"
       ],
       "ordered": true,
-      "description": "응시가 있는 강좌별로, 채점된 응시 중 80점 이상인 응시의 백분율을 소수 둘째 자리까지 반올림해 구한다. 채점된 응시가 없으면 NULL이다. 결과 열은 course_id,pass_percent 순서다. 정렬 기준은 course_id 순으로 적용한다. DESC가 붙은 항목은 내림차순, 나머지는 오름차순이다. 날짜 범위를 별도로 지정하지 않으면 전체 기간을 대상으로 한다.",
+      "description": "응시가 있는 강좌별로, 채점된 응시 중 80점 이상인 응시의 백분율을 소수 둘째 자리까지 반올림해 구한다. 채점된 응시가 없으면 NULL이다. 결과 열은 course_id, pass_percent 순서다. 정렬 기준은 course_id 오름차순으로 적용한다.",
       "solution": "SELECT course_id,ROUND(100.0*SUM(CASE WHEN score>=80 THEN 1 ELSE 0 END)/NULLIF(COUNT(score),0),2) AS pass_percent FROM attempts GROUP BY course_id ORDER BY course_id",
       "explanation": "미채점 응시는 분모에서 제외한다. 채점된 응시가 없으면 NULLIF로 0 나눗셈을 피하고 결과를 NULL로 표시한다.",
       "hints": [
@@ -2448,7 +2448,7 @@
         "score_range"
       ],
       "ordered": true,
-      "description": "응시한 회원별 채점 점수의 최고점과 최저점 차이를 구한다. 채점이 하나면 0, 전부 미채점이면 NULL이다. 결과 열은 member_id,score_range 순서다. 정렬 기준은 member_id 순으로 적용한다. DESC가 붙은 항목은 내림차순, 나머지는 오름차순이다. 날짜 범위를 별도로 지정하지 않으면 전체 기간을 대상으로 한다.",
+      "description": "응시한 회원별 채점 점수의 최고점과 최저점 차이를 구한다. 채점이 하나면 0, 전부 미채점이면 NULL이다. 결과 열은 member_id, score_range 순서다. 정렬 기준은 member_id 오름차순으로 적용한다.",
       "solution": "SELECT member_id,MAX(score)-MIN(score) AS score_range FROM attempts GROUP BY member_id ORDER BY member_id",
       "explanation": "MIN과 MAX는 NULL을 제외하며 유효값이 전혀 없으면 NULL이다.",
       "hints": [
@@ -2472,7 +2472,7 @@
         "completion_percent"
       ],
       "ordered": true,
-      "description": "등록이 있는 강좌별로 전체 등록 건수와 완료율을 구한다. 완료율은 전체 등록 중 완료된 등록의 백분율이며, 소수 둘째 자리까지 반올림한다. 재등록도 별도 건수이고 완료가 없으면 0이다. 결과 열은 course_id,enrollment_count,completion_percent 순서다. 정렬 기준은 course_id 순으로 적용한다. DESC가 붙은 항목은 내림차순, 나머지는 오름차순이다. 날짜 범위를 별도로 지정하지 않으면 전체 기간을 대상으로 한다.",
+      "description": "등록이 있는 강좌별로 전체 등록 건수와 완료율을 구한다. 완료율은 전체 등록 중 완료된 등록의 백분율이며, 소수 둘째 자리까지 반올림한다. 재등록도 별도 건수이고 완료가 없으면 0이다. 결과 열은 course_id, enrollment_count, completion_percent 순서다. 정렬 기준은 course_id 오름차순으로 적용한다.",
       "solution": "SELECT course_id,COUNT(*) AS enrollment_count,ROUND(100.0*COUNT(completed_at)/COUNT(*),2) AS completion_percent FROM enrollments GROUP BY course_id ORDER BY course_id",
       "explanation": "COUNT(completed_at)은 완료일이 NULL인 행을 제외하므로 완료된 등록 건수를 구할 수 있다.",
       "hints": [
@@ -2495,7 +2495,7 @@
         "enrollment_count"
       ],
       "ordered": true,
-      "description": "등록 이력이 있고 자신의 모든 등록을 완료한 회원과 등록 건수를 구한다. 재등록도 별도로 판단한다. 결과 열은 member_id,enrollment_count 순서다. 정렬 기준은 member_id 순으로 적용한다. DESC가 붙은 항목은 내림차순, 나머지는 오름차순이다. 날짜 범위를 별도로 지정하지 않으면 전체 기간을 대상으로 한다.",
+      "description": "등록 이력이 있고 자신의 모든 등록을 완료한 회원과 등록 건수를 구한다. 재등록도 별도로 판단한다. 결과 열은 member_id, enrollment_count 순서다. 정렬 기준은 member_id 오름차순으로 적용한다.",
       "solution": "SELECT member_id,COUNT(*) AS enrollment_count FROM enrollments GROUP BY member_id HAVING COUNT(*)=COUNT(completed_at) ORDER BY member_id",
       "explanation": "전체 건수와 완료일이 있는 건수가 같으면 미완료가 없다.",
       "hints": [
@@ -2518,7 +2518,7 @@
         "pending_count"
       ],
       "ordered": true,
-      "description": "미완료 등록이 한 건 이상 있는 강좌와 미완료 건수를 구한다. 재등록은 별도 행이다. 결과 열은 course_id,pending_count 순서다. 정렬 기준은 course_id 순으로 적용한다. DESC가 붙은 항목은 내림차순, 나머지는 오름차순이다. 날짜 범위를 별도로 지정하지 않으면 전체 기간을 대상으로 한다.",
+      "description": "미완료 등록이 한 건 이상 있는 강좌와 미완료 건수를 구한다. 재등록은 별도 행이다. 결과 열은 course_id, pending_count 순서다. 정렬 기준은 course_id 오름차순으로 적용한다.",
       "solution": "SELECT course_id,COUNT(*)-COUNT(completed_at) AS pending_count FROM enrollments GROUP BY course_id HAVING COUNT(*)>COUNT(completed_at) ORDER BY course_id",
       "explanation": "전체 행 수에서 NULL이 아닌 완료일 수를 빼면 미완료 수다.",
       "hints": [
@@ -2541,7 +2541,7 @@
         "avg_days"
       ],
       "ordered": true,
-      "description": "등록이 존재하는 모든 강좌별 완료까지 걸린 평균 일수를 소수 둘째 자리로 구한다. 당일 완료는 0, 미완료는 평균에서 제외하고 완료가 없으면 NULL이다. 결과 열은 course_id,avg_days 순서다. 정렬 기준은 course_id 순으로 적용한다. DESC가 붙은 항목은 내림차순, 나머지는 오름차순이다. 날짜 범위를 별도로 지정하지 않으면 전체 기간을 대상으로 한다.",
+      "description": "등록이 존재하는 모든 강좌별 완료까지 걸린 평균 일수를 소수 둘째 자리로 구한다. 당일 완료는 0, 미완료는 평균에서 제외하고 완료가 없으면 NULL이다. 결과 열은 course_id, avg_days 순서다. 정렬 기준은 course_id 오름차순으로 적용한다.",
       "solution": "SELECT course_id,ROUND(AVG(DATEDIFF(completed_at,enrolled_at)),2) AS avg_days FROM enrollments GROUP BY course_id ORDER BY course_id",
       "explanation": "날짜 차이의 NULL을 AVG가 제외하므로 미완료를 0으로 바꾸지 않는다.",
       "hints": [
@@ -2565,7 +2565,7 @@
         "max_minutes"
       ],
       "ordered": true,
-      "description": "활동 종류별 평균 시간과 최대 시간을 구한다. 평균은 소수 둘째 자리까지 반올림하며, 0분 기록도 계산에 포함한다. 결과 열은 kind,average_minutes,max_minutes 순서다. 정렬 기준은 kind 순으로 적용한다. DESC가 붙은 항목은 내림차순, 나머지는 오름차순이다. 날짜 범위를 별도로 지정하지 않으면 전체 기간을 대상으로 한다.",
+      "description": "활동 종류별 평균 시간과 최대 시간을 구한다. 평균은 소수 둘째 자리까지 반올림하며, 0분 기록도 계산에 포함한다. 결과 열은 kind, average_minutes, max_minutes 순서다. 정렬 기준은 kind 오름차순으로 적용한다.",
       "solution": "SELECT kind,ROUND(AVG(duration),2) AS average_minutes,MAX(duration) AS max_minutes FROM activity GROUP BY kind ORDER BY kind",
       "explanation": "0은 유효한 측정값이므로 평균의 분모에도 포함한다.",
       "hints": [
@@ -2588,7 +2588,7 @@
         "minutes_per_day"
       ],
       "ordered": true,
-      "description": "study 기록이 있는 회원별 총 study 시간을 서로 다른 study 날짜 수로 나눈 값을 소수 둘째 자리로 구한다. 0분 study 날짜도 분모에 포함한다. 결과 열은 member_id,minutes_per_day 순서다. 정렬 기준은 member_id 순으로 적용한다. DESC가 붙은 항목은 내림차순, 나머지는 오름차순이다. 날짜 범위를 별도로 지정하지 않으면 전체 기간을 대상으로 한다.",
+      "description": "study 기록이 있는 회원별 총 study 시간을 서로 다른 study 날짜 수로 나눈 값을 소수 둘째 자리로 구한다. 0분 study 날짜도 분모에 포함한다. 결과 열은 member_id, minutes_per_day 순서다. 정렬 기준은 member_id 오름차순으로 적용한다.",
       "solution": "SELECT member_id,ROUND(SUM(duration)/COUNT(DISTINCT activity_date),2) AS minutes_per_day FROM activity WHERE kind='study' GROUP BY member_id ORDER BY member_id",
       "explanation": "기록당 평균과 날짜당 평균은 분모가 다르다.",
       "hints": [
@@ -2610,7 +2610,7 @@
         "pair_count"
       ],
       "ordered": true,
-      "description": "전체 기간에 응시한 서로 다른 회원·강좌 조합 수를 한 행으로 출력한다. 재응시와 미채점 여부는 조합 수에 영향을 주지 않는다. 결과 열은 pair_count 순서다. 정렬 기준은 pair_count 순으로 적용한다. DESC가 붙은 항목은 내림차순, 나머지는 오름차순이다. 날짜 범위를 별도로 지정하지 않으면 전체 기간을 대상으로 한다.",
+      "description": "전체 기간에 응시한 서로 다른 회원·강좌 조합 수를 한 행으로 출력한다. 재응시와 미채점 여부는 조합 수에 영향을 주지 않는다. 결과 열은 pair_count 순서다. 정렬 기준은 pair_count 오름차순으로 적용한다.",
       "solution": "SELECT COUNT(DISTINCT member_id,course_id) AS pair_count FROM attempts ORDER BY pair_count",
       "explanation": "MySQL은 COUNT DISTINCT에 여러 열을 지정해 조합을 셀 수 있다.",
       "hints": [
@@ -2633,7 +2633,7 @@
         "zero_filled_average"
       ],
       "ordered": true,
-      "description": "채점된 점수만의 평균과 미채점을 0으로 넣은 전체 평균을 각각 소수 둘째 자리로 출력한다. 전체 응시가 없으면 둘 다 NULL이다. 결과 열은 graded_average,zero_filled_average 순서다. 정렬 기준은 graded_average 순으로 적용한다. DESC가 붙은 항목은 내림차순, 나머지는 오름차순이다. 날짜 범위를 별도로 지정하지 않으면 전체 기간을 대상으로 한다.",
+      "description": "채점된 점수만의 평균과 미채점을 0으로 넣은 전체 평균을 각각 소수 둘째 자리로 출력한다. 전체 응시가 없으면 둘 다 NULL이다. 결과 열은 graded_average, zero_filled_average 순서다. 정렬 기준은 graded_average 오름차순으로 적용한다.",
       "solution": "SELECT ROUND(AVG(score),2) AS graded_average,ROUND(AVG(COALESCE(score,0)),2) AS zero_filled_average FROM attempts ORDER BY graded_average",
       "explanation": "AVG 내부에서 NULL을 바꾸면 분모에 미채점 행까지 포함된다.",
       "hints": [
@@ -2657,7 +2657,7 @@
         "study_count"
       ],
       "ordered": true,
-      "description": "login과 study 기록이 모두 존재하는 회원과 종류별 기록 수를 구한다. 시간은 조건에 사용하지 않는다. 결과 열은 member_id,login_count,study_count 순서다. 정렬 기준은 member_id 순으로 적용한다. DESC가 붙은 항목은 내림차순, 나머지는 오름차순이다. 날짜 범위를 별도로 지정하지 않으면 전체 기간을 대상으로 한다.",
+      "description": "login과 study 기록이 모두 존재하는 회원과 종류별 기록 수를 구한다. 시간은 조건에 사용하지 않는다. 결과 열은 member_id, login_count, study_count 순서다. 정렬 기준은 member_id 오름차순으로 적용한다.",
       "solution": "SELECT member_id,SUM(kind='login') AS login_count,SUM(kind='study') AS study_count FROM activity GROUP BY member_id HAVING SUM(kind='login')>0 AND SUM(kind='study')>0 ORDER BY member_id",
       "explanation": "한 회원 그룹 안에서 두 조건을 각각 세어 모두 존재하는지 확인한다.",
       "hints": [
@@ -2680,7 +2680,7 @@
         "last_study_date"
       ],
       "ordered": true,
-      "description": "활동 기록이 있는 모든 회원별 마지막 study 날짜를 구한다. login만 있으면 NULL이다. 결과 열은 member_id,last_study_date 순서다. 정렬 기준은 member_id 순으로 적용한다. DESC가 붙은 항목은 내림차순, 나머지는 오름차순이다. 날짜 범위를 별도로 지정하지 않으면 전체 기간을 대상으로 한다.",
+      "description": "활동 기록이 있는 모든 회원별 마지막 study 날짜를 구한다. login만 있으면 NULL이다. 결과 열은 member_id, last_study_date 순서다. 정렬 기준은 member_id 오름차순으로 적용한다.",
       "solution": "SELECT member_id,MAX(CASE WHEN kind='study' THEN activity_date END) AS last_study_date FROM activity GROUP BY member_id ORDER BY member_id",
       "explanation": "조건에 맞지 않는 날짜를 NULL로 만들어 MAX에서 제외한다.",
       "hints": [
@@ -2703,7 +2703,7 @@
         "first_pass_date"
       ],
       "ordered": true,
-      "description": "응시한 모든 회원별 최초 80점 이상 응시일을 구한다. 합격이 없으면 NULL이며 미채점은 합격이 아니다. 결과 열은 member_id,first_pass_date 순서다. 정렬 기준은 member_id 순으로 적용한다. DESC가 붙은 항목은 내림차순, 나머지는 오름차순이다. 날짜 범위를 별도로 지정하지 않으면 전체 기간을 대상으로 한다.",
+      "description": "응시한 모든 회원별 최초 80점 이상 응시일을 구한다. 합격이 없으면 NULL이며 미채점은 합격이 아니다. 결과 열은 member_id, first_pass_date 순서다. 정렬 기준은 member_id 오름차순으로 적용한다.",
       "solution": "SELECT member_id,MIN(CASE WHEN score>=80 THEN attempted_at END) AS first_pass_date FROM attempts GROUP BY member_id ORDER BY member_id",
       "explanation": "조건부 날짜의 MIN은 사건의 첫 발생일을 구한다.",
       "hints": [
@@ -2729,7 +2729,7 @@
         "last_enrolled"
       ],
       "ordered": true,
-      "description": "동일 강좌에 두 번 이상 등록한 회원·강좌와 등록 횟수, 최초·최종 등록일을 구한다. 완료 여부는 구분하지 않는다. 결과 열은 member_id,course_id,enrollment_count,first_enrolled,last_enrolled 순서다. 정렬 기준은 member_id,course_id 순으로 적용한다. DESC가 붙은 항목은 내림차순, 나머지는 오름차순이다. 날짜 범위를 별도로 지정하지 않으면 전체 기간을 대상으로 한다.",
+      "description": "동일 강좌에 두 번 이상 등록한 회원·강좌와 등록 횟수, 최초·최종 등록일을 구한다. 완료 여부는 구분하지 않는다. 결과 열은 member_id, course_id, enrollment_count, first_enrolled, last_enrolled 순서다. 정렬 기준은 member_id 오름차순, course_id 오름차순으로 적용한다.",
       "solution": "SELECT member_id,course_id,COUNT(*) AS enrollment_count,MIN(enrolled_at) AS first_enrolled,MAX(enrolled_at) AS last_enrolled FROM enrollments GROUP BY member_id,course_id HAVING COUNT(*)>=2 ORDER BY member_id,course_id",
       "explanation": "재응시와 수강 재등록은 서로 다른 테이블의 사건이다.",
       "hints": [
@@ -2752,7 +2752,7 @@
         "required_percent"
       ],
       "ordered": true,
-      "description": "분야별 required가 1인 강좌 비율을 백분율로 소수 둘째 자리까지 구한다. required는 0 또는 1이다. 결과 열은 track,required_percent 순서다. 정렬 기준은 track 순으로 적용한다. DESC가 붙은 항목은 내림차순, 나머지는 오름차순이다. 날짜 범위를 별도로 지정하지 않으면 전체 기간을 대상으로 한다.",
+      "description": "분야별 required가 1인 강좌 비율을 백분율로 소수 둘째 자리까지 구한다. required는 0 또는 1이다. 결과 열은 track, required_percent 순서다. 정렬 기준은 track 오름차순으로 적용한다.",
       "solution": "SELECT track,ROUND(100.0*AVG(required),2) AS required_percent FROM courses GROUP BY track ORDER BY track",
       "explanation": "0과 1로 구성된 값의 평균은 1인 행의 비율이다.",
       "hints": [
@@ -2776,7 +2776,7 @@
         "longest_length"
       ],
       "ordered": true,
-      "description": "분야별 강좌명 최소·최대 글자 수를 구한다. 일반 공백도 글자 수에 포함한다. 결과 열은 track,shortest_length,longest_length 순서다. 정렬 기준은 track 순으로 적용한다. DESC가 붙은 항목은 내림차순, 나머지는 오름차순이다. 날짜 범위를 별도로 지정하지 않으면 전체 기간을 대상으로 한다.",
+      "description": "분야별 강좌명 최소·최대 글자 수를 구한다. 일반 공백도 글자 수에 포함한다. 결과 열은 track, shortest_length, longest_length 순서다. 정렬 기준은 track 오름차순으로 적용한다.",
       "solution": "SELECT track,MIN(CHAR_LENGTH(title)) AS shortest_length,MAX(CHAR_LENGTH(title)) AS longest_length FROM courses GROUP BY track ORDER BY track",
       "explanation": "먼저 각 제목의 글자 수를 구한 뒤 극값을 집계한다.",
       "hints": [
@@ -2800,7 +2800,7 @@
         "total_minutes"
       ],
       "ordered": true,
-      "description": "study가 존재하는 연월별 고유 회원 수와 총 학습 시간을 구한다. 연월은 YYYY-MM이고 0분 study도 참여로 센다. 결과 열은 activity_month,learner_count,total_minutes 순서다. 정렬 기준은 activity_month 순으로 적용한다. DESC가 붙은 항목은 내림차순, 나머지는 오름차순이다. 날짜 범위를 별도로 지정하지 않으면 전체 기간을 대상으로 한다.",
+      "description": "study가 존재하는 연월별 고유 회원 수와 총 학습 시간을 구한다. 연월은 YYYY-MM이고 0분 study도 참여로 센다. 결과 열은 activity_month, learner_count, total_minutes 순서다. 정렬 기준은 activity_month 오름차순으로 적용한다.",
       "solution": "SELECT DATE_FORMAT(activity_date,'%Y-%m') AS activity_month,COUNT(DISTINCT member_id) AS learner_count,SUM(duration) AS total_minutes FROM activity WHERE kind='study' GROUP BY DATE_FORMAT(activity_date,'%Y-%m') ORDER BY activity_month",
       "explanation": "같은 그룹에서 사람은 고유 개수로, 시간은 모든 행의 합으로 계산한다.",
       "hints": [
@@ -2824,7 +2824,7 @@
         "member_count"
       ],
       "ordered": true,
-      "description": "채점된 점수별 응시 수와 고유 회원 수를 구한다. 미채점은 제외한다. 높은 점수부터 출력한다. 결과 열은 score,attempt_count,member_count 순서다. 정렬 기준은 score DESC 순으로 적용한다. DESC가 붙은 항목은 내림차순, 나머지는 오름차순이다. 날짜 범위를 별도로 지정하지 않으면 전체 기간을 대상으로 한다.",
+      "description": "채점된 점수별 응시 수와 고유 회원 수를 구한다. 미채점은 제외한다. 높은 점수부터 출력한다. 결과 열은 score, attempt_count, member_count 순서다. 정렬 기준은 score 내림차순으로 적용한다.",
       "solution": "SELECT score,COUNT(*) AS attempt_count,COUNT(DISTINCT member_id) AS member_count FROM attempts WHERE score IS NOT NULL GROUP BY score ORDER BY score DESC",
       "explanation": "동일 점수의 반복 응시는 응시 수를 늘리지만 고유 회원 수는 늘리지 않을 수 있다.",
       "hints": [
@@ -2847,7 +2847,7 @@
         "completed_count"
       ],
       "ordered": true,
-      "description": "완료가 발생한 연월별 완료 등록 수를 구한다. 미완료는 제외하고 연월은 YYYY-MM이다. 결과 열은 completion_month,completed_count 순서다. 정렬 기준은 completion_month 순으로 적용한다. DESC가 붙은 항목은 내림차순, 나머지는 오름차순이다. 날짜 범위를 별도로 지정하지 않으면 전체 기간을 대상으로 한다.",
+      "description": "완료가 발생한 연월별 완료 등록 수를 구한다. 미완료는 제외하고 연월은 YYYY-MM이다. 결과 열은 completion_month, completed_count 순서다. 정렬 기준은 completion_month 오름차순으로 적용한다.",
       "solution": "SELECT DATE_FORMAT(completed_at,'%Y-%m') AS completion_month,COUNT(*) AS completed_count FROM enrollments WHERE completed_at IS NOT NULL GROUP BY DATE_FORMAT(completed_at,'%Y-%m') ORDER BY completion_month",
       "explanation": "등록일이 아니라 완료일을 기준으로 월을 만들어 집계한다.",
       "hints": [
@@ -2870,7 +2870,7 @@
         "graded_count"
       ],
       "ordered": true,
-      "description": "채점된 응시가 적어도 하나이고 채점된 모든 점수가 80 이상인 회원과 채점 수를 조회한다. 미채점은 조건 판단에서 제외한다. 결과 열은 member_id,graded_count 순서다. 정렬 기준은 member_id 순으로 적용한다. DESC가 붙은 항목은 내림차순, 나머지는 오름차순이다. 날짜 범위를 별도로 지정하지 않으면 전체 기간을 대상으로 한다.",
+      "description": "채점된 응시가 적어도 하나이고 채점된 모든 점수가 80 이상인 회원과 채점 수를 조회한다. 미채점은 조건 판단에서 제외한다. 결과 열은 member_id, graded_count 순서다. 정렬 기준은 member_id 오름차순으로 적용한다.",
       "solution": "SELECT member_id,COUNT(score) AS graded_count FROM attempts GROUP BY member_id HAVING COUNT(score)>0 AND MIN(score)>=80 ORDER BY member_id",
       "explanation": "최저 채점 점수가 합격선 이상이면 모든 채점 점수가 합격이다.",
       "hints": [
@@ -2894,7 +2894,7 @@
         "day_label"
       ],
       "ordered": true,
-      "description": "study가 있는 날짜별 총시간과 분류를 구한다. 합계 60분 이상은 집중, 미만은 일반이다. 결과 열은 activity_date,total_minutes,day_label 순서다. 정렬 기준은 activity_date 순으로 적용한다. DESC가 붙은 항목은 내림차순, 나머지는 오름차순이다. 날짜 범위를 별도로 지정하지 않으면 전체 기간을 대상으로 한다.",
+      "description": "study가 있는 날짜별 총시간과 분류를 구한다. 합계 60분 이상은 집중, 미만은 일반이다. 결과 열은 activity_date, total_minutes, day_label 순서다. 정렬 기준은 activity_date 오름차순으로 적용한다.",
       "solution": "SELECT activity_date,SUM(duration) AS total_minutes,CASE WHEN SUM(duration)>=60 THEN '집중' ELSE '일반' END AS day_label FROM activity WHERE kind='study' GROUP BY activity_date ORDER BY activity_date",
       "explanation": "행별 시간이 아니라 합계에 CASE를 적용해 날짜를 분류한다.",
       "hints": [
@@ -2917,7 +2917,7 @@
         "score_count"
       ],
       "ordered": true,
-      "description": "서로 다른 채점 점수가 두 종류 이상인 강좌와 점수 종류 수를 조회한다. NULL은 종류 수에서 제외한다. 결과 열은 course_id,score_count 순서다. 정렬 기준은 course_id 순으로 적용한다. DESC가 붙은 항목은 내림차순, 나머지는 오름차순이다. 날짜 범위를 별도로 지정하지 않으면 전체 기간을 대상으로 한다.",
+      "description": "서로 다른 채점 점수가 두 종류 이상인 강좌와 점수 종류 수를 조회한다. NULL은 종류 수에서 제외한다. 결과 열은 course_id, score_count 순서다. 정렬 기준은 course_id 오름차순으로 적용한다.",
       "solution": "SELECT course_id,COUNT(DISTINCT score) AS score_count FROM attempts GROUP BY course_id HAVING COUNT(DISTINCT score)>=2 ORDER BY course_id",
       "explanation": "고유 점수 개수는 응시 건수와 다르며 NULL은 세지 않는다.",
       "hints": [
@@ -2940,7 +2940,7 @@
         "total_minutes"
       ],
       "ordered": true,
-      "description": "study 기록을 월요일 0부터 일요일 6까지 요일별로 묶어 총시간을 구한다. 기록이 없는 요일은 출력하지 않는다. 결과 열은 weekday_number,total_minutes 순서다. 정렬 기준은 weekday_number 순으로 적용한다. DESC가 붙은 항목은 내림차순, 나머지는 오름차순이다. 날짜 범위를 별도로 지정하지 않으면 전체 기간을 대상으로 한다.",
+      "description": "study 기록을 월요일 0부터 일요일 6까지 요일별로 묶어 총시간을 구한다. 기록이 없는 요일은 출력하지 않는다. 결과 열은 weekday_number, total_minutes 순서다. 정렬 기준은 weekday_number 오름차순으로 적용한다.",
       "solution": "SELECT WEEKDAY(activity_date) AS weekday_number,SUM(duration) AS total_minutes FROM activity WHERE kind='study' GROUP BY WEEKDAY(activity_date) ORDER BY weekday_number",
       "explanation": "전체 기간의 같은 요일을 하나의 그룹으로 합친다.",
       "hints": [
@@ -2963,7 +2963,7 @@
         "enrollment_count"
       ],
       "ordered": true,
-      "description": "전체 등록을 완료일 NULL이면 진행중, 그 외에는 완료로 분류하여 건수를 구한다. 존재하는 분류만 출력한다. 결과 열은 completion_state,enrollment_count 순서다. 정렬 기준은 completion_state 순으로 적용한다. DESC가 붙은 항목은 내림차순, 나머지는 오름차순이다. 날짜 범위를 별도로 지정하지 않으면 전체 기간을 대상으로 한다.",
+      "description": "전체 등록을 완료일 NULL이면 진행중, 그 외에는 완료로 분류하여 건수를 구한다. 존재하는 분류만 출력한다. 결과 열은 completion_state, enrollment_count 순서다. 정렬 기준은 completion_state 오름차순으로 적용한다.",
       "solution": "SELECT CASE WHEN completed_at IS NULL THEN '진행중' ELSE '완료' END AS completion_state,COUNT(*) AS enrollment_count FROM enrollments GROUP BY completion_state ORDER BY completion_state",
       "explanation": "NULL 검사로 생성한 분류값을 그룹 키로 사용한다.",
       "hints": [
@@ -2986,7 +2986,7 @@
         "passed_courses"
       ],
       "ordered": true,
-      "description": "응시가 있는 모든 회원별 한 번이라도 80점 이상을 받은 서로 다른 강좌 수를 구한다. 미채점과 불합격만 있으면 0이다. 결과 열은 member_id,passed_courses 순서다. 정렬 기준은 member_id 순으로 적용한다. DESC가 붙은 항목은 내림차순, 나머지는 오름차순이다. 날짜 범위를 별도로 지정하지 않으면 전체 기간을 대상으로 한다.",
+      "description": "응시가 있는 모든 회원별 한 번이라도 80점 이상을 받은 서로 다른 강좌 수를 구한다. 미채점과 불합격만 있으면 0이다. 결과 열은 member_id, passed_courses 순서다. 정렬 기준은 member_id 오름차순으로 적용한다.",
       "solution": "SELECT member_id,COUNT(DISTINCT CASE WHEN score>=80 THEN course_id END) AS passed_courses FROM attempts GROUP BY member_id ORDER BY member_id",
       "explanation": "조건부로 강좌 번호를 남긴 뒤 고유 개수를 세면 재합격을 중복 집계하지 않는다.",
       "hints": [

@@ -2,8 +2,13 @@
 const problems = [];
 const counts = {1:14,2:14};
 function add(level,pack,table,title,topic,columns,request,select,tail,order,explanation){
+ const sortDescription=order.replace(/ LIMIT .*/, '').split(',').map(item=>{
+  const key=item.trim();
+  if (key==='score IS NULL') return 'score의 채점 여부(채점된 응시 먼저)';
+  return `${key.replace(/\s+(ASC|DESC)$/i, '')} ${/\s+DESC$/i.test(key)?'내림차순':'오름차순'}`;
+ }).join(', ');
  const solution=`SELECT ${select} FROM ${table}${tail?' '+tail:''} ORDER BY ${order}`;
- problems.push({pack,id:`level${level}_${++counts[level]}`,level,title,topic,tables:[table],columns:columns.split(','),ordered:true,description:`${request} 결과 열은 ${columns} 순서다. 정렬 기준은 ${order.replace(/ LIMIT .*/, '')} 순으로 적용한다. DESC가 붙은 항목은 내림차순, 나머지는 오름차순이다. 날짜 범위를 별도로 지정하지 않으면 전체 기간을 대상으로 한다.`,solution,explanation,hints:[`핵심 개념: ${topic}. 결과 한 행이 나타내는 대상을 먼저 확인하세요.`,`${explanation} ${table}에서 필요한 행을 고른 후 출력식을 계산하고 지정된 기준으로 정렬하세요.`,`-- 주석 빈칸에 출력식과 필요한 조건을 채우세요.\nSELECT /* ${columns} 출력식 */ FROM ${table}\n${tail}\nORDER BY ${order};`],starter:'-- 조건과 출력 열을 확인하세요.\nSELECT '});
+ problems.push({pack,id:`level${level}_${++counts[level]}`,level,title,topic,tables:[table],columns:columns.split(','),ordered:true,description:`${request} 결과 열은 ${columns.split(',').join(', ')} 순서다. 정렬 기준은 ${sortDescription}으로 적용한다.`,solution,explanation,hints:[`핵심 개념: ${topic}. 결과 한 행이 나타내는 대상을 먼저 확인하세요.`,`${explanation} ${table}에서 필요한 행을 고른 후 출력식을 계산하고 지정된 기준으로 정렬하세요.`,`-- 주석 빈칸에 출력식과 필요한 조건을 채우세요.\nSELECT /* ${columns} 출력식 */ FROM ${table}\n${tail}\nORDER BY ${order};`],starter:'-- 조건과 출력 열을 확인하세요.\nSELECT '});
 }
 const a=(...x)=>add(1,...x), b=(...x)=>add(2,...x);
 a('shop','customers','도시 제외와 미입력 포함','부정 조건과 NULL','customer_id,city','거주 도시가 서울이 아닌 고객과 도시가 NULL인 고객을 조회한다. NULL은 그대로 출력한다.','customer_id,city',"WHERE city<>'서울' OR city IS NULL",'customer_id','부등 비교만으로는 NULL 행을 포함할 수 없어 OR IS NULL을 결합한다.');
