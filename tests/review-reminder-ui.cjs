@@ -9,27 +9,39 @@ const root=path.resolve(__dirname,'..');
 const executable=process.argv.includes('--root-copy')?path.join(root,'YourSQL.app/Contents/MacOS/YourSQL'):process.env.YOURSQL_TEST_EXECUTABLE;
 
 async function main(){
-  for(const kind of ['upcoming','due','none']){
+  for(const kind of ['due-first','upcoming','due','none']){
     const directory=fs.mkdtempSync(path.join(os.tmpdir(),'yoursql-reminder-'));
     let app;
     try{
       fs.writeFileSync(path.join(directory,'updates.json'),JSON.stringify({repository:''}));
       const now=new Date(),yesterday=new Date(now);yesterday.setDate(now.getDate()-1);
-      if(kind==='due')new Learning(directory,()=>yesterday).answer({id:'blank1',answer:'오답'});
+      if(kind.startsWith('due'))new Learning(directory,()=>yesterday).answer({id:'blank1',answer:'오답'});
       const learning=new Learning(directory,()=>now);learning.setDailyGoal(2);
       const first=learning.snapshot().today;
       if(kind==='upcoming')learning.answer({id:'blank1',answer:'오답'});
-      for(const id of first.blanks)learning.answer({id,answer:learning.card(id).answer});
-      for(const id of first.queries)learning.queryResult(id,{status:'correct'});
-      learning.startExtra();
+      if(kind!=='due-first'){
+        for(const id of first.blanks)learning.answer({id,answer:learning.card(id).answer});
+        for(const id of first.queries)learning.queryResult(id,{status:'correct'});
+        learning.startExtra();
+        const today=learning.snapshot().today;
+        for(const id of today.blanks.slice(0,-1))learning.answer({id,answer:learning.card(id).answer});
+        for(const id of today.queries)learning.queryResult(id,{status:'correct'});
+      }
       const today=learning.snapshot().today;
-      for(const id of today.blanks.slice(0,-1))learning.answer({id,answer:learning.card(id).answer});
-      for(const id of today.queries)learning.queryResult(id,{status:'correct'});
       const last=learning.card(today.blanks.at(-1));
       const launch=()=>electron.launch({...(executable?{executablePath:executable,args:[]}:{args:[root]}),env:{...process.env,SQL_PRACTICE_DATA_DIR:directory,YOURSQL_TEST_HIDDEN:process.platform==='darwin'?'1':'0'},timeout:60000});
       app=await launch();let page=await app.firstWindow();
       await page.waitForFunction(()=>!document.getElementById('start-daily').disabled);
       assert.equal(await page.locator('#review-reminder-dialog').isVisible(),false);
+      if(kind==='due-first'){
+        assert.equal(await page.locator('#review-badge').textContent(),'1');
+        assert.equal(await page.locator('#start-daily').textContent(),'오늘의 학습 시작');
+        await page.locator('#start-daily').click();
+        await page.locator('#daily-concept-dialog').waitFor({state:'visible'});
+        console.log('복습 대기 중 당일 첫 학습: 버튼 문구·학습 시작 검사 통과');
+        continue;
+      }
+      assert.equal(await page.locator('#start-daily').textContent(),'오늘 학습 이어하기');
       await page.locator('#start-daily').click();await page.locator('#begin-blanks').click();
       if(kind==='due'){
         await page.locator('#blank-input').fill('오답');await page.locator('#blank-check').click();
@@ -38,6 +50,7 @@ async function main(){
       }
       await page.locator('#blank-input').fill(last.answer);await page.locator('#blank-check').click();
       await page.locator('#review-reminder-dialog').waitFor({state:'visible',timeout:5000});
+      if(kind==='due')assert.equal(await page.locator('#start-daily').textContent(),'복습 시작');
       const copy=await page.locator('#review-reminder-copy').textContent();
       if(kind==='due')assert.match(copy,/오늘 복습할 문제 1개/);
       else if(kind==='upcoming')assert.ok(copy.includes(learning.after(1).replaceAll('-','.')));

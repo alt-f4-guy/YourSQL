@@ -55,7 +55,7 @@
     $('daily-copy').textContent=courseComplete?'모든 단원의 빈칸과 필수 쿼리를 마쳤어요. 복습과 단원별 다시 풀기로 기억을 다져 보세요.':goalComplete?(due.length?`오늘 복습할 문제 ${due.length}개가 있어요.`:'오늘 목표를 달성했어요. 복습하거나 추가 학습을 이어서 해 보세요.'):currentComplete?'이 사이클을 마쳤어요. 다음 사이클을 시작하면 오늘 목표에 계속 반영됩니다.':'빈칸 여섯 문제, 쿼리 두 문제. 오늘도 차근차근 쌓아가요.';
     $('daily-count').replaceChildren(node('span',String(total)),node('span','/ 8'));
     $('daily-progress').value=total;$('daily-detail').textContent=`빈칸 ${t.done.length}/6 · 쿼리 ${t.queriesDone.length}/2 · 오늘 총 ${data.history[t.date].total}문제 완료`;
-    $('start-daily').disabled=!workspace;$('start-daily').hidden=currentComplete&&!due.length&&data.hasMore;$('start-daily').textContent=due.length?'복습 시작':courseComplete||currentComplete?'개념 목록 보기':total?'오늘 학습 이어하기':'오늘의 학습 시작';
+    $('start-daily').disabled=!workspace;$('start-daily').hidden=currentComplete&&!due.length&&data.hasMore;$('start-daily').textContent=currentComplete||courseComplete?(due.length?'복습 시작':'개념 목록 보기'):total?'오늘 학습 이어하기':'오늘의 학습 시작';
     $('start-extra').hidden=!currentComplete||!data.hasMore;$('start-extra').disabled=!workspace||!data.hasMore;
     $('start-extra').classList.toggle('secondary',due.length>0);
     $('start-extra').textContent=completedCycles<goalCycles?'다음 사이클 시작':'추가 학습하기';
